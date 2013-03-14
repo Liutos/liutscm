@@ -23,13 +23,13 @@ lisp_object_t make_eof_object(void) {
   return eof_object;
 }
 
-lisp_object_t read_fixnum(char c, FILE *stream) {
+lisp_object_t read_fixnum(char c, int sign, FILE *stream) {
   int number = c - '0';
   int digit;
   while (isdigit(digit = fgetc(stream))) {
     number = number * 10 + digit - '0';
   }
-  return make_fixnum(number);
+  return make_fixnum(number * sign);
 }
 
 void read_comment(FILE *stream) {
@@ -49,7 +49,16 @@ lisp_object_t read_object(FILE *stream) {
     case ';': read_comment(stream); return read_object(stream);
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-      return read_fixnum(c, stream);
+      return read_fixnum(c, 1, stream);
+    case '-': {
+      int c = fgetc(stream);
+      if (isdigit(c)) {
+        return read_fixnum(c, -1, stream);
+      } else {
+        fprintf(stderr, "unexpected token '%c'\n", c);
+        exit(1);
+      }
+    }
     default :
       fprintf(stderr, "unexpected token '%c'\n", c);
       exit(1);
