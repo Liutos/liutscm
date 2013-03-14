@@ -16,6 +16,8 @@ int main(int argc, char *argv[])
   char *cases[] = {
     "123",
     "-123",
+    "#t",
+    "#f",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");

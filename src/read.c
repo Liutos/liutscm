@@ -38,6 +38,13 @@ void read_comment(FILE *stream) {
     c = fgetc(stream);
 }
 
+lisp_object_t make_boolean(int value) {
+  lisp_object_t boolean = malloc(sizeof(struct lisp_object_t));
+  boolean->type = BOOLEAN;
+  boolean->values.boolean.value = value;
+  return boolean;
+}
+
 lisp_object_t read_object(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -57,6 +64,16 @@ lisp_object_t read_object(FILE *stream) {
       } else {
         fprintf(stderr, "unexpected token '%c'\n", c);
         exit(1);
+      }
+    }
+    case '#': {
+      int c = fgetc(stream);
+      switch (c) {
+        case 't': return make_boolean(1);
+        case 'f': return make_boolean(0);
+        default :
+          fprintf(stderr, "unexpected token '%c'\n", c);
+          exit(1);
       }
     }
     default :

@@ -1,7 +1,7 @@
 /*
  * types.h
  *
- *
+ * Definition of data types in Lisp
  *
  * Copyright (C) 2013-03-13 liutos <mat.liutos@gmail.com>
  */
@@ -11,6 +11,7 @@
 enum object_type {
   FIXNUM,
   EOF_OBJECT,
+  BOOLEAN,
 };
 
 typedef struct lisp_object_t {
@@ -19,6 +20,9 @@ typedef struct lisp_object_t {
     struct {
       int value;
     } fixnum;
+    struct {
+      int value;
+    } boolean;
   } values;
 } *lisp_object_t;
 
