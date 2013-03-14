@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
     "#\\\\n",
     "#\\ ",
     "\"Hello, world!\"",
+    "( )",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");

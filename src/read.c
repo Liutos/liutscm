@@ -60,6 +60,18 @@ lisp_object_t make_string(char *str) {
   return string;
 }
 
+lisp_object_t make_empty_list(void) {
+  lisp_object_t empty_list = malloc(sizeof(struct lisp_object_t));
+  empty_list->type = EMPTY_LIST;
+  return empty_list;
+}
+
+lisp_object_t make_close_object(void) {
+  lisp_object_t close_object = malloc(sizeof(struct lisp_object_t));
+  close_object->type = CLOSE_OBJECT;
+  return close_object;
+}
+
 lisp_object_t read_character(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -133,6 +145,16 @@ lisp_object_t read_object(FILE *stream) {
       }
     }
     case '"': return read_string(stream);
+    case '(': {
+      lisp_object_t next = read_object(stream);
+      if (CLOSE_OBJECT == next->type)
+        return make_empty_list();
+      else {
+        fprintf(stderr, "Pair not supported yet\n");
+        exit(1);
+      }
+    }
+    case ')': return make_close_object();
     default :
       fprintf(stderr, "unexpected token '%c'\n", c);
       exit(1);

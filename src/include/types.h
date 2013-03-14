@@ -14,6 +14,8 @@ enum object_type {
   BOOLEAN,
   CHARACTER,
   STRING,
+  EMPTY_LIST,
+  CLOSE_OBJECT,
 };
 
 typedef struct lisp_object_t {
