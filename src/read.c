@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 lisp_object_t make_fixnum(int value) {
   lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t));
@@ -52,6 +53,13 @@ lisp_object_t make_character(char c) {
   return character;
 }
 
+lisp_object_t make_string(char *str) {
+  lisp_object_t string = malloc(sizeof(struct lisp_object_t));
+  string->type = STRING;
+  string->values.string.value = str;
+  return string;
+}
+
 lisp_object_t read_character(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -75,6 +83,21 @@ lisp_object_t read_character(FILE *stream) {
       exit(1);
     default : return make_character(c);
   }
+}
+
+lisp_object_t read_string(FILE *stream) {
+#define BUFFER_SIZE 100
+  static char buffer[BUFFER_SIZE];
+  int i = 0;
+  int c = fgetc(stream);
+  while (i < BUFFER_SIZE - 2 && c != EOF && c != '"') {
+    buffer[i++] = c;
+    c = fgetc(stream);
+  }
+  char *str = malloc((i + 2) * sizeof(char));
+  strncpy(str, buffer, i + 1);
+  str[i + 1] = '\0';
+  return make_string(str);
 }
 
 lisp_object_t read_object(FILE *stream) {
@@ -109,6 +132,7 @@ lisp_object_t read_object(FILE *stream) {
           exit(1);
       }
     }
+    case '"': return read_string(stream);
     default :
       fprintf(stderr, "unexpected token '%c'\n", c);
       exit(1);

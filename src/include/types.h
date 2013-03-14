@@ -13,6 +13,7 @@ enum object_type {
   EOF_OBJECT,
   BOOLEAN,
   CHARACTER,
+  STRING,
 };
 
 typedef struct lisp_object_t {
@@ -27,6 +28,9 @@ typedef struct lisp_object_t {
     struct {
       char value;
     } character;
+    struct {
+      char *value;
+    } string;
   } values;
 } *lisp_object_t;
 

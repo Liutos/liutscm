@@ -35,6 +35,9 @@ void write_object(lisp_object_t object) {
       }
     }
       break;
+    case STRING:
+      printf("\"%s\"", object->values.string.value);
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

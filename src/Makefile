@@ -29,7 +29,7 @@ run-test: test.o read.o eval.o write.o
 
 clean:
 	rm -f *.o
-	rm liutscm
-	rm run-test
+	if [ -f liutscm ]; then rm liutscm; fi
+	if [ -f run-test ]; then rm run-test; fi
 
 ### Makefile ends here
