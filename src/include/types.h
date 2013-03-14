@@ -12,6 +12,7 @@ enum object_type {
   FIXNUM,
   EOF_OBJECT,
   BOOLEAN,
+  CHARACTER,
 };
 
 typedef struct lisp_object_t {
@@ -23,6 +24,9 @@ typedef struct lisp_object_t {
     struct {
       int value;
     } boolean;
+    struct {
+      char value;
+    } character;
   } values;
 } *lisp_object_t;
 

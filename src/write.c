@@ -17,6 +17,24 @@ void write_object(lisp_object_t object) {
     case BOOLEAN:
       printf("#%c", object->values.boolean.value ? 't': 'f');
       break;
+    case CHARACTER: {
+      char c = object->values.character.value;
+      switch (c) {
+        case '\n': printf("#\\\\n"); break;
+        case '\r': printf("#\\\\r"); break;
+        case '\t': printf("#\\\\t"); break;
+        case '\f': printf("#\\\\f"); break;
+        case '\b': printf("#\\\\b"); break;
+        case '\v': printf("#\\\\v"); break;
+        case '\a': printf("#\\\\a"); break;
+        default :
+          if (33 <= c && c <= 127)
+            printf("#\\%c", c);
+          else
+            printf("#\\\\x%02d", c);
+      }
+    }
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

@@ -18,6 +18,10 @@ int main(int argc, char *argv[])
     "-123",
     "#t",
     "#f",
+    "#\\a",
+    "#\\A",
+    "#\\\\n",
+    "#\\ ",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
