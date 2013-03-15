@@ -278,6 +278,8 @@ lisp_object_t read_object(FILE *stream) {
         return make_pair(next, read_pair(stream));
     }
     case ')': return make_close_object();
+    case '\'': return make_pair(find_or_create_symbol("quote"),
+                                make_pair(read_object(stream), make_empty_list()));
     default : return read_symbol(c, stream);
   }
 }

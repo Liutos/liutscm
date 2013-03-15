@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
     "(1 2)",
     "(1 (2))",
     "hello",
+    "'hello",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
