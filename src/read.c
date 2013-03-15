@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#define BUFFER_SIZE 100
+
 lisp_object_t make_fixnum(int value) {
   lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t));
   fixnum->type = FIXNUM;
@@ -81,6 +83,13 @@ lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
   return pair;
 }
 
+lisp_object_t make_symbol(char *name) {
+  lisp_object_t symbol = malloc(sizeof(struct lisp_object_t));
+  symbol->type = SYMBOL;
+  symbol->values.symbol.name = name;
+  return symbol;
+}
+
 lisp_object_t read_character(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -107,7 +116,6 @@ lisp_object_t read_character(FILE *stream) {
 }
 
 lisp_object_t read_string(FILE *stream) {
-#define BUFFER_SIZE 100
   static char buffer[BUFFER_SIZE];
   int i = 0;
   int c = fgetc(stream);
@@ -129,6 +137,25 @@ lisp_object_t read_pair(FILE *stream) {
     return make_empty_list();
   else
     return make_pair(object, read_pair(stream));
+}
+
+int is_separator(int c) {
+  return EOF == c || ' ' == c || '(' == c || ')' == c || '"' == c;
+}
+
+lisp_object_t read_symbol(char init, FILE *stream) {
+  static char buffer[BUFFER_SIZE];
+  int i = 1;
+  int c = fgetc(stream);
+  buffer[0] = init;
+  while (i < BUFFER_SIZE -2 && !is_separator(c)) {
+    buffer[i++] = c;
+    c = fgetc(stream);
+  }
+  char *name = malloc((i + 2) * sizeof(char));
+  strncpy(name, buffer, i + 1);
+  name[i + 1] = '\0';
+  return make_symbol(name);
 }
 
 lisp_object_t read_object(FILE *stream) {
@@ -172,8 +199,6 @@ lisp_object_t read_object(FILE *stream) {
         return make_pair(next, read_pair(stream));
     }
     case ')': return make_close_object();
-    default :
-      fprintf(stderr, "unexpected token '%c'\n", c);
-      exit(1);
+    default : return read_symbol(c, stream);
   }
 }

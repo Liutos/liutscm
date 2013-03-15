@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
     "(1)",
     "(1 2)",
     "(1 (2))",
+    "hello",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
