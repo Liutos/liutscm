@@ -49,5 +49,19 @@ typedef struct lisp_object_t {
 #define pair_cdr(x) ((x)->values.pair.cdr)
 #define is_pair(x) (PAIR == (x)->type)
 #define is_null(x) (EMPTY_LIST == (x)->type)
+#define symbol_name(x) ((x)->values.symbol.name)
+
+typedef struct table_entry_t {
+  char *key;
+  lisp_object_t value;
+  struct table_entry_t *next;
+} *table_entry_t;
+
+typedef struct hash_table_t {
+  unsigned int (*hash_function)(char *); /* Compute the index from the key */
+  int (*comparator)(char *, char *);    /* Compare the first and second arguments. Return zero when they're not equal and non-zero otherwise. */
+  table_entry_t *datum;
+  unsigned int size;
+} *hash_table_t;
 
 #endif
