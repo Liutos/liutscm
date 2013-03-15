@@ -55,6 +55,7 @@ void write_object(lisp_object_t object) {
     }
       break;
     case SYMBOL: printf("%s", object->values.symbol.name); break;
+    case UNDEFINED: printf("#<undefined>"); break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

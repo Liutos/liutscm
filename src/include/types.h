@@ -19,6 +19,7 @@ enum object_type {
   PAIR,
   SYMBOL,
   DOT_OBJECT,
+  UNDEFINED,
 };
 
 typedef struct lisp_object_t {
@@ -51,6 +52,7 @@ typedef struct lisp_object_t {
 #define is_pair(x) (PAIR == (x)->type)
 #define is_null(x) (EMPTY_LIST == (x)->type)
 #define symbol_name(x) ((x)->values.symbol.name)
+#define is_symbol(x) (SYMBOL == (x)->type)
 
 typedef struct table_entry_t {
   char *key;
@@ -66,5 +68,7 @@ typedef struct hash_table_t {
 } *hash_table_t;
 
 #define pair_cadr(x) pair_car(pair_cdr(x))
+#define pair_caar(x) pair_car(pair_car(x))
+#define pair_cdar(x) pair_cdr(pair_car(x))
 
 #endif
