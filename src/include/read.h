@@ -17,5 +17,7 @@ extern hash_table_t symbol_table;
 extern unsigned int hash_symbol_name(char *);
 extern int symbol_name_comparator(char *, char *);
 extern lisp_object_t find_or_create_symbol(char *);
+extern lisp_object_t make_true(void);
+extern lisp_object_t make_false(void);
 
 #endif

@@ -51,6 +51,26 @@ lisp_object_t make_boolean(int value) {
   return boolean;
 }
 
+lisp_object_t make_true(void) {
+  static lisp_object_t true_object = NULL;
+  if (true_object)
+    return true_object;
+  else {
+    true_object = make_boolean(1);
+    return true_object;
+  }
+}
+
+lisp_object_t make_false(void) {
+  static lisp_object_t false_object = NULL;
+  if (false_object)
+    return false_object;
+  else {
+    false_object = make_boolean(0);
+    return false_object;
+  }
+}
+
 lisp_object_t make_character(char c) {
   lisp_object_t character = malloc(sizeof(struct lisp_object_t));
   character->type = CHARACTER;
@@ -276,8 +296,8 @@ lisp_object_t read_object(FILE *stream) {
     case '#': {
       int c = fgetc(stream);
       switch (c) {
-        case 't': return make_boolean(1);
-        case 'f': return make_boolean(0);
+        case 't': return make_true();
+        case 'f': return make_false();
         case '\\': return read_character(stream);
         default :
           fprintf(stderr, "unexpected token '%c'\n", c);

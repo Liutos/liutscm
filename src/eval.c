@@ -149,6 +149,26 @@ void set_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment
   add_binding(var, val, tmp);
 }
 
+int is_if_form(lisp_object_t object) {
+  return is_tag_list(object, "if");
+}
+
+lisp_object_t if_test_part(lisp_object_t if_form) {
+  return pair_cadr(if_form);
+}
+
+lisp_object_t if_then_part(lisp_object_t if_form) {
+  return pair_caddr(if_form);
+}
+
+lisp_object_t if_else_part(lisp_object_t if_form) {
+  lisp_object_t alt = pair_cdddr(if_form);
+  if (is_null(alt))
+    return make_empty_list();
+  else
+    return pair_car(alt);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_quote_form(object))
     return quotation_text(object);
@@ -163,6 +183,15 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t value = eval_object(assignment_value(object), environment);
     set_binding(assignment_variable(object), value, environment);
     return make_undefined();
+  }
+  if (is_if_form(object)) {
+    lisp_object_t test_part = if_test_part(object);
+    lisp_object_t then_part = if_then_part(object);
+    lisp_object_t else_part = if_else_part(object);
+    if (eval_object(test_part, environment) == make_true())
+      return eval_object(then_part, environment);
+    else
+      return eval_object(else_part, environment);
   }
   else
     return object;
