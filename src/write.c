@@ -1,7 +1,7 @@
 /*
  * write.c
  *
- *
+ * Printer for Lisp objects
  *
  * Copyright (C) 2013-03-13 liutos <mat.liutos@gmail.com>
  */
@@ -56,6 +56,7 @@ void write_object(lisp_object_t object) {
       break;
     case SYMBOL: printf("%s", object->values.symbol.name); break;
     case UNDEFINED: printf("#<undefined>"); break;
+    case PRIMITIVE_PROC: printf("#<procedure %p>", object->values.primitive_proc.C_proc); break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

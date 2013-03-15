@@ -20,6 +20,7 @@ enum object_type {
   SYMBOL,
   DOT_OBJECT,
   UNDEFINED,
+  PRIMITIVE_PROC,
 };
 
 typedef struct lisp_object_t {
@@ -44,6 +45,9 @@ typedef struct lisp_object_t {
     struct {
       char *name;
     } symbol;
+    struct {
+      struct lisp_object_t *(*C_proc)(struct lisp_object_t *);
+    } primitive_proc;
   } values;
 } *lisp_object_t;
 
@@ -53,6 +57,8 @@ typedef struct lisp_object_t {
 #define is_null(x) (EMPTY_LIST == (x)->type)
 #define symbol_name(x) ((x)->values.symbol.name)
 #define is_symbol(x) (SYMBOL == (x)->type)
+#define fixnum_value(x) ((x)->values.fixnum.value)
+#define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 
 typedef struct table_entry_t {
   char *key;

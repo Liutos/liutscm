@@ -169,6 +169,30 @@ lisp_object_t if_else_part(lisp_object_t if_form) {
     return pair_car(alt);
 }
 
+int is_application_form(lisp_object_t object) {
+  return is_pair(object);
+}
+
+lisp_object_t application_operator(lisp_object_t application_form) {
+  return pair_car(application_form);
+}
+
+lisp_object_t application_operands(lisp_object_t application_form) {
+  return pair_cdr(application_form);
+}
+
+lisp_object_t eval_object(lisp_object_t, lisp_object_t);
+
+lisp_object_t eval_arguments(lisp_object_t arguments, lisp_object_t environment) {
+  if (is_null(arguments))
+    return make_empty_list();
+  else {
+    lisp_object_t first = pair_car(arguments);
+    return make_pair(eval_object(first, environment),
+                     eval_arguments(pair_cdr(arguments), environment));
+  }
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_quote_form(object))
     return quotation_text(object);
@@ -193,6 +217,38 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     else
       return eval_object(else_part, environment);
   }
+  if (is_application_form(object)) {
+    lisp_object_t operator = application_operator(object);
+    lisp_object_t operands = application_operands(object);
+    operator = eval_object(operator, environment);
+    operands = eval_arguments(operands, environment);
+    return (primitive_C_proc(operator))(operands);
+  }
   else
     return object;
+}
+
+extern lisp_object_t make_fixnum(int);
+
+lisp_object_t plus_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) + fixnum_value(n2));
+}
+
+lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
+  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
+  proc->type = PRIMITIVE_PROC;
+  proc->values.primitive_proc.C_proc = C_proc;
+  return proc;
+}
+
+void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) {
+  lisp_object_t proc = make_primitive_proc(C_proc);
+  lisp_object_t var = find_or_create_symbol(Lisp_name);
+  add_binding(var, proc, environment);
+}
+
+void init_environment(lisp_object_t environment) {
+  add_primitive_proc("+", plus_proc, environment);
 }

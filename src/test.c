@@ -34,11 +34,14 @@ int main(int argc, char *argv[])
     /* "foo", */
     /* "(set! foo 2)", */
     /* "foo", */
-    "(if #t 1 2)",
-    "(if #f 1 2)",
+    /* "(if #t 1 2)", */
+    /* "(if #f 1 2)", */
+    "+",
+    "(+ 1 2)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   lisp_object_t startup_environment = make_startup_environment();
+  init_environment(startup_environment);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     printf(">> %s\n=> ", cases[i]);
