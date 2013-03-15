@@ -245,6 +245,7 @@ lisp_object_t read_symbol(char init, FILE *stream) {
     buffer[i++] = c;
     c = fgetc(stream);
   }
+  ungetc(c, stream);
   char *name = malloc((i + 2) * sizeof(char));
   strncpy(name, buffer, i + 1);
   name[i + 1] = '\0';
