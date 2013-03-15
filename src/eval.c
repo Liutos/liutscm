@@ -9,6 +9,12 @@
 #include "read.h"
 #include <stdlib.h>
 
+lisp_object_t make_pair(lisp_object_t, lisp_object_t);
+
+int is_tag_list(lisp_object_t object, char *symbol_name) {
+  return is_pair(object) && find_or_create_symbol(symbol_name) == pair_car(object);
+}
+
 int is_quote_form(lisp_object_t object) {
   return is_pair(object) && find_or_create_symbol("quote") == pair_car(object);
 }
@@ -17,17 +23,18 @@ lisp_object_t quotation_text(lisp_object_t quote_form) {
   return pair_cadr(quote_form);
 }
 
-lisp_object_t environment_vars(lisp_object_t environment) {
-  return pair_caar(environment);
-}
-
-lisp_object_t environment_vals(lisp_object_t environment) {
-  return pair_cdar(environment);
-}
-
-lisp_object_t enclosing_environment(lisp_object_t environment) {
-  return pair_cdr(environment);
-}
+/* lisp_object_t environment_vars(lisp_object_t environment) { */
+/*   return pair_caar(environment); */
+/* } */
+#define environment_vars(x) pair_caar(x)
+/* lisp_object_t environment_vals(lisp_object_t environment) { */
+/*   return pair_cdar(environment); */
+/* } */
+#define environment_vals(x) pair_cdar(x)
+/* lisp_object_t enclosing_environment(lisp_object_t environment) { */
+/*   return pair_cdr(environment); */
+/* } */
+#define enclosing_environment(x) pair_cdr(x)
 
 lisp_object_t make_undefined(void) {
   lisp_object_t undefined = malloc(sizeof(struct lisp_object_t));
@@ -35,23 +42,81 @@ lisp_object_t make_undefined(void) {
   return undefined;
 }
 
-lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
-  while (is_pair(environment)) {
-    lisp_object_t vars = environment_vars(environment);
-    lisp_object_t vals = environment_vals(environment);
+lisp_object_t make_empty_list(void);
+
+lisp_object_t make_empty_environment(void) {
+  return make_empty_list();
+}
+
+lisp_object_t make_startup_environment(void) {
+  lisp_object_t vars = make_empty_list();
+  lisp_object_t vals = make_empty_list();
+  return make_pair(make_pair(vars, vals), make_empty_list());
+}
+
+int is_empty_environment(lisp_object_t env) {
+  return is_null(env);
+}
+
+lisp_object_t search_binding(lisp_object_t var, lisp_object_t env) {
+  while (!is_empty_environment(env)) {
+    lisp_object_t vars = environment_vars(env);
+    lisp_object_t vals = environment_vals(env);
     while (is_pair(vars)) {
       if (pair_car(vars) == var)
-        return pair_cdr(vals);
+        return make_pair(pair_car(vars), pair_car(vals)); /* pair as binding */
       vars = pair_cdr(vars);
       vals = pair_cdr(vals);
     }
-    environment = enclosing_environment(environment);
+    env = enclosing_environment(env);
   }
-  return make_undefined();
+  return NULL;
+}
+
+lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
+  /* while (is_pair(environment)) { */
+  /*   lisp_object_t vars = environment_vars(environment); */
+  /*   lisp_object_t vals = environment_vals(environment); */
+  /*   while (is_pair(vars)) { */
+  /*     if (pair_car(vars) == var) */
+  /*       return pair_car(vals); */
+  /*     vars = pair_cdr(vars); */
+  /*     vals = pair_cdr(vals); */
+  /*   } */
+  /*   environment = enclosing_environment(environment); */
+  /* } */
+  /* return make_undefined(); */
+  lisp_object_t cell = search_binding(var, environment);
+  if (cell)
+    return pair_cdr(cell);
+  else
+    return make_undefined();
 }
 
 int is_variable(lisp_object_t object) {
   return is_symbol(object);
+}
+
+int is_define_form(lisp_object_t object) {
+  return is_tag_list(object, "define");
+}
+
+lisp_object_t definition_variable(lisp_object_t define_form) {
+  return pair_cadr(define_form);
+}
+
+lisp_object_t definition_value(lisp_object_t define_form) {
+  return pair_caddr(define_form);
+}
+
+void add_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment) {
+  lisp_object_t cell = search_binding(var, environment);
+  if (!cell) {
+    lisp_object_t vars = environment_vars(environment);
+    lisp_object_t vals = environment_vals(environment);
+    environment_vars(environment) = make_pair(var, vars);
+    environment_vals(environment) = make_pair(val, vals);
+  }
 }
 
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
@@ -59,6 +124,11 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     return quotation_text(object);
   if (is_variable(object))
     return get_variable_value(object, environment);
+  if (is_define_form(object)) {
+    lisp_object_t value = eval_object(definition_value(object), environment);
+    add_binding(definition_variable(object), value, environment);
+    return make_undefined();
+  }
   else
     return object;
 }

@@ -246,10 +246,9 @@ lisp_object_t read_symbol(char init, FILE *stream) {
     c = fgetc(stream);
   }
   ungetc(c, stream);
-  char *name = malloc((i + 2) * sizeof(char));
-  strncpy(name, buffer, i + 1);
-  name[i + 1] = '\0';
-  /* return make_symbol(name); */
+  char *name = malloc((i + 1) * sizeof(char));
+  strncpy(name, buffer, i);
+  name[i] = '\0';
   return find_or_create_symbol(name);
 }
 
