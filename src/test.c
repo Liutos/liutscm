@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     "(1 (2))",
     "hello",
   };
+  symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     printf(">> %s\n=> ", cases[i]);

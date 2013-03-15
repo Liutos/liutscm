@@ -13,6 +13,8 @@
 
 #define BUFFER_SIZE 100
 
+hash_table_t symbol_table;
+
 lisp_object_t make_fixnum(int value) {
   lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t));
   fixnum->type = FIXNUM;
@@ -90,6 +92,82 @@ lisp_object_t make_symbol(char *name) {
   return symbol;
 }
 
+hash_table_t make_hash_table(unsigned int (*hash_function)(char *), int (*comparator)(char *, char *), unsigned int size) {
+  hash_table_t table = malloc(sizeof(struct hash_table_t));
+  table->hash_function = hash_function;
+  table->comparator = comparator;
+  table->size = size;
+  table->datum = malloc(size * sizeof(struct lisp_object_t));
+  memset(table->datum, '\0', size);
+  return table;
+}
+
+unsigned int hash_symbol_name(char *name) {
+  unsigned int val;
+  for (val = 0; *name != '\0'; name++)
+    val = (val << 5) + *name;
+  return val;
+}
+
+int symbol_name_comparator(char *n1, char *n2) {
+  return strcmp(n1, n2);
+}
+
+unsigned int compute_index(char *key, hash_table_t table) {
+  unsigned int (*hash_function)(char *);
+  hash_function = table->hash_function;
+  unsigned int size = table->size;
+  return hash_function(key) % size;
+}
+
+lisp_object_t find_in_hash_table(char *target, hash_table_t table) {
+  unsigned int index = compute_index(target, table);
+  table_entry_t entry = table->datum[index];
+  int (*comparator)(char *, char *);
+  comparator = table->comparator;
+  while (entry != NULL) {
+    char *key = entry->key;
+    if (0 == comparator(key, target))
+      return entry->value;
+    entry = entry->next;
+  }
+  return NULL;
+}
+
+table_entry_t make_entry(char *key, lisp_object_t value, table_entry_t next) {
+  table_entry_t entry = malloc(sizeof(struct table_entry_t));
+  entry->key = key;
+  entry->value = value;
+  entry->next = next;
+  return entry;
+}
+
+void store_into_hash_table(char *key, lisp_object_t value, hash_table_t table) {
+  unsigned int index = compute_index(key, table);
+  table_entry_t entry = table->datum[index];
+  table_entry_t new_entry = make_entry(key, value, entry);
+  table->datum[index] = new_entry;
+}
+
+lisp_object_t find_symbol(char *name) {
+  return find_in_hash_table(name, symbol_table);
+}
+
+void store_symbol(lisp_object_t symbol) {
+  char *key = symbol_name(symbol);
+  store_into_hash_table(key, symbol, symbol_table);
+}
+
+lisp_object_t find_or_create_symbol(char *name) {
+  lisp_object_t symbol = find_symbol(name);
+  if (NULL == symbol) {
+    symbol = make_symbol(name);
+    store_symbol(symbol);
+    return symbol;
+  } else
+    return symbol;
+}
+
 lisp_object_t read_character(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -155,7 +233,8 @@ lisp_object_t read_symbol(char init, FILE *stream) {
   char *name = malloc((i + 2) * sizeof(char));
   strncpy(name, buffer, i + 1);
   name[i + 1] = '\0';
-  return make_symbol(name);
+  /* return make_symbol(name); */
+  return find_or_create_symbol(name);
 }
 
 lisp_object_t read_object(FILE *stream) {
