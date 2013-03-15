@@ -65,4 +65,6 @@ typedef struct hash_table_t {
   unsigned int size;
 } *hash_table_t;
 
+#define pair_cadr(x) pair_car(pair_cdr(x))
+
 #endif
