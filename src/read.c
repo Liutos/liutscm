@@ -30,6 +30,7 @@ lisp_object_t read_fixnum(char c, int sign, FILE *stream) {
   while (isdigit(digit = fgetc(stream))) {
     number = number * 10 + digit - '0';
   }
+  ungetc(digit, stream);
   return make_fixnum(number * sign);
 }
 
@@ -72,6 +73,14 @@ lisp_object_t make_close_object(void) {
   return close_object;
 }
 
+lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
+  lisp_object_t pair = malloc(sizeof(struct lisp_object_t));
+  pair->type = PAIR;
+  pair->values.pair.car = car;
+  pair->values.pair.cdr = cdr;
+  return pair;
+}
+
 lisp_object_t read_character(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -112,6 +121,16 @@ lisp_object_t read_string(FILE *stream) {
   return make_string(str);
 }
 
+lisp_object_t read_object(FILE *);
+
+lisp_object_t read_pair(FILE *stream) {
+  lisp_object_t object = read_object(stream);
+  if (CLOSE_OBJECT == object->type)
+    return make_empty_list();
+  else
+    return make_pair(object, read_pair(stream));
+}
+
 lisp_object_t read_object(FILE *stream) {
   int c = fgetc(stream);
   switch (c) {
@@ -149,10 +168,8 @@ lisp_object_t read_object(FILE *stream) {
       lisp_object_t next = read_object(stream);
       if (CLOSE_OBJECT == next->type)
         return make_empty_list();
-      else {
-        fprintf(stderr, "Pair not supported yet\n");
-        exit(1);
-      }
+      else
+        return make_pair(next, read_pair(stream));
     }
     case ')': return make_close_object();
     default :

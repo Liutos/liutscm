@@ -16,6 +16,7 @@ enum object_type {
   STRING,
   EMPTY_LIST,
   CLOSE_OBJECT,
+  PAIR,
 };
 
 typedef struct lisp_object_t {
@@ -33,7 +34,16 @@ typedef struct lisp_object_t {
     struct {
       char *value;
     } string;
+    struct {
+      struct lisp_object_t *car;
+      struct lisp_object_t *cdr;
+    } pair;
   } values;
 } *lisp_object_t;
+
+#define pair_car(x) ((x)->values.pair.car)
+#define pair_cdr(x) ((x)->values.pair.cdr)
+#define is_pair(x) (PAIR == (x)->type)
+#define is_null(x) (EMPTY_LIST == (x)->type)
 
 #endif

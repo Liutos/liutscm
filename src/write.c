@@ -39,6 +39,21 @@ void write_object(lisp_object_t object) {
       printf("\"%s\"", object->values.string.value);
       break;
     case EMPTY_LIST: printf("()"); break;
+    case PAIR: {
+      putchar('(');
+      write_object(pair_car(object));
+      lisp_object_t x;
+      for (x = pair_cdr(object); is_pair(x); x = pair_cdr(x)) {
+        putchar(' ');
+        write_object(pair_car(x));
+      }
+      if (!is_null(x)) {
+        printf(" . ");
+        write_object(x);
+      }
+      putchar(')');
+    }
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);
