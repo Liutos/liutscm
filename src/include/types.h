@@ -18,6 +18,7 @@ enum object_type {
   CLOSE_OBJECT,
   PAIR,
   SYMBOL,
+  DOT_OBJECT,
 };
 
 typedef struct lisp_object_t {

@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     "\"Hello, world!\"",
     "( )",
     "(1)",
-    "(1 2)",
+    "(1 . 2)",
     "(1 (2))",
     "hello",
     "'hello",

@@ -77,6 +77,12 @@ lisp_object_t make_close_object(void) {
   return close_object;
 }
 
+lisp_object_t make_dot_object(void) {
+  lisp_object_t dot_object = malloc(sizeof(struct lisp_object_t));
+  dot_object->type = DOT_OBJECT;
+  return dot_object;
+}
+
 lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
   lisp_object_t pair = malloc(sizeof(struct lisp_object_t));
   pair->type = PAIR;
@@ -213,7 +219,16 @@ lisp_object_t read_pair(FILE *stream) {
   lisp_object_t object = read_object(stream);
   if (CLOSE_OBJECT == object->type)
     return make_empty_list();
-  else
+  if (DOT_OBJECT == object->type) {
+    lisp_object_t o1 = read_object(stream);
+    lisp_object_t o2 = read_object(stream);
+    if (CLOSE_OBJECT == o2->type)
+      return o1;
+    else {
+      fprintf(stderr, "More than one objects after '.'");
+      exit(1);
+    }
+  } else
     return make_pair(object, read_pair(stream));
 }
 
@@ -280,6 +295,7 @@ lisp_object_t read_object(FILE *stream) {
     case ')': return make_close_object();
     case '\'': return make_pair(find_or_create_symbol("quote"),
                                 make_pair(read_object(stream), make_empty_list()));
+    case '.': return make_dot_object();
     default : return read_symbol(c, stream);
   }
 }
