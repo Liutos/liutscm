@@ -14,23 +14,25 @@
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    "123",
-    "-123",
-    "#t",
-    "#f",
-    "#\\a",
-    "#\\A",
-    "#\\\\n",
-    "#\\ ",
-    "\"Hello, world!\"",
-    "( )",
-    "(1)",
-    "(1 . 2)",
-    "(1 (2))",
-    "hello",
-    "'hello",
-    "(quote hello)",
+    /* "123", */
+    /* "-123", */
+    /* "#t", */
+    /* "#f", */
+    /* "#\\a", */
+    /* "#\\A", */
+    /* "#\\\\n", */
+    /* "#\\ ", */
+    /* "\"Hello, world!\"", */
+    /* "( )", */
+    /* "(1)", */
+    /* "(1 . 2)", */
+    /* "(1 (2))", */
+    /* "hello", */
+    /* "'hello", */
+    /* "(quote hello)", */
     "(define foo 1)",
+    "foo",
+    "(set! foo 2)",
     "foo",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);

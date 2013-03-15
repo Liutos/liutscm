@@ -119,6 +119,36 @@ void add_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment
   }
 }
 
+int is_assignment_form(lisp_object_t object) {
+  return is_tag_list(object, "set!");
+}
+
+lisp_object_t assignment_variable(lisp_object_t assignment_form) {
+  return pair_cadr(assignment_form);
+}
+
+lisp_object_t assignment_value(lisp_object_t assignment_form) {
+  return pair_caddr(assignment_form);
+}
+
+void set_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment) {
+  lisp_object_t tmp = environment;
+  while (!is_empty_environment(environment)) {
+    lisp_object_t vars = environment_vars(environment);
+    lisp_object_t vals = environment_vals(environment);
+    while (is_pair(vars)) {
+      if (pair_car(vars) == var) {
+        pair_car(vals) = val;
+        break;
+      }
+      vars = pair_cdr(vars);
+      vals = pair_cdr(vals);
+    }
+    environment = enclosing_environment(environment);
+  }
+  add_binding(var, val, tmp);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_quote_form(object))
     return quotation_text(object);
@@ -127,6 +157,11 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_define_form(object)) {
     lisp_object_t value = eval_object(definition_value(object), environment);
     add_binding(definition_variable(object), value, environment);
+    return make_undefined();
+  }
+  if (is_assignment_form(object)) {
+    lisp_object_t value = eval_object(assignment_value(object), environment);
+    set_binding(assignment_variable(object), value, environment);
     return make_undefined();
   }
   else
