@@ -61,6 +61,11 @@ int main(int argc, char *argv[])
     /* "(set-cdr! foo 3)", */
     /* "foo", */
     "(lambda (x) (+ x 1))",
+    "(+ (+ 1 2) (+ 3 4))",
+    "((lambda (x) (+ x 1)) 1)",
+    "(define plus-one (lambda (n) (+ n 1)))",
+    "plus-one",
+    "(plus-one 1)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   lisp_object_t startup_environment = make_startup_environment();

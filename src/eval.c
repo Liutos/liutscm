@@ -14,6 +14,8 @@ extern lisp_object_t make_pair(lisp_object_t, lisp_object_t);
 extern lisp_object_t make_character(char);
 extern lisp_object_t make_string(char *);
 
+lisp_object_t eval_object(lisp_object_t, lisp_object_t);
+
 int is_tag_list(lisp_object_t object, char *symbol_name) {
   return is_pair(object) && find_or_create_symbol(symbol_name) == pair_car(object);
 }
@@ -175,7 +177,13 @@ lisp_object_t application_operands(lisp_object_t application_form) {
   return pair_cdr(application_form);
 }
 
-lisp_object_t eval_object(lisp_object_t, lisp_object_t);
+int is_primitive_form(lisp_object_t object, lisp_object_t environment) {
+  if (is_application_form(object)) {
+    lisp_object_t op = eval_object(application_operator(object), environment);
+    return is_primitive(op);
+  } else
+    return 0;
+}
 
 lisp_object_t eval_arguments(lisp_object_t arguments, lisp_object_t environment) {
   if (is_null(arguments))
@@ -210,6 +218,18 @@ lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body
   return proc;
 }
 
+int is_compound_form(lisp_object_t object, lisp_object_t environment) {
+  if (is_application_form(object)) {
+    lisp_object_t op = eval_object(application_operator(object), environment);
+    return is_compound(op);
+  } else
+    return 0;
+}
+
+lisp_object_t extend_environment(lisp_object_t vars, lisp_object_t vals, lisp_object_t environment) {
+  return make_pair(make_pair(vars, vals), environment);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_quote_form(object))
     return quotation_text(object);
@@ -239,12 +259,22 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t body = lambda_body(object);
     return make_lambda_procedure(parameters, body, environment);
   }
-  if (is_application_form(object)) {
+  if (is_primitive_form(object, environment)) {
     lisp_object_t operator = application_operator(object);
     lisp_object_t operands = application_operands(object);
     operator = eval_object(operator, environment);
     operands = eval_arguments(operands, environment);
     return (primitive_C_proc(operator))(operands);
+  }
+  if (is_compound_form(object, environment)) {
+    lisp_object_t operator = application_operator(object);
+    lisp_object_t operands = application_operands(object);
+    operator = eval_object(operator, environment);
+    operands = eval_arguments(operands, environment);
+    lisp_object_t body = compound_proc_body(operator);
+    lisp_object_t vars = compound_proc_parameters(operator);
+    lisp_object_t def_env = compound_proc_environment(operator);
+    return eval_object(body, extend_environment(vars, operands, def_env));
   }
   else
     return object;

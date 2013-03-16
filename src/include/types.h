@@ -70,6 +70,8 @@ typedef struct lisp_object_t {
 #define compound_proc_parameters(x) ((x)->values.compound_proc.parameters)
 #define compound_proc_body(x) ((x)->values.compound_proc.raw_body)
 #define compound_proc_environment(x) ((x)->values.compound_proc.environment)
+#define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
+#define is_compound(x) (COMPOUND_PROC == (x)->type)
 
 typedef struct table_entry_t {
   char *key;
