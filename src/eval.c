@@ -207,7 +207,7 @@ lisp_object_t lambda_parameters(lisp_object_t lambda_form) {
 }
 
 lisp_object_t lambda_body(lisp_object_t lambda_form) {
-  return pair_caddr(lambda_form);
+  return pair_cddr(lambda_form);
 }
 
 lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body, lisp_object_t environment) {
@@ -288,6 +288,57 @@ lisp_object_t cond2if(lisp_object_t cond_form) {
   return expand_cond_clauses(cond_clauses(cond_form));
 }
 
+/* LET support */
+
+int is_let_form(lisp_object_t object) {
+  return is_tag_list(object, "let");
+}
+
+lisp_object_t let_vars_aux(lisp_object_t bindings) {
+  if (is_null(bindings))
+    return make_empty_list();
+  else {
+    lisp_object_t first = pair_car(bindings);
+    return make_pair(pair_car(first), let_vars_aux(pair_cdr(bindings)));
+  }
+}
+
+lisp_object_t let_vars(lisp_object_t let_form) {
+  lisp_object_t bindings = pair_cadr(let_form);
+  return let_vars_aux(bindings);
+}
+
+lisp_object_t let_vals_aux(lisp_object_t bindings) {
+  if (is_null(bindings))
+    return make_empty_list();
+  else {
+    lisp_object_t first = pair_car(bindings);
+    return make_pair(pair_cadr(first), let_vals_aux(pair_cdr(bindings)));
+  }
+}
+
+lisp_object_t let_vals(lisp_object_t let_form) {
+  lisp_object_t bindings = pair_cadr(let_form);
+  return let_vals_aux(bindings);
+}
+
+lisp_object_t let_body(lisp_object_t let_form) {
+  return pair_cddr(let_form);
+}
+
+lisp_object_t make_lambda_form(lisp_object_t vars, lisp_object_t body) {
+  return make_pair(find_or_create_symbol("lambda"),
+                   make_pair(vars, body));
+}
+
+lisp_object_t let2lambda(lisp_object_t let_form) {
+  lisp_object_t vars = let_vars(let_form);
+  lisp_object_t vals = let_vals(let_form);
+  lisp_object_t body = let_body(let_form);
+  lisp_object_t lambda_form = make_lambda_form(vars, body);
+  return make_pair(lambda_form, vals);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -340,6 +391,11 @@ tail_loop:
     object = cond2if(object);
     goto tail_loop;
   }
+  if (is_let_form(object)) {
+    object = let2lambda(object);
+    goto tail_loop;
+    /* return let2lambda(object); */
+  }
   if (is_primitive_form(object, environment)) {
     lisp_object_t operator = application_operator(object);
     lisp_object_t operands = application_operands(object);
@@ -356,7 +412,7 @@ tail_loop:
     lisp_object_t vars = compound_proc_parameters(operator);
     lisp_object_t def_env = compound_proc_environment(operator);
     /* return eval_object(body, extend_environment(vars, operands, def_env)); */
-    object = body;
+    object = make_pair(find_or_create_symbol("begin"), body);
     environment = extend_environment(vars, operands, def_env);
     goto tail_loop;
   }
