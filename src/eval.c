@@ -339,6 +339,24 @@ lisp_object_t let2lambda(lisp_object_t let_form) {
   return make_pair(lambda_form, vals);
 }
 
+/* AND and OR support */
+
+int is_and_form(lisp_object_t object) {
+  return is_tag_list(object, "and");
+}
+
+lisp_object_t and_tests(lisp_object_t and_form) {
+  return pair_cdr(and_form);
+}
+
+int is_or_form(lisp_object_t object) {
+  return is_tag_list(object, "or");
+}
+
+lisp_object_t or_tests(lisp_object_t or_form) {
+  return pair_cdr(or_form);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -395,6 +413,30 @@ tail_loop:
     object = let2lambda(object);
     goto tail_loop;
     /* return let2lambda(object); */
+  }
+  if (is_and_form(object)) {
+    lisp_object_t tests = and_tests(object);
+    if (is_null(tests))
+      return make_true();
+    while (is_pair(pair_cdr(tests))) {
+      lisp_object_t result = eval_object(pair_car(tests), environment);
+      if (is_false(result))
+        return make_false();
+      tests = pair_cdr(tests);
+    }
+    return eval_object(pair_car(tests), environment);
+  }
+  if (is_or_form(object)) {
+    lisp_object_t tests = or_tests(object);
+    if (is_null(tests))
+      return make_false();
+    while (is_pair(pair_cdr(tests))) {
+      lisp_object_t result = eval_object(pair_car(tests), environment);
+      if (!is_false(result))
+        return result;
+      tests = pair_cdr(tests);
+    }
+    return eval_object(pair_car(tests), environment);
   }
   if (is_primitive_form(object, environment)) {
     lisp_object_t operator = application_operator(object);

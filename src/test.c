@@ -71,9 +71,22 @@ int main(int argc, char *argv[])
     /* "(cond)", */
     /* "(cond (#f 1))", */
     /* "(cond ((eq 1 1) 2) (else 3))", */
-    "(let ((x 1)) (+ x 1))",
+    /* "(let ((x 1)) (+ x 1))", */
     /* "(let ((x 1) (y 2)) (set! x (+ y 1)) (* y y))", */
-    "((lambda (x y) (set! x (+ x 1)) (* x y)) 1 2)",
+    /* "((lambda (x y) (set! x (+ x 1)) (* x y)) 1 2)", */
+    /* "(and #t #t)", */
+    /* "(and #t #f)", */
+    /* "(and #f #t)", */
+    /* "(and #f #f)", */
+    /* "(and)", */
+    /* "(and 1 2)", */
+    /* "(and #f 3)", */
+    "(or #t #t)",
+    "(or #t #f)",
+    "(or #f #t)",
+    "(or #f #f)",
+    "(or 1 #f)",
+    "(or 1 (/ 1 0))",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   lisp_object_t startup_environment = make_startup_environment();

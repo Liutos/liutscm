@@ -72,6 +72,10 @@ typedef struct lisp_object_t {
 #define compound_proc_environment(x) ((x)->values.compound_proc.environment)
 #define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
 #define is_compound(x) (COMPOUND_PROC == (x)->type)
+#define is_bool(x) (BOOLEAN == (x)->type)
+#define bool_value(x) ((x)->values.boolean.value)
+#define is_true(x) (is_bool(x) && 1 == bool_value(x))
+#define is_false(x) (is_bool(x) && 0 == bool_value(x))
 
 typedef struct table_entry_t {
   char *key;
