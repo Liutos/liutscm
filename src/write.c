@@ -57,6 +57,13 @@ void write_object(lisp_object_t object) {
     case SYMBOL: printf("%s", object->values.symbol.name); break;
     case UNDEFINED: printf("#<undefined>"); break;
     case PRIMITIVE_PROC: printf("#<procedure %p>", object->values.primitive_proc.C_proc); break;
+    case COMPOUND_PROC:
+      printf("#<procedure ");
+      write_object(compound_proc_parameters(object));
+      putchar(' ');
+      write_object(compound_proc_body(object));
+      putchar('>');
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

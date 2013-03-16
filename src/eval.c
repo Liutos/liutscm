@@ -26,17 +26,8 @@ lisp_object_t quotation_text(lisp_object_t quote_form) {
   return pair_cadr(quote_form);
 }
 
-/* lisp_object_t environment_vars(lisp_object_t environment) { */
-/*   return pair_caar(environment); */
-/* } */
 #define environment_vars(x) pair_caar(x)
-/* lisp_object_t environment_vals(lisp_object_t environment) { */
-/*   return pair_cdar(environment); */
-/* } */
 #define environment_vals(x) pair_cdar(x)
-/* lisp_object_t enclosing_environment(lisp_object_t environment) { */
-/*   return pair_cdr(environment); */
-/* } */
 #define enclosing_environment(x) pair_cdr(x)
 
 lisp_object_t make_undefined(void) {
@@ -196,6 +187,29 @@ lisp_object_t eval_arguments(lisp_object_t arguments, lisp_object_t environment)
   }
 }
 
+/* LAMBDA support */
+
+int is_lambda_form(lisp_object_t object) {
+  return is_tag_list(object, "lambda");
+}
+
+lisp_object_t lambda_parameters(lisp_object_t lambda_form) {
+  return pair_cadr(lambda_form);
+}
+
+lisp_object_t lambda_body(lisp_object_t lambda_form) {
+  return pair_caddr(lambda_form);
+}
+
+lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body, lisp_object_t environment) {
+  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
+  proc->type = COMPOUND_PROC;
+  compound_proc_parameters(proc) = parameters;
+  compound_proc_body(proc) = body;
+  compound_proc_environment(proc) = environment;
+  return proc;
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_quote_form(object))
     return quotation_text(object);
@@ -219,6 +233,11 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
       return eval_object(then_part, environment);
     else
       return eval_object(else_part, environment);
+  }
+  if (is_lambda_form(object)) {
+    lisp_object_t parameters = lambda_parameters(object);
+    lisp_object_t body = lambda_body(object);
+    return make_lambda_procedure(parameters, body, environment);
   }
   if (is_application_form(object)) {
     lisp_object_t operator = application_operator(object);

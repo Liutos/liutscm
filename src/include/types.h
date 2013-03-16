@@ -21,6 +21,7 @@ enum object_type {
   DOT_OBJECT,
   UNDEFINED,
   PRIMITIVE_PROC,
+  COMPOUND_PROC,
 };
 
 typedef struct lisp_object_t {
@@ -48,6 +49,11 @@ typedef struct lisp_object_t {
     struct {
       struct lisp_object_t *(*C_proc)(struct lisp_object_t *);
     } primitive_proc;
+    struct {
+      struct lisp_object_t *parameters;
+      struct lisp_object_t *raw_body;
+      struct lisp_object_t *environment;
+    } compound_proc;
   } values;
 } *lisp_object_t;
 
@@ -61,6 +67,9 @@ typedef struct lisp_object_t {
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 #define char_value(x) ((x)->values.character.value)
 #define string_value(x) ((x)->values.string.value)
+#define compound_proc_parameters(x) ((x)->values.compound_proc.parameters)
+#define compound_proc_body(x) ((x)->values.compound_proc.raw_body)
+#define compound_proc_environment(x) ((x)->values.compound_proc.environment)
 
 typedef struct table_entry_t {
   char *key;
