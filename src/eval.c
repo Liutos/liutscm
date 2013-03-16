@@ -230,6 +230,16 @@ lisp_object_t extend_environment(lisp_object_t vars, lisp_object_t vals, lisp_ob
   return make_pair(make_pair(vars, vals), environment);
 }
 
+/* BEGIN support */
+
+int is_begin_form(lisp_object_t object) {
+  return is_tag_list(object, "begin");
+}
+
+lisp_object_t begin_actions(lisp_object_t begin_form) {
+  return pair_cdr(begin_form);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
   if (is_quote_form(object))
     return quotation_text(object);
@@ -258,6 +268,16 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t parameters = lambda_parameters(object);
     lisp_object_t body = lambda_body(object);
     return make_lambda_procedure(parameters, body, environment);
+  }
+  if (is_begin_form(object)) {
+    lisp_object_t actions = begin_actions(object);
+    if (is_null(actions))
+      return make_empty_list();
+    while (!is_null(pair_cdr(actions))) {
+      eval_object(pair_car(actions), environment);
+      actions = pair_cdr(actions);
+    }
+    return eval_object(pair_car(actions), environment);
   }
   if (is_primitive_form(object, environment)) {
     lisp_object_t operator = application_operator(object);
