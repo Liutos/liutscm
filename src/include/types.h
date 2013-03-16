@@ -59,6 +59,8 @@ typedef struct lisp_object_t {
 #define is_symbol(x) (SYMBOL == (x)->type)
 #define fixnum_value(x) ((x)->values.fixnum.value)
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
+#define char_value(x) ((x)->values.character.value)
+#define string_value(x) ((x)->values.string.value)
 
 typedef struct table_entry_t {
   char *key;

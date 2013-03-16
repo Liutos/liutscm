@@ -289,8 +289,8 @@ lisp_object_t read_object(FILE *stream) {
       if (isdigit(c)) {
         return read_fixnum(c, -1, stream);
       } else {
-        fprintf(stderr, "unexpected token '%c'\n", c);
-        exit(1);
+        ungetc(c, stream);
+        return read_symbol('-', stream);
       }
     }
     case '#': {

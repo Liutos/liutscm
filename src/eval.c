@@ -8,8 +8,11 @@
 #include "types.h"
 #include "read.h"
 #include <stdlib.h>
+#include <stdio.h>
 
-lisp_object_t make_pair(lisp_object_t, lisp_object_t);
+extern lisp_object_t make_pair(lisp_object_t, lisp_object_t);
+extern lisp_object_t make_character(char);
+extern lisp_object_t make_string(char *);
 
 int is_tag_list(lisp_object_t object, char *symbol_name) {
   return is_pair(object) && find_or_create_symbol(symbol_name) == pair_car(object);
@@ -230,10 +233,143 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 
 extern lisp_object_t make_fixnum(int);
 
+/* Binary plus */
 lisp_object_t plus_proc(lisp_object_t args) {
   lisp_object_t n1 = pair_car(args);
   lisp_object_t n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) + fixnum_value(n2));
+}
+
+/* Binary minus */
+lisp_object_t minus_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) - fixnum_value(n2));
+}
+
+/* Binary multiply */
+lisp_object_t multiply_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) * fixnum_value(n2));
+}
+
+/* Binary divide */
+lisp_object_t divide_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) / fixnum_value(n2));
+}
+
+/* Binary equal */
+lisp_object_t numeric_equal_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return fixnum_value(n1) == fixnum_value(n2) ? make_true(): make_false();
+}
+
+lisp_object_t mod_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) % fixnum_value(n2));
+}
+
+lisp_object_t greater_than_proc(lisp_object_t args) {
+  lisp_object_t n1 = pair_car(args);
+  lisp_object_t n2 = pair_cadr(args);
+  return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false();
+}
+
+/* lisp_object_t less_than_proc(lisp_object_t args) { */
+/*   lisp_object_t n1 = pair_car(args); */
+/*   lisp_object_t n2 = pair_cadr(args); */
+/*   return fixnum_value(n1) < fixnum_value(n2) ? make_true(): make_false(); */
+/* } */
+
+/* Are the two arguments identical? */
+lisp_object_t is_identical_proc(lisp_object_t args) {
+  lisp_object_t o1 = pair_car(args);
+  lisp_object_t o2 = pair_cadr(args);
+  return o1 == o2 ? make_true(): make_false();
+}
+
+/* Get the encode of a character */
+lisp_object_t char2code_proc(lisp_object_t args) {
+  lisp_object_t c = pair_car(args);
+  return make_fixnum(char_value(c));
+}
+
+/* Return a character with given encode */
+lisp_object_t code2char_proc(lisp_object_t args) {
+  lisp_object_t n = pair_car(args);
+  return make_character(fixnum_value(n));
+}
+
+/* Get the specific character in a string */
+lisp_object_t char_at_proc(lisp_object_t args) {
+  lisp_object_t n = pair_car(args);
+  lisp_object_t str = pair_cadr(args);
+  return make_character(string_value(str)[fixnum_value(n)]);
+}
+
+lisp_object_t pair_car_proc(lisp_object_t args) {
+  lisp_object_t list = pair_car(args);
+  return pair_car(list);
+}
+
+lisp_object_t pair_cdr_proc(lisp_object_t args) {
+  lisp_object_t list = pair_car(args);
+  return pair_cdr(list);
+}
+
+lisp_object_t pair_set_car_proc(lisp_object_t args) {
+  lisp_object_t pair = pair_car(args);
+  lisp_object_t val = pair_cadr(args);
+  pair_car(pair) = val;
+  return make_undefined();
+}
+
+lisp_object_t pair_set_cdr_proc(lisp_object_t args) {
+  lisp_object_t pair = pair_car(args);
+  lisp_object_t val = pair_cadr(args);
+  pair_cdr(pair) = val;
+  return make_undefined();
+}
+
+/* Construct a pair by two arguments */
+lisp_object_t pair_cons_proc(lisp_object_t args) {
+  lisp_object_t o1 = pair_car(args);
+  lisp_object_t o2 = pair_cadr(args);
+  return make_pair(o1, o2);
+}
+
+lisp_object_t symbol_name_proc(lisp_object_t args) {
+  lisp_object_t sym = pair_car(args);
+  return make_string(symbol_name(sym));
+}
+
+/* Create a symbol looks the same as the string argument */
+lisp_object_t string2symbol_proc(lisp_object_t args) {
+  lisp_object_t str = pair_car(args);
+  return find_or_create_symbol(string_value(str));
+}
+
+/* Return a symbol indicates the argument's type */
+lisp_object_t type_of_proc(lisp_object_t args) {
+  lisp_object_t o = pair_car(args);
+  switch (o->type) {
+    case FIXNUM: return find_or_create_symbol("fixnum");
+    case BOOLEAN: return find_or_create_symbol("boolean");
+    case CHARACTER: return find_or_create_symbol("character");
+    case STRING: return find_or_create_symbol("string");
+    case EMPTY_LIST: return find_or_create_symbol("empty_list");
+    case PAIR: return find_or_create_symbol("pair");
+    case SYMBOL: return find_or_create_symbol("symbol");
+    case PRIMITIVE_PROC: return find_or_create_symbol("function");
+    default :
+      fprintf(stderr, "Unknown data type: %d\n", o->type);
+      exit(1);
+  }
 }
 
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
@@ -251,4 +387,23 @@ void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t),
 
 void init_environment(lisp_object_t environment) {
   add_primitive_proc("+", plus_proc, environment);
+  add_primitive_proc("-", minus_proc, environment);
+  add_primitive_proc("*", multiply_proc, environment);
+  add_primitive_proc("/", divide_proc, environment);
+  add_primitive_proc("=", numeric_equal_proc, environment);
+  add_primitive_proc("%", mod_proc, environment);
+  add_primitive_proc(">", greater_than_proc, environment);
+  /* add_primitive_proc("<", less_than_proc, environment); */
+  add_primitive_proc("eq", is_identical_proc, environment);
+  add_primitive_proc("char->code", char2code_proc, environment);
+  add_primitive_proc("code->char", code2char_proc, environment);
+  add_primitive_proc("char-at", char_at_proc, environment);
+  add_primitive_proc("car", pair_car_proc, environment);
+  add_primitive_proc("cdr", pair_cdr_proc, environment);
+  add_primitive_proc("cons", pair_cons_proc, environment);
+  add_primitive_proc("symbol-name", symbol_name_proc, environment);
+  add_primitive_proc("string->symbol", string2symbol_proc, environment);
+  add_primitive_proc("type-of", type_of_proc, environment);
+  add_primitive_proc("set-car!", pair_set_car_proc, environment);
+  add_primitive_proc("set-cdr!", pair_set_cdr_proc, environment);
 }
