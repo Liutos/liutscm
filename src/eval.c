@@ -241,6 +241,7 @@ lisp_object_t begin_actions(lisp_object_t begin_form) {
 }
 
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
+tail_loop:
   if (is_quote_form(object))
     return quotation_text(object);
   if (is_variable(object))
@@ -259,10 +260,15 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t test_part = if_test_part(object);
     lisp_object_t then_part = if_then_part(object);
     lisp_object_t else_part = if_else_part(object);
-    if (eval_object(test_part, environment) == make_true())
-      return eval_object(then_part, environment);
-    else
-      return eval_object(else_part, environment);
+    if (eval_object(test_part, environment) == make_true()) {
+      /* return eval_object(then_part, environment); */
+      object = then_part;
+      goto tail_loop;
+    } else {
+      /* return eval_object(else_part, environment); */
+      object = else_part;
+      goto tail_loop;
+    }
   }
   if (is_lambda_form(object)) {
     lisp_object_t parameters = lambda_parameters(object);
@@ -277,7 +283,9 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
       eval_object(pair_car(actions), environment);
       actions = pair_cdr(actions);
     }
-    return eval_object(pair_car(actions), environment);
+    /* return eval_object(pair_car(actions), environment); */
+    object = pair_car(actions);
+    goto tail_loop;
   }
   if (is_primitive_form(object, environment)) {
     lisp_object_t operator = application_operator(object);
@@ -294,7 +302,10 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t body = compound_proc_body(operator);
     lisp_object_t vars = compound_proc_parameters(operator);
     lisp_object_t def_env = compound_proc_environment(operator);
-    return eval_object(body, extend_environment(vars, operands, def_env));
+    /* return eval_object(body, extend_environment(vars, operands, def_env)); */
+    object = body;
+    environment = extend_environment(vars, operands, def_env);
+    goto tail_loop;
   }
   else
     return object;
