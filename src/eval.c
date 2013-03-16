@@ -13,6 +13,7 @@
 extern lisp_object_t make_pair(lisp_object_t, lisp_object_t);
 extern lisp_object_t make_character(char);
 extern lisp_object_t make_string(char *);
+extern void write_object(lisp_object_t);
 
 lisp_object_t eval_object(lisp_object_t, lisp_object_t);
 
@@ -240,6 +241,53 @@ lisp_object_t begin_actions(lisp_object_t begin_form) {
   return pair_cdr(begin_form);
 }
 
+/* COND support */
+
+int is_cond_form(lisp_object_t object) {
+  return is_tag_list(object, "cond");
+}
+
+lisp_object_t cond_clauses(lisp_object_t cond_form) {
+  return pair_cdr(cond_form);
+}
+
+lisp_object_t clause_test(lisp_object_t clause) {
+  return pair_car(clause);
+}
+
+lisp_object_t clause_actions(lisp_object_t clause) {
+  return make_pair(find_or_create_symbol("begin"),
+                   pair_cdr(clause));
+}
+
+int is_cond_else_clause(lisp_object_t clause) {
+  return find_or_create_symbol("else") == clause_test(clause);
+}
+
+lisp_object_t make_if_form(lisp_object_t test, lisp_object_t then_part, lisp_object_t else_part) {
+  return make_pair(find_or_create_symbol("if"),
+                   make_pair(test,
+                             make_pair(then_part,
+                                       make_pair(else_part, make_empty_list()))));
+}
+
+lisp_object_t expand_cond_clauses(lisp_object_t clauses) {
+  if (is_null(clauses))
+    return make_empty_list();
+  lisp_object_t first = pair_car(clauses);
+  lisp_object_t rest = pair_cdr(clauses);
+  if (is_cond_else_clause(first))
+    return clause_actions(first);
+  else
+    return make_if_form(clause_test(first),
+                        clause_actions(first),
+                        expand_cond_clauses(rest));
+}
+
+lisp_object_t cond2if(lisp_object_t cond_form) {
+  return expand_cond_clauses(cond_clauses(cond_form));
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -285,6 +333,11 @@ tail_loop:
     }
     /* return eval_object(pair_car(actions), environment); */
     object = pair_car(actions);
+    goto tail_loop;
+  }
+  if (is_cond_form(object)) {
+    /* return eval_object(cond2if(object), environment); */
+    object = cond2if(object);
     goto tail_loop;
   }
   if (is_primitive_form(object, environment)) {

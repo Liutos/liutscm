@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
     /* "hello", */
     /* "'hello", */
     /* "(quote hello)", */
-    "(if #t 1 2)",
-    "(if #f 1 2)",
+    /* "(if #t 1 2)", */
+    /* "(if #f 1 2)", */
     /* "-", */
     /* "(+ 1 2)", */
     /* "(- 4 3)", */
@@ -66,8 +66,11 @@ int main(int argc, char *argv[])
     /* "(define plus-one (lambda (n) (+ n 1)))", */
     /* "plus-one", */
     /* "(plus-one 1)", */
-    "(begin (define a 1) (set! a (+ a 1)) a)",
-    "((lambda (x) (+ x 1)) 1)",
+    /* "(begin (define a 1) (set! a (+ a 1)) a)", */
+    /* "((lambda (x) (+ x 1)) 1)", */
+    "(cond)",
+    "(cond (#f 1))",
+    "(cond ((eq 1 1) 2) (else 3))",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   lisp_object_t startup_environment = make_startup_environment();
