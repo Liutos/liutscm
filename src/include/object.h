@@ -8,6 +8,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <stdio.h>
+
 #include "types.h"
 
 extern lisp_object_t make_fixnum(int);
@@ -28,5 +30,7 @@ extern void set_binding(lisp_object_t, lisp_object_t, lisp_object_t);
 extern lisp_object_t get_variable_value(lisp_object_t, lisp_object_t);
 extern void add_binding(lisp_object_t, lisp_object_t, lisp_object_t);
 extern lisp_object_t extend_environment(lisp_object_t, lisp_object_t, lisp_object_t);
+extern lisp_object_t make_file_in_port(FILE *);
+extern lisp_object_t make_file_out_port(FILE *);
 
 #endif

@@ -274,3 +274,17 @@ lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
   else
     return make_undefined();
 }
+
+lisp_object_t make_file_in_port(FILE *stream) {
+  lisp_object_t port = malloc(sizeof(struct lisp_object_t));
+  port->type = FILE_IN_PORT;
+  port->values.file_in_port.stream = stream;
+  return port;
+}
+
+lisp_object_t make_file_out_port(FILE *stream) {
+  lisp_object_t port = malloc(sizeof(struct lisp_object_t));
+  port->type = FILE_OUT_PORT;
+  port->values.file_out_port.stream = stream;
+  return port;
+}
