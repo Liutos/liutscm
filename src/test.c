@@ -11,6 +11,8 @@
 #include "eval.h"
 #include "read.h"
 
+lisp_object_t startup_environment;
+
 int main(int argc, char *argv[])
 {
   char *cases[] = {
@@ -87,10 +89,12 @@ int main(int argc, char *argv[])
     /* "(or #f #f)", */
     /* "(or 1 #f)", */
     /* "(or 1 (/ 1 0))", */
-    "(apply + 1 '(2))",
+    /* "(apply + 1 '(2))", */
+    /* "(repl-environment)", */
+    "(eval '(+ 1 2) (repl-environment))",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
-  lisp_object_t startup_environment = make_startup_environment();
+  startup_environment = make_startup_environment();
   init_environment(startup_environment);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");

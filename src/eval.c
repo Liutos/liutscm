@@ -14,6 +14,7 @@ extern lisp_object_t make_pair(lisp_object_t, lisp_object_t);
 extern lisp_object_t make_character(char);
 extern lisp_object_t make_string(char *);
 extern void write_object(lisp_object_t);
+extern lisp_object_t startup_environment;
 
 lisp_object_t eval_object(lisp_object_t, lisp_object_t);
 
@@ -378,6 +379,25 @@ lisp_object_t apply_operands_conc(lisp_object_t operands) {
                      apply_operands_conc(pair_cdr(operands)));
 }
 
+/* EVAL support */
+
+lisp_object_t eval_proc(lisp_object_t args) {
+  fprintf(stderr, "Impossible: EVAL\n");
+  exit(1);
+}
+
+int is_eval(lisp_object_t proc) {
+  return is_primitive(proc) && eval_proc == primitive_C_proc(proc);
+}
+
+lisp_object_t eval_expression(lisp_object_t eval_form) {
+  return pair_cadr(eval_form);
+}
+
+lisp_object_t eval_environment(lisp_object_t eval_form) {
+  return pair_caddr(eval_form);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -472,6 +492,11 @@ tail_loop:
       operator = pair_car(operands);
       operands = apply_operands_conc(pair_cdr(operands));
     }
+    if (is_eval(operator)) {
+      environment = pair_cadr(operands);
+      object = pair_car(operands);
+      goto tail_loop;
+    }
     if (is_primitive(operator))
       return (primitive_C_proc(operator))(operands);
     else {
@@ -535,12 +560,6 @@ lisp_object_t greater_than_proc(lisp_object_t args) {
   lisp_object_t n2 = pair_cadr(args);
   return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false();
 }
-
-/* lisp_object_t less_than_proc(lisp_object_t args) { */
-/*   lisp_object_t n1 = pair_car(args); */
-/*   lisp_object_t n2 = pair_cadr(args); */
-/*   return fixnum_value(n1) < fixnum_value(n2) ? make_true(): make_false(); */
-/* } */
 
 /* Are the two arguments identical? */
 lisp_object_t is_identical_proc(lisp_object_t args) {
@@ -628,6 +647,11 @@ lisp_object_t type_of_proc(lisp_object_t args) {
   }
 }
 
+/* Return the environment used by the REPL */
+lisp_object_t get_repl_environment(lisp_object_t args) {
+  return startup_environment;
+}
+
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
   lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
   proc->type = PRIMITIVE_PROC;
@@ -663,4 +687,6 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("set-car!", pair_set_car_proc, environment);
   add_primitive_proc("set-cdr!", pair_set_cdr_proc, environment);
   add_primitive_proc("apply", apply_proc, environment);
+  add_primitive_proc("eval", eval_proc, environment);
+  add_primitive_proc("repl-environment", get_repl_environment, environment);
 }
