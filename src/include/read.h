@@ -11,7 +11,7 @@
 #include "types.h"
 #include <stdio.h>
 
-extern lisp_object_t read_object(FILE *);
+extern lisp_object_t read_object(lisp_object_t);
 extern hash_table_t make_hash_table(unsigned int (*)(char *), int (*)(char *, char *), unsigned int);
 extern unsigned int hash_symbol_name(char *);
 extern int symbol_name_comparator(char *, char *);

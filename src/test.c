@@ -106,10 +106,12 @@ int main(int argc, char *argv[])
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
   repl_environment = make_repl_environment();
+  lisp_object_t out_port = make_file_out_port(stdout);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
+    lisp_object_t in_port = make_file_in_port(stream);
     printf(">> %s\n=> ", cases[i]);
-    write_object(eval_object(read_object(stream), repl_environment), make_file_out_port(stdout));
+    write_object(eval_object(read_object(in_port), repl_environment), out_port);
     putchar('\n');
     fclose(stream);
   }
