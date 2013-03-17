@@ -10,6 +10,6 @@
 
 #include "types.h"
 
-extern void write_object(lisp_object_t);
+extern void write_object(lisp_object_t, lisp_object_t);
 
 #endif

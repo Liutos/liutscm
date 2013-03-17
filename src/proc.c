@@ -14,6 +14,8 @@ extern lisp_object_t repl_environment;
 extern lisp_object_t startup_environment;
 extern lisp_object_t null_environment;
 
+extern void write_object(lisp_object_t, lisp_object_t);
+
 /* Binary plus */
 lisp_object_t plus_proc(lisp_object_t args) {
   lisp_object_t n1 = pair_car(args);
@@ -164,13 +166,6 @@ lisp_object_t get_null_environment(lisp_object_t args) {
 
 /* File port support */
 
-lisp_object_t make_file_in_port(FILE *stream) {
-  lisp_object_t port = malloc(sizeof(struct lisp_object_t));
-  port->type = FILE_IN_PORT;
-  port->values.file_in_port.stream = stream;
-  return port;
-}
-
 lisp_object_t open_in_proc(lisp_object_t args) {
   lisp_object_t path = pair_car(args);
   FILE *fp = fopen(string_value(path), "r");
@@ -190,13 +185,6 @@ lisp_object_t close_in_proc(lisp_object_t args) {
   lisp_object_t port = pair_car(args);
   fclose(in_port_stream(port));
   return make_undefined();
-}
-
-lisp_object_t make_file_out_port(FILE *stream) {
-  lisp_object_t port = malloc(sizeof(struct lisp_object_t));
-  port->type = FILE_OUT_PORT;
-  port->values.file_out_port.stream = stream;
-  return port;
 }
 
 lisp_object_t open_out_proc(lisp_object_t args) {
@@ -230,6 +218,14 @@ lisp_object_t apply_proc(lisp_object_t args) {
 lisp_object_t eval_proc(lisp_object_t args) {
   fprintf(stderr, "Impossible: EVAL\n");
   exit(1);
+}
+
+/* Write an object to standard output */
+lisp_object_t write_proc(lisp_object_t args) {
+  lisp_object_t object = pair_car(args);
+  lisp_object_t out_port = make_file_in_port(stdout);
+  write_object(object, out_port);
+  return make_undefined();
 }
 
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
@@ -274,5 +270,5 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("open-out", open_out_proc, environment);
   add_primitive_proc("write-char", write_char_proc, environment);
   add_primitive_proc("close-out", close_out_proc, environment);
+  add_primitive_proc("write", write_proc, environment);
 }
-

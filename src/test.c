@@ -94,12 +94,14 @@ int main(int argc, char *argv[])
     /* "(define a 1)", */
     /* "(repl-environment)", */
     /* "(eval '(+ 1 2) (repl-environment))", */
-    "(define in-port (open-in \"/home/liutos/src/scheme/liutscm/README.md\"))",
-    "(read-char in-port)",
-    "(close-in in-port)",
-    "(define out-port (open-out \"/home/liutos/building/tmp/abc.txt\"))",
-    "(write-char #\\a out-port)",
-    "(close-out out-port)",
+    /* "(define in-port (open-in \"/home/liutos/src/scheme/liutscm/README.md\"))", */
+    /* "(read-char in-port)", */
+    /* "(close-in in-port)", */
+    /* "(define out-port (open-out \"/home/liutos/building/tmp/abc.txt\"))", */
+    /* "(write-char #\\a out-port)", */
+    /* "(close-out out-port)", */
+    "(write #\\a)",
+    "(write (string->symbol \"Hello, world\"))",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     printf(">> %s\n=> ", cases[i]);
-    write_object(eval_object(read_object(stream), repl_environment));
+    write_object(eval_object(read_object(stream), repl_environment), make_file_out_port(stdout));
     putchar('\n');
     fclose(stream);
   }
