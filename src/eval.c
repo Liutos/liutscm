@@ -357,6 +357,27 @@ lisp_object_t or_tests(lisp_object_t or_form) {
   return pair_cdr(or_form);
 }
 
+/* APPLY support */
+
+lisp_object_t apply_proc(lisp_object_t args) {
+  fprintf(stderr, "Impossible - APPLY\n");
+  exit(1);
+}
+
+int is_apply(lisp_object_t proc) {
+  return is_primitive(proc) && apply_proc == primitive_C_proc(proc);
+}
+
+lisp_object_t apply_operands_conc(lisp_object_t operands) {
+  if (is_null(operands))
+    return make_empty_list();
+  if (is_null(pair_cdr(operands)))
+    return pair_car(operands);
+  else
+    return make_pair(pair_car(operands),
+                     apply_operands_conc(pair_cdr(operands)));
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -447,6 +468,10 @@ tail_loop:
       exit(1);
     }
     operands = eval_arguments(operands, environment);
+    if (is_apply(operator)) {
+      operator = pair_car(operands);
+      operands = apply_operands_conc(pair_cdr(operands));
+    }
     if (is_primitive(operator))
       return (primitive_C_proc(operator))(operands);
     else {
@@ -637,4 +662,5 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("type-of", type_of_proc, environment);
   add_primitive_proc("set-car!", pair_set_car_proc, environment);
   add_primitive_proc("set-cdr!", pair_set_cdr_proc, environment);
+  add_primitive_proc("apply", apply_proc, environment);
 }

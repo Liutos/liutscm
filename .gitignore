@@ -5,7 +5,12 @@
 liutscm
 run-test
 
-# GNU Global
+# GNU Global index
 GPATH
 GRTAGS
 GTAGS
+
+# Cscope index
+cscope.in.out
+cscope.out
+cscope.po.out
