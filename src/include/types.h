@@ -67,41 +67,60 @@ typedef struct lisp_object_t {
   } values;
 } *lisp_object_t;
 
-#define pair_car(x) ((x)->values.pair.car)
-#define pair_cdr(x) ((x)->values.pair.cdr)
-#define is_pair(x) (PAIR == (x)->type)
-#define is_null(x) (EMPTY_LIST == (x)->type)
-#define symbol_name(x) ((x)->values.symbol.name)
-#define is_symbol(x) (SYMBOL == (x)->type)
-#define fixnum_value(x) ((x)->values.fixnum.value)
-#define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
-#define char_value(x) ((x)->values.character.value)
-#define string_value(x) ((x)->values.string.value)
-#define compound_proc_parameters(x) ((x)->values.compound_proc.parameters)
-#define compound_proc_body(x) ((x)->values.compound_proc.raw_body)
-#define compound_proc_environment(x) ((x)->values.compound_proc.environment)
-#define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
-#define is_compound(x) (COMPOUND_PROC == (x)->type)
-#define is_bool(x) (BOOLEAN == (x)->type)
-#define bool_value(x) ((x)->values.boolean.value)
-#define is_true(x) (is_bool(x) && 1 == bool_value(x))
-#define is_false(x) (is_bool(x) && 0 == bool_value(x))
-#define is_undefined(x) (UNDEFINED == (x)->type)
-#define in_port_stream(x) ((x)->values.file_in_port.stream)
-#define out_port_stream(x) ((x)->values.file_out_port.stream)
-
 typedef struct table_entry_t {
   char *key;
   lisp_object_t value;
   struct table_entry_t *next;
 } *table_entry_t;
 
+/*
+ * hash_function: Compute the index from the key
+ * comparator   : Compare the first and second arguments. Return zero when they're not equal and non-zero otherwise.
+ */
 typedef struct hash_table_t {
-  unsigned int (*hash_function)(char *); /* Compute the index from the key */
-  int (*comparator)(char *, char *);    /* Compare the first and second arguments. Return zero when they're not equal and non-zero otherwise. */
+  unsigned int (*hash_function)(char *);
+  int (*comparator)(char *, char *);
   table_entry_t *datum;
   unsigned int size;
 } *hash_table_t;
+
+/* ---ACCESSORS, PREDICATES--- */
+/* ACCESSORS: $(type_name)_$(slot_name) */
+/* PREDICATES: is_$(type_name) */
+/* PAIR */
+#define pair_car(x) ((x)->values.pair.car)
+#define pair_cdr(x) ((x)->values.pair.cdr)
+#define is_pair(x) (PAIR == (x)->type)
+/* EMPTY_LIST */
+#define is_null(x) (EMPTY_LIST == (x)->type)
+/* SYMBOL */
+#define symbol_name(x) ((x)->values.symbol.name)
+#define is_symbol(x) (SYMBOL == (x)->type)
+/* FIXNUM */
+#define fixnum_value(x) ((x)->values.fixnum.value)
+/* PRIMITIVE_PROC */
+#define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
+#define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
+/* CHARACTER */
+#define char_value(x) ((x)->values.character.value)
+/* STRING */
+#define string_value(x) ((x)->values.string.value)
+/* COMPOUND_PROC */
+#define compound_proc_parameters(x) ((x)->values.compound_proc.parameters)
+#define compound_proc_body(x) ((x)->values.compound_proc.raw_body)
+#define compound_proc_environment(x) ((x)->values.compound_proc.environment)
+#define is_compound(x) (COMPOUND_PROC == (x)->type)
+/* BOOLEAN */
+#define is_bool(x) (BOOLEAN == (x)->type)
+#define bool_value(x) ((x)->values.boolean.value)
+#define is_true(x) (is_bool(x) && 1 == bool_value(x))
+#define is_false(x) (is_bool(x) && 0 == bool_value(x))
+/* UNDEFINED */
+#define is_undefined(x) (UNDEFINED == (x)->type)
+/* FILE_IN_PORT */
+#define in_port_stream(x) ((x)->values.file_in_port.stream)
+/* FILE_OUT_PORT */
+#define out_port_stream(x) ((x)->values.file_out_port.stream)
 
 /*
  * pair_cadr: second element

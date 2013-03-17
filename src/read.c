@@ -5,27 +5,30 @@
  *
  * Copyright (C) 2013-03-13 liutos <mat.liutos@gmail.com>
  */
-#include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
+#include "types.h"
+#include "object.h"
+
 #define BUFFER_SIZE 100
 
-hash_table_t symbol_table;
+lisp_object_t read_object(FILE *);
 
-lisp_object_t make_fixnum(int value) {
-  lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t));
-  fixnum->type = FIXNUM;
-  fixnum->values.fixnum.value = value;
-  return fixnum;
+hash_table_t make_hash_table(unsigned int (*hash_function)(char *), int (*comparator)(char *, char *), unsigned int size) {
+  hash_table_t table = malloc(sizeof(struct hash_table_t));
+  table->hash_function = hash_function;
+  table->comparator = comparator;
+  table->size = size;
+  table->datum = malloc(size * sizeof(struct lisp_object_t));
+  memset(table->datum, '\0', size);
+  return table;
 }
 
-lisp_object_t make_eof_object(void) {
-  lisp_object_t eof_object = malloc(sizeof(struct lisp_object_t));
-  eof_object->type = EOF_OBJECT;
-  return eof_object;
+int is_separator(int c) {
+  return EOF == c || isspace(c) || '(' == c || ')' == c || '"' == c;
 }
 
 lisp_object_t read_fixnum(char c, int sign, FILE *stream) {
@@ -42,156 +45,6 @@ void read_comment(FILE *stream) {
   int c = fgetc(stream);
   while (c != '\n' && c != EOF)
     c = fgetc(stream);
-}
-
-lisp_object_t make_boolean(int value) {
-  lisp_object_t boolean = malloc(sizeof(struct lisp_object_t));
-  boolean->type = BOOLEAN;
-  boolean->values.boolean.value = value;
-  return boolean;
-}
-
-lisp_object_t make_true(void) {
-  static lisp_object_t true_object = NULL;
-  if (true_object)
-    return true_object;
-  else {
-    true_object = make_boolean(1);
-    return true_object;
-  }
-}
-
-lisp_object_t make_false(void) {
-  static lisp_object_t false_object = NULL;
-  if (false_object)
-    return false_object;
-  else {
-    false_object = make_boolean(0);
-    return false_object;
-  }
-}
-
-lisp_object_t make_character(char c) {
-  lisp_object_t character = malloc(sizeof(struct lisp_object_t));
-  character->type = CHARACTER;
-  character->values.character.value = c;
-  return character;
-}
-
-lisp_object_t make_string(char *str) {
-  lisp_object_t string = malloc(sizeof(struct lisp_object_t));
-  string->type = STRING;
-  string->values.string.value = str;
-  return string;
-}
-
-lisp_object_t make_empty_list(void) {
-  lisp_object_t empty_list = malloc(sizeof(struct lisp_object_t));
-  empty_list->type = EMPTY_LIST;
-  return empty_list;
-}
-
-lisp_object_t make_close_object(void) {
-  lisp_object_t close_object = malloc(sizeof(struct lisp_object_t));
-  close_object->type = CLOSE_OBJECT;
-  return close_object;
-}
-
-lisp_object_t make_dot_object(void) {
-  lisp_object_t dot_object = malloc(sizeof(struct lisp_object_t));
-  dot_object->type = DOT_OBJECT;
-  return dot_object;
-}
-
-lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
-  lisp_object_t pair = malloc(sizeof(struct lisp_object_t));
-  pair->type = PAIR;
-  pair->values.pair.car = car;
-  pair->values.pair.cdr = cdr;
-  return pair;
-}
-
-lisp_object_t make_symbol(char *name) {
-  lisp_object_t symbol = malloc(sizeof(struct lisp_object_t));
-  symbol->type = SYMBOL;
-  symbol->values.symbol.name = name;
-  return symbol;
-}
-
-hash_table_t make_hash_table(unsigned int (*hash_function)(char *), int (*comparator)(char *, char *), unsigned int size) {
-  hash_table_t table = malloc(sizeof(struct hash_table_t));
-  table->hash_function = hash_function;
-  table->comparator = comparator;
-  table->size = size;
-  table->datum = malloc(size * sizeof(struct lisp_object_t));
-  memset(table->datum, '\0', size);
-  return table;
-}
-
-unsigned int hash_symbol_name(char *name) {
-  unsigned int val;
-  for (val = 0; *name != '\0'; name++)
-    val = (val << 5) + *name;
-  return val;
-}
-
-int symbol_name_comparator(char *n1, char *n2) {
-  return strcmp(n1, n2);
-}
-
-unsigned int compute_index(char *key, hash_table_t table) {
-  unsigned int (*hash_function)(char *);
-  hash_function = table->hash_function;
-  unsigned int size = table->size;
-  return hash_function(key) % size;
-}
-
-lisp_object_t find_in_hash_table(char *target, hash_table_t table) {
-  unsigned int index = compute_index(target, table);
-  table_entry_t entry = table->datum[index];
-  int (*comparator)(char *, char *);
-  comparator = table->comparator;
-  while (entry != NULL) {
-    char *key = entry->key;
-    if (0 == comparator(key, target))
-      return entry->value;
-    entry = entry->next;
-  }
-  return NULL;
-}
-
-table_entry_t make_entry(char *key, lisp_object_t value, table_entry_t next) {
-  table_entry_t entry = malloc(sizeof(struct table_entry_t));
-  entry->key = key;
-  entry->value = value;
-  entry->next = next;
-  return entry;
-}
-
-void store_into_hash_table(char *key, lisp_object_t value, hash_table_t table) {
-  unsigned int index = compute_index(key, table);
-  table_entry_t entry = table->datum[index];
-  table_entry_t new_entry = make_entry(key, value, entry);
-  table->datum[index] = new_entry;
-}
-
-lisp_object_t find_symbol(char *name) {
-  return find_in_hash_table(name, symbol_table);
-}
-
-void store_symbol(lisp_object_t symbol) {
-  char *key = symbol_name(symbol);
-  store_into_hash_table(key, symbol, symbol_table);
-}
-
-lisp_object_t find_or_create_symbol(char *name) {
-  lisp_object_t symbol = find_symbol(name);
-  if (NULL == symbol) {
-    symbol = make_symbol(name);
-    store_symbol(symbol);
-    return symbol;
-  } else
-    return symbol;
 }
 
 lisp_object_t read_character(FILE *stream) {
@@ -233,8 +86,6 @@ lisp_object_t read_string(FILE *stream) {
   return make_string(str);
 }
 
-lisp_object_t read_object(FILE *);
-
 lisp_object_t read_pair(FILE *stream) {
   lisp_object_t object = read_object(stream);
   if (CLOSE_OBJECT == object->type)
@@ -250,10 +101,6 @@ lisp_object_t read_pair(FILE *stream) {
     }
   } else
     return make_pair(object, read_pair(stream));
-}
-
-int is_separator(int c) {
-  return EOF == c || ' ' == c || '(' == c || ')' == c || '"' == c;
 }
 
 lisp_object_t read_symbol(char init, FILE *stream) {
