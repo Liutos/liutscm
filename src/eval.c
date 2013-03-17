@@ -669,6 +669,36 @@ lisp_object_t get_null_environment(lisp_object_t args) {
   return null_environment;
 }
 
+/* File port support */
+
+lisp_object_t make_file_in_port(FILE *stream) {
+  lisp_object_t port = malloc(sizeof(struct lisp_object_t));
+  port->type = FILE_IN_PORT;
+  port->values.file_in_port.stream = stream;
+  return port;
+}
+
+lisp_object_t open_in_proc(lisp_object_t args) {
+  lisp_object_t path = pair_car(args);
+  FILE *fp = fopen(string_value(path), "r");
+  if (NULL == fp) {
+    fprintf(stderr, "Can not open file '%s'\n", string_value(path));
+    exit(1);
+  }
+  return make_file_in_port(fp);
+}
+
+lisp_object_t read_char_proc(lisp_object_t args) {
+  lisp_object_t port = pair_car(args);
+  return make_character(fgetc(in_port_stream(port)));
+}
+
+lisp_object_t close_in_proc(lisp_object_t args) {
+  lisp_object_t port = pair_car(args);
+  fclose(in_port_stream(port));
+  return make_undefined();
+}
+
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
   lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
   proc->type = PRIMITIVE_PROC;
@@ -690,7 +720,6 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("=", numeric_equal_proc, environment);
   add_primitive_proc("%", mod_proc, environment);
   add_primitive_proc(">", greater_than_proc, environment);
-  /* add_primitive_proc("<", less_than_proc, environment); */
   add_primitive_proc("eq", is_identical_proc, environment);
   add_primitive_proc("char->code", char2code_proc, environment);
   add_primitive_proc("code->char", code2char_proc, environment);
@@ -706,4 +735,7 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("apply", apply_proc, environment);
   add_primitive_proc("eval", eval_proc, environment);
   add_primitive_proc("repl-environment", get_repl_environment, environment);
+  add_primitive_proc("open-in", open_in_proc, environment);
+  add_primitive_proc("read-char", read_char_proc, environment);
+  add_primitive_proc("close-in", close_in_proc, environment);
 }

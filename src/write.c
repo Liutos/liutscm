@@ -64,6 +64,9 @@ void write_object(lisp_object_t object) {
       write_object(compound_proc_body(object));
       putchar('>');
       break;
+    case FILE_IN_PORT:
+      printf("#<port :in %p>", object);
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

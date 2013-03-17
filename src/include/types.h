@@ -8,6 +8,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <stdio.h>
+
 enum object_type {
   FIXNUM,
   EOF_OBJECT,
@@ -22,6 +24,7 @@ enum object_type {
   UNDEFINED,
   PRIMITIVE_PROC,
   COMPOUND_PROC,
+  FILE_IN_PORT,
 };
 
 typedef struct lisp_object_t {
@@ -54,6 +57,9 @@ typedef struct lisp_object_t {
       struct lisp_object_t *raw_body;
       struct lisp_object_t *environment;
     } compound_proc;
+    struct {
+      FILE *stream;
+    } file_in_port;
   } values;
 } *lisp_object_t;
 
@@ -77,6 +83,7 @@ typedef struct lisp_object_t {
 #define is_true(x) (is_bool(x) && 1 == bool_value(x))
 #define is_false(x) (is_bool(x) && 0 == bool_value(x))
 #define is_undefined(x) (UNDEFINED == (x)->type)
+#define in_port_stream(x) ((x)->values.file_in_port.stream)
 
 typedef struct table_entry_t {
   char *key;
