@@ -102,7 +102,8 @@ int main(int argc, char *argv[])
     /* "(close-out out-port)", */
     /* "(write #\\a)", */
     /* "(write (string->symbol \"Hello, world\"))", */
-    "(read)",
+    /* "(read)", */
+    "(eq '() '())",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();

@@ -83,8 +83,11 @@ lisp_object_t make_string(char *str) {
 }
 
 lisp_object_t make_empty_list(void) {
-  lisp_object_t empty_list = malloc(sizeof(struct lisp_object_t));
-  empty_list->type = EMPTY_LIST;
+  static lisp_object_t empty_list = NULL;
+  if (NULL == empty_list) {
+    empty_list = malloc(sizeof(struct lisp_object_t));
+    empty_list->type = EMPTY_LIST;
+  }
   return empty_list;
 }
 
