@@ -12,11 +12,7 @@
 #include "read.h"
 #include "object.h"
 
-/* extern lisp_object_t make_pair(lisp_object_t, lisp_object_t); */
-/* extern lisp_object_t make_character(char); */
-/* extern lisp_object_t make_string(char *); */
-extern void write_object(lisp_object_t);
-/* extern lisp_object_t make_empty_list(void); */
+extern void write_object(lisp_object_t, lisp_object_t);
 
 lisp_object_t eval_object(lisp_object_t, lisp_object_t);
 

@@ -121,6 +121,8 @@ typedef struct hash_table_t {
 #define in_port_stream(x) ((x)->values.file_in_port.stream)
 /* FILE_OUT_PORT */
 #define out_port_stream(x) ((x)->values.file_out_port.stream)
+/* EOF */
+#define is_eof(x) (EOF_OBJECT == (x)->type)
 
 /*
  * pair_cadr: second element
