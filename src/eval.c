@@ -14,9 +14,19 @@ extern lisp_object_t make_pair(lisp_object_t, lisp_object_t);
 extern lisp_object_t make_character(char);
 extern lisp_object_t make_string(char *);
 extern void write_object(lisp_object_t);
-extern lisp_object_t startup_environment;
+extern lisp_object_t make_empty_list(void);
+
+/*
+ * repl_environment: Environment used by REPL
+ * null_environment: Environment with no bindings
+ * startup_environment: Environment with default bindings
+ */
+lisp_object_t repl_environment;
+lisp_object_t null_environment;
+lisp_object_t startup_environment;
 
 lisp_object_t eval_object(lisp_object_t, lisp_object_t);
+void init_environment(lisp_object_t);
 
 int is_tag_list(lisp_object_t object, char *symbol_name) {
   return is_pair(object) && find_or_create_symbol(symbol_name) == pair_car(object);
@@ -40,16 +50,25 @@ lisp_object_t make_undefined(void) {
   return undefined;
 }
 
-lisp_object_t make_empty_list(void);
-
-lisp_object_t make_empty_environment(void) {
-  return make_empty_list();
+lisp_object_t make_null_environment(void) {
+  null_environment = make_empty_list();
+  return null_environment;
 }
 
 lisp_object_t make_startup_environment(void) {
   lisp_object_t vars = make_empty_list();
   lisp_object_t vals = make_empty_list();
-  return make_pair(make_pair(vars, vals), make_empty_list());
+  startup_environment = make_pair(make_pair(vars, vals), make_null_environment());
+  init_environment(startup_environment);
+  return startup_environment;
+}
+
+lisp_object_t extend_environment(lisp_object_t vars, lisp_object_t vals, lisp_object_t environment) {
+  return make_pair(make_pair(vars, vals), environment);
+}
+
+lisp_object_t make_repl_environment(void) {
+  return extend_environment(make_empty_list(), make_empty_list(), startup_environment);
 }
 
 int is_empty_environment(lisp_object_t env) {
@@ -218,18 +237,6 @@ lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body
   compound_proc_body(proc) = body;
   compound_proc_environment(proc) = environment;
   return proc;
-}
-
-/* int is_compound_form(lisp_object_t object, lisp_object_t environment) { */
-/*   if (is_application_form(object)) { */
-/*     lisp_object_t op = eval_object(application_operator(object), environment); */
-/*     return is_compound(op); */
-/*   } else */
-/*     return 0; */
-/* } */
-
-lisp_object_t extend_environment(lisp_object_t vars, lisp_object_t vals, lisp_object_t environment) {
-  return make_pair(make_pair(vars, vals), environment);
 }
 
 /* BEGIN support */
@@ -649,7 +656,17 @@ lisp_object_t type_of_proc(lisp_object_t args) {
 
 /* Return the environment used by the REPL */
 lisp_object_t get_repl_environment(lisp_object_t args) {
+  return repl_environment;
+}
+
+/* Return the environment with default bindings */
+lisp_object_t get_startup_environment(lisp_object_t args) {
   return startup_environment;
+}
+
+/* Return a environment with nothing */
+lisp_object_t get_null_environment(lisp_object_t args) {
+  return null_environment;
 }
 
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
