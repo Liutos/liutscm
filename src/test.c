@@ -60,20 +60,20 @@ int main(int argc, char *argv[])
     /* "foo", */
     /* "(set-cdr! foo 3)", */
     /* "foo", */
-    /* "(lambda (x) (+ x 1))", */
-    /* "(+ (+ 1 2) (+ 3 4))", */
-    /* "((lambda (x) (+ x 1)) 1)", */
-    /* "(define plus-one (lambda (n) (+ n 1)))", */
-    /* "plus-one", */
-    /* "(plus-one 1)", */
+    "(lambda (x) (+ x 1))",
+    "(+ (+ 1 2) (+ 3 4))",
+    "((lambda (x) (+ x 1)) 1)",
+    "(define plus-one (lambda (n) (+ n 1)))",
+    "plus-one",
+    "(plus-one 1)",
     /* "(begin (define a 1) (set! a (+ a 1)) a)", */
-    /* "((lambda (x) (+ x 1)) 1)", */
+    "((lambda (x) (+ x 1)) 1)",
     /* "(cond)", */
     /* "(cond (#f 1))", */
     /* "(cond ((eq 1 1) 2) (else 3))", */
     /* "(let ((x 1)) (+ x 1))", */
     /* "(let ((x 1) (y 2)) (set! x (+ y 1)) (* y y))", */
-    /* "((lambda (x y) (set! x (+ x 1)) (* x y)) 1 2)", */
+    "((lambda (x y) (set! x (+ x 1)) (* x y)) 1 2)",
     /* "(and #t #t)", */
     /* "(and #t #f)", */
     /* "(and #f #t)", */
@@ -81,12 +81,12 @@ int main(int argc, char *argv[])
     /* "(and)", */
     /* "(and 1 2)", */
     /* "(and #f 3)", */
-    "(or #t #t)",
-    "(or #t #f)",
-    "(or #f #t)",
-    "(or #f #f)",
-    "(or 1 #f)",
-    "(or 1 (/ 1 0))",
+    /* "(or #t #t)", */
+    /* "(or #t #f)", */
+    /* "(or #f #t)", */
+    /* "(or #f #f)", */
+    /* "(or 1 #f)", */
+    /* "(or 1 (/ 1 0))", */
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   lisp_object_t startup_environment = make_startup_environment();

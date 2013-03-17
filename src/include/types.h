@@ -76,6 +76,7 @@ typedef struct lisp_object_t {
 #define bool_value(x) ((x)->values.boolean.value)
 #define is_true(x) (is_bool(x) && 1 == bool_value(x))
 #define is_false(x) (is_bool(x) && 0 == bool_value(x))
+#define is_undefined(x) (UNDEFINED == (x)->type)
 
 typedef struct table_entry_t {
   char *key;

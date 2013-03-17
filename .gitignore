@@ -4,3 +4,8 @@
 # executables
 liutscm
 run-test
+
+# GNU Global
+GPATH
+GRTAGS
+GTAGS
