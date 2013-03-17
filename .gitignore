@@ -1,0 +1,16 @@
+# object files
+*.o
+
+# executables
+liutscm
+run-test
+
+# GNU Global index
+GPATH
+GRTAGS
+GTAGS
+
+# Cscope index
+cscope.in.out
+cscope.out
+cscope.po.out
