@@ -15,6 +15,7 @@ extern lisp_object_t startup_environment;
 extern lisp_object_t null_environment;
 
 extern void write_object(lisp_object_t, lisp_object_t);
+extern lisp_object_t read_object(lisp_object_t);
 
 /* Binary plus */
 lisp_object_t plus_proc(lisp_object_t args) {
@@ -223,9 +224,15 @@ lisp_object_t eval_proc(lisp_object_t args) {
 /* Write an object to standard output */
 lisp_object_t write_proc(lisp_object_t args) {
   lisp_object_t object = pair_car(args);
-  lisp_object_t out_port = make_file_in_port(stdout);
+  lisp_object_t out_port = make_file_out_port(stdout);
   write_object(object, out_port);
   return make_undefined();
+}
+
+/* Read and parse an S-exp */
+lisp_object_t read_proc(lisp_object_t args) {
+  lisp_object_t in_port = make_file_in_port(stdin);
+  return read_object(in_port);
 }
 
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
@@ -271,4 +278,5 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("write-char", write_char_proc, environment);
   add_primitive_proc("close-out", close_out_proc, environment);
   add_primitive_proc("write", write_proc, environment);
+  add_primitive_proc("read", read_proc, environment);
 }

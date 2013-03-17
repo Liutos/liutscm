@@ -100,8 +100,9 @@ int main(int argc, char *argv[])
     /* "(define out-port (open-out \"/home/liutos/building/tmp/abc.txt\"))", */
     /* "(write-char #\\a out-port)", */
     /* "(close-out out-port)", */
-    "(write #\\a)",
-    "(write (string->symbol \"Hello, world\"))",
+    /* "(write #\\a)", */
+    /* "(write (string->symbol \"Hello, world\"))", */
+    "(read)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
