@@ -378,8 +378,12 @@ tail_loop:
     lisp_object_t operator = application_operator(object);
     lisp_object_t operands = application_operands(object);
     operator = eval_object(operator, environment);
-    if (is_undefined(operator)) {
-      fprintf(stderr, "Undefined function\n");
+    if (!is_function(operator)) {
+      fprintf(stderr, "Illegal functional object ");
+      write_object(operator, make_file_out_port(stderr));
+      fprintf(stderr, " from ");
+      write_object(pair_car(object), make_file_out_port(stderr));
+      fputc('\n', stderr);
       exit(1);
     }
     operands = eval_arguments(operands, environment);

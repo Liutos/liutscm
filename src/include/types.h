@@ -60,6 +60,7 @@ typedef struct lisp_object_t {
     } compound_proc;
     struct {
       FILE *stream;
+      int line_num;
     } file_in_port;
     struct {
       FILE *stream;
@@ -110,6 +111,7 @@ typedef struct hash_table_t {
 #define compound_proc_body(x) ((x)->values.compound_proc.raw_body)
 #define compound_proc_environment(x) ((x)->values.compound_proc.environment)
 #define is_compound(x) (COMPOUND_PROC == (x)->type)
+#define is_function(x) (is_primitive(x) || is_compound(x))
 /* BOOLEAN */
 #define is_bool(x) (BOOLEAN == (x)->type)
 #define bool_value(x) ((x)->values.boolean.value)
@@ -119,6 +121,7 @@ typedef struct hash_table_t {
 #define is_undefined(x) (UNDEFINED == (x)->type)
 /* FILE_IN_PORT */
 #define in_port_stream(x) ((x)->values.file_in_port.stream)
+#define in_port_linum(x) ((x)->values.file_in_port.line_num)
 /* FILE_OUT_PORT */
 #define out_port_stream(x) ((x)->values.file_out_port.stream)
 /* EOF */

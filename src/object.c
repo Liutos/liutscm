@@ -259,18 +259,6 @@ void set_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment
 }
 
 lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
-  /* while (is_pair(environment)) { */
-  /*   lisp_object_t vars = environment_vars(environment); */
-  /*   lisp_object_t vals = environment_vals(environment); */
-  /*   while (is_pair(vars)) { */
-  /*     if (pair_car(vars) == var) */
-  /*       return pair_car(vals); */
-  /*     vars = pair_cdr(vars); */
-  /*     vals = pair_cdr(vals); */
-  /*   } */
-  /*   environment = enclosing_environment(environment); */
-  /* } */
-  /* return make_undefined(); */
   lisp_object_t cell = search_binding(var, environment);
   if (cell)
     return pair_cdr(cell);
@@ -281,13 +269,16 @@ lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
 lisp_object_t make_file_in_port(FILE *stream) {
   lisp_object_t port = malloc(sizeof(struct lisp_object_t));
   port->type = FILE_IN_PORT;
-  port->values.file_in_port.stream = stream;
+  /* port->values.file_in_port.stream = stream; */
+  in_port_stream(port) = stream;
+  in_port_linum(port) = 1;
   return port;
 }
 
 lisp_object_t make_file_out_port(FILE *stream) {
   lisp_object_t port = malloc(sizeof(struct lisp_object_t));
   port->type = FILE_OUT_PORT;
-  port->values.file_out_port.stream = stream;
+  /* port->values.file_out_port.stream = stream; */
+  out_port_stream(port) = stream;
   return port;
 }

@@ -76,7 +76,7 @@ lisp_object_t read_character(lisp_object_t port) {
         case 'v': return make_character('\v');
         case 'a': return make_character('\a');
         default :
-          fprintf(stderr, "unexpected token '%c'\n", c);
+          fprintf(stderr, "unexpected token '%c' at line %d\n", c, in_port_linum(port));
           exit(1);
       }
     }
@@ -113,7 +113,7 @@ lisp_object_t read_pair(lisp_object_t port) {
     if (CLOSE_OBJECT == o2->type)
       return o1;
     else {
-      fprintf(stderr, "More than one objects after '.'");
+      fprintf(stderr, "More than one objects after '.' at line %d\n", in_port_linum(port));
       exit(1);
     }
   } else
@@ -144,9 +144,9 @@ lisp_object_t read_object(lisp_object_t port) {
   int c = port_read_char(port);
   switch (c) {
     case EOF: return make_eof_object();
+    case '\n': in_port_linum(port)++;
     case ' ':
     case '\t':
-    case '\n':
     case '\r': return read_object(port);
     case ';': read_comment(port); return read_object(port);
     case '0': case '1': case '2': case '3': case '4':
@@ -171,7 +171,7 @@ lisp_object_t read_object(lisp_object_t port) {
         case 'f': return make_false();
         case '\\': return read_character(port);
         default :
-          fprintf(stderr, "unexpected token '%c'\n", c);
+          fprintf(stderr, "unexpected token '%c' at line %d\n", c, in_port_linum(port));
           exit(1);
       }
     }

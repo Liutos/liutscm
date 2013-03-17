@@ -72,6 +72,9 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     case FILE_OUT_PORT:
       fprintf(stream, "#<port :out %p>", object);
       break;
+    case EOF_OBJECT:
+      fprintf(stream, "#<eof>");
+      exit(1);
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);
