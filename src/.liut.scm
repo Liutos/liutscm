@@ -10,7 +10,7 @@
 
 (define not
   (lambda (x)
-    (if (eq #f x)
+    (if (eq? #f x)
         #t
         #f)))
 
@@ -20,20 +20,20 @@
 
 (define null?
   (lambda (x)
-    (eq '() x)))
+    (eq? '() x)))
 
 (define fixnum?
   (lambda (x)
-    (eq 'fixnum (type-of x))))
+    (eq? 'fixnum (type-of x))))
 
 (define boolean?
-  (lambda (x) (eq 'boolean (type-of x))))
+  (lambda (x) (eq? 'boolean (type-of x))))
 
-(define pair? (lambda (x) (eq 'pair (type-of x))))
+(define pair? (lambda (x) (eq? 'pair (type-of x))))
 
-(define symbol? (lambda (x) (eq 'symbol (type-of x))))
+(define symbol? (lambda (x) (eq? 'symbol (type-of x))))
 
-(define char? (lambda (x) (eq 'character (type-of x))))
+(define char? (lambda (x) (eq? 'character (type-of x))))
 
 (define char>?
   (lambda (c1 c2)

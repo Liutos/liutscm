@@ -123,8 +123,8 @@ int main(int argc, char *argv[])
     /* "(< (+ 1 2) 2)", */
     /* "(string-length \"Hello, world!\")", */
     /* "(string=? \"abc\" \"abc\")", */
-    "(char>? #\\a #\\b)",
-    /* "(odd? 1)", */
+    /* "(char>? #\\a #\\b)", */
+    "(odd? 1)",
     /* "(odd? 2)", */
     /* "(even? 2)", */
     /* "(even? 1)", */
