@@ -699,6 +699,36 @@ lisp_object_t close_in_proc(lisp_object_t args) {
   return make_undefined();
 }
 
+lisp_object_t make_file_out_port(FILE *stream) {
+  lisp_object_t port = malloc(sizeof(struct lisp_object_t));
+  port->type = FILE_OUT_PORT;
+  port->values.file_out_port.stream = stream;
+  return port;
+}
+
+lisp_object_t open_out_proc(lisp_object_t args) {
+  lisp_object_t path = pair_car(args);
+  FILE *fp = fopen(string_value(path), "w");
+  if (NULL == fp) {
+    fprintf(stderr, "Can not open file '%s'\n", string_value(path));
+    exit(1);
+  }
+  return make_file_out_port(fp);
+}
+
+lisp_object_t write_char_proc(lisp_object_t args) {
+  lisp_object_t ch = pair_car(args);
+  lisp_object_t port = pair_cadr(args);
+  fputc(char_value(ch), out_port_stream(port));
+  return make_undefined();
+}
+
+lisp_object_t close_out_proc(lisp_object_t args) {
+  lisp_object_t port = pair_car(args);
+  fclose(out_port_stream(port));
+  return make_undefined();
+}
+
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
   lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
   proc->type = PRIMITIVE_PROC;
@@ -738,4 +768,7 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("open-in", open_in_proc, environment);
   add_primitive_proc("read-char", read_char_proc, environment);
   add_primitive_proc("close-in", close_in_proc, environment);
+  add_primitive_proc("open-out", open_out_proc, environment);
+  add_primitive_proc("write-char", write_char_proc, environment);
+  add_primitive_proc("close-out", close_out_proc, environment);
 }

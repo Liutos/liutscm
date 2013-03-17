@@ -25,6 +25,7 @@ enum object_type {
   PRIMITIVE_PROC,
   COMPOUND_PROC,
   FILE_IN_PORT,
+  FILE_OUT_PORT,
 };
 
 typedef struct lisp_object_t {
@@ -60,6 +61,9 @@ typedef struct lisp_object_t {
     struct {
       FILE *stream;
     } file_in_port;
+    struct {
+      FILE *stream;
+    } file_out_port;
   } values;
 } *lisp_object_t;
 
@@ -84,6 +88,7 @@ typedef struct lisp_object_t {
 #define is_false(x) (is_bool(x) && 0 == bool_value(x))
 #define is_undefined(x) (UNDEFINED == (x)->type)
 #define in_port_stream(x) ((x)->values.file_in_port.stream)
+#define out_port_stream(x) ((x)->values.file_out_port.stream)
 
 typedef struct table_entry_t {
   char *key;

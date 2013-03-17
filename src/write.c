@@ -67,6 +67,9 @@ void write_object(lisp_object_t object) {
     case FILE_IN_PORT:
       printf("#<port :in %p>", object);
       break;
+    case FILE_OUT_PORT:
+      printf("#<port :out %p>", object);
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

@@ -94,9 +94,12 @@ int main(int argc, char *argv[])
     /* "(define a 1)", */
     /* "(repl-environment)", */
     /* "(eval '(+ 1 2) (repl-environment))", */
-    "(define port (open-in \"/home/liutos/src/scheme/liutscm/README.md\"))",
-    "(read-char port)",
-    "(close-in port)",
+    /* "(define port (open-in \"/home/liutos/src/scheme/liutscm/README.md\"))", */
+    /* "(read-char port)", */
+    /* "(close-in port)", */
+    "(define port (open-out \"/home/liutos/building/tmp/abc.txt\"))",
+    "(write-char #\\a port)",
+    "(close-out port)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
