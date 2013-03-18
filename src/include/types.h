@@ -26,6 +26,7 @@ enum object_type {
   COMPOUND_PROC,
   FILE_IN_PORT,
   FILE_OUT_PORT,
+  COMPILED_PROC,
 };
 
 typedef struct lisp_object_t {
@@ -65,6 +66,11 @@ typedef struct lisp_object_t {
     struct {
       FILE *stream;
     } file_out_port;
+    struct {
+      struct lisp_object_t *args;
+      struct lisp_object_t *code;
+      struct lisp_object_t *env;
+    } compiled_proc;
   } values;
 } *lisp_object_t;
 
@@ -126,6 +132,11 @@ typedef struct hash_table_t {
 #define out_port_stream(x) ((x)->values.file_out_port.stream)
 /* EOF */
 #define is_eof(x) (EOF_OBJECT == (x)->type)
+/* COMPILED_PROC */
+#define is_compiled_proc(x) (COMPILED_PROC == (x)->type)
+#define compiled_proc_args(x) ((x)->values.compiled_proc.args)
+#define compiled_proc_code(x) ((x)->values.compiled_proc.code)
+#define compiled_proc_env(x) ((x)->values.compiled_proc.env)
 
 /*
  * pair_cadr: second element

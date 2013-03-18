@@ -19,12 +19,13 @@ int main(int argc, char *argv[])
 {
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
-    "1",
-    "+",
-    "'hello",
-    "(set! car car)",
-    "(if #t 1 2)",
-    "(begin 1 2 3)",
+    /* "1", */
+    /* "+", */
+    /* "'hello", */
+    /* "(set! car car)", */
+    /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
+    /* "(begin 1 2 3)", */
+    "(lambda (x) (+ x 1))",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
