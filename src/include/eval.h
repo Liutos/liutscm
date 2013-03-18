@@ -33,6 +33,9 @@ extern lisp_object_t begin_actions(lisp_object_t);
 extern int is_lambda_form(lisp_object_t);
 extern lisp_object_t lambda_parameters(lisp_object_t);
 extern lisp_object_t lambda_body(lisp_object_t);
+extern int is_application_form(lisp_object_t);
+extern lisp_object_t application_operands(lisp_object_t);
+extern lisp_object_t application_operator(lisp_object_t);
 
 extern lisp_object_t repl_environment;
 extern lisp_object_t startup_environment;

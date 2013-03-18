@@ -98,12 +98,21 @@ lisp_object_t make_compiled_proc(lisp_object_t args, lisp_object_t code, lisp_ob
 }
 
 lisp_object_t compile_lambda(lisp_object_t args, lisp_object_t body, lisp_object_t env) {
+  lisp_object_t new_env = extend_environment(args, make_empty_list(), env);
   lisp_object_t code =
       sequenzie(generate_code("ARGS", make_fixnum(pair_length(args))),
-                compile_begin(body, extend_environment(args, make_empty_list(), env)),
+                compile_begin(body, new_env),
                 generate_code("RETURN", make_empty_list()),
                 NULL);
   return make_compiled_proc(args, code, env);
+}
+
+lisp_object_t compile_arguments(lisp_object_t args, lisp_object_t environment) {
+  if (is_null(args))
+    return make_empty_list();
+  else
+    return pair_conc(compile_object(pair_car(args), environment),
+                     compile_arguments(pair_cdr(args), environment));
 }
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
@@ -126,10 +135,8 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t l1 = make_label();
     lisp_object_t l2 = make_label();
     return sequenzie(compile_object(if_test_part(object), environment),
-                     /* make_list(make_pair(find_or_create_symbol("JUMP"), l1), NULL), */
                      generate_code("FJUMP", l1),
                      compile_object(if_then_part(object), environment),
-                     /* make_list(make_pair(find_or_create_symbol("JUMP"), l2), NULL), */
                      generate_code("JUMP", l2),
                      make_list(l1, NULL),
                      compile_object(if_else_part(object), environment),
@@ -143,6 +150,13 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t args = lambda_parameters(object);
     lisp_object_t body = lambda_body(object);
     return generate_code("FN", compile_lambda(args, body, environment));
+  }
+  if (is_application_form(object)) {
+    int length = pair_length(application_operands(object));
+    return sequenzie(compile_arguments(application_operands(object), environment),
+                     compile_object(application_operator(object), environment),
+                     generate_code("CALL", make_fixnum(length)),
+                     NULL);
   }
   return make_list(make_pair(find_or_create_symbol("CONST"), object), NULL);
 }

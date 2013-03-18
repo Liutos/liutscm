@@ -23,9 +23,10 @@ int main(int argc, char *argv[])
     /* "+", */
     /* "'hello", */
     /* "(set! car car)", */
-    /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
+    "(if (= x y) (f (g x)) (h x y (h 1 2)))",
     /* "(begin 1 2 3)", */
-    "(lambda (x) (+ x 1))",
+    /* "(lambda (x) (+ x 1))", */
+    /* "(f 1)", */
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
