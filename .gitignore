@@ -3,8 +3,8 @@
 
 # executables
 liutscm
-run-test
-run-compile-test
+run-repl-test
+run-compiler-test
 
 # GNU Global index
 GPATH

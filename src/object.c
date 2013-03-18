@@ -11,12 +11,9 @@
 #include <stdarg.h>
 
 #include "types.h"
+#include "object.h"
 
 void init_environment(lisp_object_t);
-
-#define environment_vars(x) pair_caar(x)
-#define environment_vals(x) pair_cdar(x)
-#define enclosing_environment(x) pair_cdr(x)
 
 /*
  * repl_environment: Environment used by REPL

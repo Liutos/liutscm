@@ -35,4 +35,8 @@ extern lisp_object_t make_file_out_port(FILE *);
 extern lisp_object_t make_list(lisp_object_t e, ...);
 extern lisp_object_t search_binding_index(lisp_object_t, lisp_object_t);
 
+#define environment_vars(x) pair_caar(x)
+#define environment_vals(x) pair_cdar(x)
+#define enclosing_environment(x) pair_cdr(x)
+
 #endif

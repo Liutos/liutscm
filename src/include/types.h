@@ -145,6 +145,7 @@ typedef struct hash_table_t {
 #define pair_cadr(x) pair_car(pair_cdr(x))
 #define pair_cddr(x) pair_cdr(pair_cdr(x))
 #define pair_caddr(x) pair_car(pair_cddr(x))
+#define pair_cadddr(x) pair_car(pair_cdddr(x))
 #define pair_caar(x) pair_car(pair_car(x))
 #define pair_cdar(x) pair_cdr(pair_car(x))
 #define pair_cdddr(x) pair_cdr(pair_cddr(x))
