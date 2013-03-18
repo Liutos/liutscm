@@ -1,7 +1,7 @@
 /*
  * compile.c
  *
- *
+ * Compiler compile the S-exp to stack-based virtual machine
  *
  * Copyright (C) 2013-03-18 liutos <mat.liutos@gmail.com>
  */
@@ -45,20 +45,32 @@ lisp_object_t sequenzie(lisp_object_t pair, ...) {
   return pair_conc(pair, sequenzie_aux(ap));
 }
 
-lisp_object_t generate_code(char *name, lisp_object_t args) {
-  return make_list(make_pair(find_or_create_symbol(name), args), NULL);
+lisp_object_t va_list2pair(va_list ap) {
+  lisp_object_t o = va_arg(ap, lisp_object_t);
+  if (o)
+    return make_pair(o, va_list2pair(ap));
+  else
+    return make_empty_list();
+}
+
+lisp_object_t generate_code(char *code_name, ...) {
+  va_list ap;
+  va_start(ap, code_name);
+  return make_list(make_pair(find_or_create_symbol(code_name),
+                             va_list2pair(ap)),
+                   NULL);
 }
 
 lisp_object_t compile_constant(lisp_object_t val) {
-  return make_list(make_pair(find_or_create_symbol("CONST"), val), NULL);
+  return generate_code("CONST", val, NULL);
 }
 
 lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
   lisp_object_t co = is_variable_found(var, environment);
   if (NULL == co)
-    return make_list(make_pair(find_or_create_symbol("GSET"), var), NULL);
+    return generate_code("GSET", var, NULL);
   else
-    return make_list(make_list(find_or_create_symbol("LSET"), pair_car(co), pair_cdr(co), NULL), NULL);
+    return generate_code("LSET", pair_car(co), pair_cdr(co), NULL);
 }
 
 lisp_object_t make_label(void) {
@@ -83,7 +95,7 @@ lisp_object_t compile_begin(lisp_object_t actions, lisp_object_t environment) {
     return compile_object(pair_car(actions), environment);
   else
     return sequenzie(compile_object(pair_car(actions), environment),
-                     make_list(make_pair(find_or_create_symbol("POP"), make_empty_list()), NULL),
+                     generate_code("POP", NULL),
                      compile_begin(pair_cdr(actions), environment),
                      NULL);
 }
@@ -102,7 +114,7 @@ lisp_object_t compile_lambda(lisp_object_t args, lisp_object_t body, lisp_object
   lisp_object_t code =
       sequenzie(generate_code("ARGS", make_fixnum(pair_length(args))),
                 compile_begin(body, new_env),
-                generate_code("RETURN", make_empty_list()),
+                generate_code("RETURN", NULL),
                 NULL);
   return make_compiled_proc(args, code, env);
 }
@@ -120,12 +132,12 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
   if (is_variable_form(object)) {
     lisp_object_t co = is_variable_found(object, environment);
     if (NULL == co)
-      return make_list(make_pair(find_or_create_symbol("GVAR"), object), NULL);
+      return generate_code("GVAR", object, NULL);
     else
-      return make_list(make_list(find_or_create_symbol("LVAR"), pair_car(co), pair_cdr(co), NULL), NULL);
+      return generate_code("LVAR", pair_car(co), pair_cdr(co), NULL);
   }
   if (is_quote_form(object)) {
-    return make_list(make_pair(find_or_create_symbol("CONST"), quotation_text(object)), NULL);
+    return compile_constant(quotation_text(object));
   }
   if (is_assignment_form(object)) {
     lisp_object_t value = compile_object(assignment_value(object), environment);
@@ -135,9 +147,9 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
     lisp_object_t l1 = make_label();
     lisp_object_t l2 = make_label();
     return sequenzie(compile_object(if_test_part(object), environment),
-                     generate_code("FJUMP", l1),
+                     generate_code("FJUMP", l1, NULL),
                      compile_object(if_then_part(object), environment),
-                     generate_code("JUMP", l2),
+                     generate_code("JUMP", l2, NULL),
                      make_list(l1, NULL),
                      compile_object(if_else_part(object), environment),
                      make_list(l2, NULL),
@@ -149,14 +161,14 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
   if (is_lambda_form(object)) {
     lisp_object_t args = lambda_parameters(object);
     lisp_object_t body = lambda_body(object);
-    return generate_code("FN", compile_lambda(args, body, environment));
+    return generate_code("FN", compile_lambda(args, body, environment), NULL);
   }
   if (is_application_form(object)) {
     int length = pair_length(application_operands(object));
     return sequenzie(compile_arguments(application_operands(object), environment),
                      compile_object(application_operator(object), environment),
-                     generate_code("CALL", make_fixnum(length)),
+                     generate_code("CALL", make_fixnum(length), NULL),
                      NULL);
   }
-  return make_list(make_pair(find_or_create_symbol("CONST"), object), NULL);
+  return compile_constant(object);
 }
