@@ -13,6 +13,8 @@
 #include "object.h"
 #include "eval.h"
 
+lisp_object_t compile_object(lisp_object_t, lisp_object_t);
+
 int label_counter = 0;
 
 lisp_object_t is_variable_found(lisp_object_t var, lisp_object_t environment) {
@@ -42,6 +44,10 @@ lisp_object_t sequenzie(lisp_object_t pair, ...) {
   return pair_conc(pair, sequenzie_aux(ap));
 }
 
+lisp_object_t compile_constant(lisp_object_t val) {
+  return make_list(make_pair(find_or_create_symbol("CONST"), val), NULL);
+}
+
 lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
   lisp_object_t co = is_variable_found(var, environment);
   if (NULL == co)
@@ -56,6 +62,18 @@ lisp_object_t make_label(void) {
   int n = sprintf(buffer, "L%d", label_counter);
   label_counter++;
   return find_or_create_symbol(strndup(buffer, n));
+}
+
+lisp_object_t compile_begin(lisp_object_t actions, lisp_object_t environment) {
+  if (is_null(actions))
+    return compile_constant(make_empty_list());
+  if (is_null(pair_cdr(actions)))
+    return compile_object(pair_car(actions), environment);
+  else
+    return sequenzie(compile_object(pair_car(actions), environment),
+                     make_list(make_pair(find_or_create_symbol("POP"), make_empty_list()), NULL),
+                     compile_begin(pair_cdr(actions), environment),
+                     NULL);
 }
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
@@ -85,6 +103,9 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
                      compile_object(if_else_part(object), environment),
                      make_list(l2, NULL),
                      NULL);
+  }
+  if (is_begin_form(object)) {
+    return compile_begin(begin_actions(object), environment);
   }
   return make_list(make_pair(find_or_create_symbol("CONST"), object), NULL);
 }

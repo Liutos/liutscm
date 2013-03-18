@@ -28,6 +28,8 @@ extern int is_if_form(lisp_object_t);
 extern lisp_object_t if_test_part(lisp_object_t);
 extern lisp_object_t if_then_part(lisp_object_t);
 extern lisp_object_t if_else_part(lisp_object_t);
+extern int is_begin_form(lisp_object_t);
+extern lisp_object_t begin_actions(lisp_object_t);
 
 extern lisp_object_t repl_environment;
 extern lisp_object_t startup_environment;

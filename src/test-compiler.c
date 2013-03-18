@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
     "'hello",
     "(set! car car)",
     "(if #t 1 2)",
+    "(begin 1 2 3)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
