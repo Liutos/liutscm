@@ -50,5 +50,6 @@ clean:
 	if [ -f liutscm ]; then rm liutscm; fi
 	if [ -f run-repl-test ]; then rm run-repl-test; fi
 	if [ -f run-compiler-test ]; then rm run-compiler-test; fi
+	if [ -f run-vm-test ]; then rm run-vm-test; fi
 
 ### Makefile ends here

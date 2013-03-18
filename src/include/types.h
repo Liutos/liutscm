@@ -27,6 +27,7 @@ enum object_type {
   FILE_IN_PORT,
   FILE_OUT_PORT,
   COMPILED_PROC,
+  VECTOR,
 };
 
 typedef struct lisp_object_t {
@@ -71,6 +72,10 @@ typedef struct lisp_object_t {
       struct lisp_object_t *code;
       struct lisp_object_t *env;
     } compiled_proc;
+    struct {
+      struct lisp_object_t **datum;
+      unsigned int length;
+    } vector;
   } values;
 } *lisp_object_t;
 
@@ -137,10 +142,16 @@ typedef struct hash_table_t {
 #define compiled_proc_args(x) ((x)->values.compiled_proc.args)
 #define compiled_proc_code(x) ((x)->values.compiled_proc.code)
 #define compiled_proc_env(x) ((x)->values.compiled_proc.env)
+/* VECTOR */
+#define is_vector(x) (VECTOR == (x)->type)
+#define vector_datum(x) ((x)->values.vector.datum)
+#define vector_length(x) ((x)->values.vector.length)
+#define vector_data_at(x, i) (vector_datum(x)[i])
 
 /*
  * pair_cadr: second element
  * pair_caddr: third element
+ * pair_cadddr: fourth element
  */
 #define pair_cadr(x) pair_car(pair_cdr(x))
 #define pair_cddr(x) pair_cdr(pair_cdr(x))

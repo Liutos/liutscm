@@ -139,6 +139,16 @@ lisp_object_t read_symbol(char init, lisp_object_t port) {
   return find_or_create_symbol(name);
 }
 
+lisp_object_t read_vector(lisp_object_t port) {
+  lisp_object_t list = read_pair(port);
+  int length = pair_length(list);
+  lisp_object_t vector = make_vector(length);
+  for (int i = 0; !is_null(list); i++, list = pair_cdr(list)) {
+    vector_data_at(vector, i) = pair_car(list);
+  }
+  return vector;
+}
+
 lisp_object_t read_object(lisp_object_t port) {
   /* int c = fgetc(stream); */
   int c = port_read_char(port);
@@ -170,6 +180,7 @@ lisp_object_t read_object(lisp_object_t port) {
         case 't': return make_true();
         case 'f': return make_false();
         case '\\': return read_character(port);
+        case '(': return read_vector(port);
         default :
           fprintf(stderr, "unexpected token '%c' at line %d\n", c, in_port_linum(port));
           exit(1);
