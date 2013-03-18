@@ -32,7 +32,7 @@ lisp_object_t quotation_text(lisp_object_t quote_form) {
 
 /* Variable support */
 
-int is_variable(lisp_object_t object) {
+int is_variable_form(lisp_object_t object) {
   return is_symbol(object);
 }
 
@@ -297,7 +297,7 @@ lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
     return quotation_text(object);
-  if (is_variable(object))
+  if (is_variable_form(object))
     return get_variable_value(object, environment);
   if (is_define_form(object)) {
     lisp_object_t value = eval_object(definition_value(object), environment);
