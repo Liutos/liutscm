@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "types.h"
 
@@ -109,6 +110,21 @@ lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
   pair->values.pair.car = car;
   pair->values.pair.cdr = cdr;
   return pair;
+}
+
+lisp_object_t make_list_aux(va_list ap) {
+  lisp_object_t car = va_arg(ap, lisp_object_t);
+  if (NULL == car) {
+    va_end(ap);
+    return make_empty_list();
+  } else
+    return make_pair(car, make_list_aux(ap));
+}
+
+lisp_object_t make_list(lisp_object_t e, ...) {
+  va_list ap;
+  va_start(ap, e);
+  return make_pair(e, make_list_aux(ap));
 }
 
 lisp_object_t make_symbol(char *name) {
@@ -226,6 +242,23 @@ lisp_object_t search_binding(lisp_object_t var, lisp_object_t env) {
       vals = pair_cdr(vals);
     }
     env = enclosing_environment(env);
+  }
+  return NULL;
+}
+
+lisp_object_t search_binding_index(lisp_object_t var, lisp_object_t env) {
+  int i = 0, j;
+  while (!is_empty_environment(env)) {
+    lisp_object_t vars = environment_vars(env);
+    j = 0;
+    while (is_pair(vars)) {
+      if (pair_car(vars) == var)
+        return make_pair(make_fixnum(i), make_fixnum(j));
+      vars = pair_cdr(vars);
+      j++;
+    }
+    env = enclosing_environment(env);
+    i++;
   }
   return NULL;
 }

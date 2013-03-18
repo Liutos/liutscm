@@ -29,6 +29,13 @@ object.o: object.c include/types.h
 
 proc.o: proc.c include/types.h include/object.h
 
+compile.o: compile.c include/types.h include/object.h include/eval.h
+
+test-compiler.o: test-compiler.c include/types.h include/object.h include/compile.h include/eval.h
+
+run-compile-test: test-compiler.o object.o read.o write.o compile.o proc.o eval.o
+	$(CC) $(CFLAGS) $^ -o $@
+
 .PHONY: clean
 
 clean:

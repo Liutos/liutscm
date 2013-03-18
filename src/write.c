@@ -75,6 +75,10 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     case EOF_OBJECT:
       fprintf(stream, "#<eof>");
       exit(1);
+    case COMPILED_PROC:
+      /* fprintf(stream, "#<compiled-procedure %p>", object); */
+      write_object(compiled_proc_code(object), port);
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);
