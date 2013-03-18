@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 {
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
-    /* "1", */
+    "1",
     "+",
-    /* "'hello", */
+    "'hello",
     /* "(set! car car)", */
     /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
     /* "(begin \"doc\" (write x) y)", */
