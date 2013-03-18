@@ -79,6 +79,15 @@ void write_object(lisp_object_t object, lisp_object_t port) {
       /* fprintf(stream, "#<compiled-procedure %p>", object); */
       write_object(compiled_proc_code(object), port);
       break;
+    case VECTOR:
+      fprintf(stream, "#(");
+      for (int i = 0; i < vector_length(object); i++) {
+        write_object(vector_data_at(object, i), port);
+        if (i != vector_length(object) - 1)
+          fprintf(stream, " ");
+      }
+      fprintf(stream, ")");
+      break;
     default :
       fprintf(stderr, "cannot write unknown type\n");
       exit(1);

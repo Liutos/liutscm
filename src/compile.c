@@ -81,13 +81,6 @@ lisp_object_t make_label(void) {
   return find_or_create_symbol(strndup(buffer, n));
 }
 
-int pair_length(lisp_object_t pair) {
-  if (is_null(pair))
-    return 0;
-  else
-    return 1 + pair_length(pair_cdr(pair));
-}
-
 lisp_object_t compile_begin(lisp_object_t actions, lisp_object_t environment) {
   if (is_null(actions))
     return compile_constant(make_empty_list());

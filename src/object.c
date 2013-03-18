@@ -101,12 +101,21 @@ lisp_object_t make_dot_object(void) {
   return dot_object;
 }
 
+/* PAIR */
+
 lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
   lisp_object_t pair = malloc(sizeof(struct lisp_object_t));
   pair->type = PAIR;
   pair->values.pair.car = car;
   pair->values.pair.cdr = cdr;
   return pair;
+}
+
+int pair_length(lisp_object_t pair) {
+  if (is_null(pair))
+    return 0;
+  else
+    return 1 + pair_length(pair_cdr(pair));
 }
 
 lisp_object_t make_list_aux(va_list ap) {
@@ -135,6 +144,30 @@ lisp_object_t make_undefined(void) {
   lisp_object_t undefined = malloc(sizeof(struct lisp_object_t));
   undefined->type = UNDEFINED;
   return undefined;
+}
+
+/* VECTOR */
+
+unsigned int va_list_length(va_list ap) {
+  if (NULL == va_arg(ap, lisp_object_t)) {
+    va_end(ap);
+    return 0;
+  } else
+    return 1 + va_list_length(ap);
+}
+
+lisp_object_t make_vector(unsigned int length/* , ... */) {
+  lisp_object_t vector = malloc(sizeof(struct lisp_object_t));
+  vector->type = VECTOR;
+  vector_length(vector) = length;
+  vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
+  /* va_list ap; */
+  /* va_start(ap, length); */
+  /* for (int i = 0; i < length; i++) { */
+  /*   vector_data_at(vector, i) = va_arg(ap, lisp_object_t); */
+  /* } */
+  /* va_end(ap); */
+  return vector;
 }
 
 unsigned int hash_symbol_name(char *name) {
