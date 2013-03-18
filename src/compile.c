@@ -14,7 +14,7 @@
 #include "object.h"
 #include "eval.h"
 
-lisp_object_t compile_object(lisp_object_t, lisp_object_t);
+lisp_object_t compile_raw_object(lisp_object_t, lisp_object_t);
 
 int label_counter = 0;
 
@@ -92,9 +92,9 @@ lisp_object_t compile_begin(lisp_object_t actions, lisp_object_t environment) {
   if (is_null(actions))
     return compile_constant(make_empty_list());
   if (is_null(pair_cdr(actions)))
-    return compile_object(pair_car(actions), environment);
+    return compile_raw_object(pair_car(actions), environment);
   else
-    return sequenzie(compile_object(pair_car(actions), environment),
+    return sequenzie(compile_raw_object(pair_car(actions), environment),
                      generate_code("POP", NULL),
                      compile_begin(pair_cdr(actions), environment),
                      NULL);
@@ -112,23 +112,23 @@ lisp_object_t make_compiled_proc(lisp_object_t args, lisp_object_t code, lisp_ob
 lisp_object_t compile_lambda(lisp_object_t args, lisp_object_t body, lisp_object_t env) {
   lisp_object_t new_env = extend_environment(args, make_empty_list(), env);
   lisp_object_t code =
-      sequenzie(generate_code("ARGS", make_fixnum(pair_length(args))),
+      sequenzie(generate_code("ARGS", make_fixnum(pair_length(args)), NULL),
                 compile_begin(body, new_env),
                 generate_code("RETURN", NULL),
                 NULL);
-  return make_compiled_proc(args, code, env);
+  return make_compiled_proc(args, code, new_env);
 }
 
 lisp_object_t compile_arguments(lisp_object_t args, lisp_object_t environment) {
   if (is_null(args))
     return make_empty_list();
   else
-    return pair_conc(compile_object(pair_car(args), environment),
+    return pair_conc(compile_raw_object(pair_car(args), environment),
                      compile_arguments(pair_cdr(args), environment));
 }
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
-lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
+lisp_object_t compile_raw_object(lisp_object_t object, lisp_object_t environment) {
   if (is_variable_form(object)) {
     lisp_object_t co = is_variable_found(object, environment);
     if (NULL == co)
@@ -140,18 +140,18 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
     return compile_constant(quotation_text(object));
   }
   if (is_assignment_form(object)) {
-    lisp_object_t value = compile_object(assignment_value(object), environment);
+    lisp_object_t value = compile_raw_object(assignment_value(object), environment);
     return pair_conc(value, compile_set(assignment_variable(object), environment));
   }
   if (is_if_form(object)) {
     lisp_object_t l1 = make_label();
     lisp_object_t l2 = make_label();
-    return sequenzie(compile_object(if_test_part(object), environment),
+    return sequenzie(compile_raw_object(if_test_part(object), environment),
                      generate_code("FJUMP", l1, NULL),
-                     compile_object(if_then_part(object), environment),
+                     compile_raw_object(if_then_part(object), environment),
                      generate_code("JUMP", l2, NULL),
                      make_list(l1, NULL),
-                     compile_object(if_else_part(object), environment),
+                     compile_raw_object(if_else_part(object), environment),
                      make_list(l2, NULL),
                      NULL);
   }
@@ -166,9 +166,15 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
   if (is_application_form(object)) {
     int length = pair_length(application_operands(object));
     return sequenzie(compile_arguments(application_operands(object), environment),
-                     compile_object(application_operator(object), environment),
+                     compile_raw_object(application_operator(object), environment),
                      generate_code("CALL", make_fixnum(length), NULL),
                      NULL);
   }
   return compile_constant(object);
+}
+
+lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
+  return compile_lambda(make_empty_list(),
+                        make_list(object, NULL),
+                        make_empty_list());
 }
