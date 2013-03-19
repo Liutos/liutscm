@@ -27,6 +27,7 @@ enum code_type {
   FN,
   ARGS,
   RETURN,
+  TJUMP,
 };
 
 enum code_type code_name(lisp_object_t code) {
@@ -215,6 +216,18 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         } else
           pc++;
       }
+        break;
+      case TJUMP: {
+        lisp_object_t top = pair_car(stack);
+        pop(stack);
+        if (is_true(top)) {
+          pc = fixnum_value(code_arg0(code));
+        } else
+          pc++;
+      }
+        break;
+      case JUMP:
+        pc = fixnum_value(code_arg0(code));
         break;
       case POP:
         pop(stack);
