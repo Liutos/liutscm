@@ -44,7 +44,9 @@ int main(int argc, char *argv[])
     write_object(compiled_code, out_port);
     printf("\n=> ");
     /* write_object(ugly_machine(compiled_code, repl_environment), out_port); */
-    write_object(assemble_code(compiled_code), out_port);
+    compiled_code = assemble_code(compiled_code);
+    lisp_object_t stack = make_empty_list();
+    write_object(run_compiled_code(compiled_code, repl_environment, stack), out_port);
     putchar('\n');
     fclose(fp);
   }

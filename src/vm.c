@@ -62,12 +62,15 @@ lisp_object_t get_variable_by_index(int i, int j, lisp_object_t environment) {
   return pair_car(vals);
 }
 
-/* Run the code generated from compiling an S-exp by function `compile_raw_object'. */
-lisp_object_t ugly_machine(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
-  if (is_compiled_proc(compiled_code))
-    compiled_code = compiled_proc_code(compiled_code);
-  while (!is_null(compiled_code)) {
-    lisp_object_t code = pair_car(compiled_code);
+/* Run the code generated from compiling an S-exp by function `assemble_code'. */
+lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
+  assert(is_vector(compiled_code));
+  /* if (is_compiled_proc(compiled_code)) */
+  /*   compiled_code = compiled_proc_code(compiled_code); */
+  int pc = 0;
+  /* while (!is_null(compiled_code)) { */
+  while (1) {
+    lisp_object_t code = /* pair_car(compiled_code); */vector_data_at(compiled_code, pc);
     switch (code_name(code)) {
       case CONST: return code_arg0(code);
       case LVAR: {
@@ -79,7 +82,8 @@ lisp_object_t ugly_machine(lisp_object_t compiled_code, lisp_object_t environmen
         fprintf(stderr, "Unknown code\n");
         exit(1);
     }
-    compiled_code = pair_cdr(compiled_code);
+    /* compiled_code = pair_cdr(compiled_code); */
+    pc++;
   }
   return make_undefined();
 }

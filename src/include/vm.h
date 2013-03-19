@@ -8,7 +8,7 @@
 #ifndef VM_H
 #define VM_H
 
-extern lisp_object_t ugly_machine(lisp_object_t, lisp_object_t);
+extern lisp_object_t run_compiled_code(lisp_object_t, lisp_object_t, lisp_object_t);
 extern lisp_object_t assemble_code(lisp_object_t);
 
 #endif
