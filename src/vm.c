@@ -11,6 +11,7 @@
 
 #include "types.h"
 #include "object.h"
+#include "eval.h"
 
 extern void write_object(lisp_object_t, lisp_object_t);
 
@@ -77,29 +78,34 @@ void set_variable_by_index(int i, int j, lisp_object_t new_value, lisp_object_t 
   pair_car(vals) = new_value;
 }
 
+lisp_object_t make_arguments(lisp_object_t stack, int n) {
+  if (0 == n)
+    return make_empty_list();
+  else
+    return make_pair(pair_car(stack),
+                     make_arguments(pair_cdr(stack), n - 1));
+}
+
 #define push(e, stack) stack = make_pair(e, stack)
 #define pop(stack) stack = pair_cdr(stack)
+#define nth_pop(stack, n) stack = pair_nthcdr(stack, n)
 
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
   assert(is_vector(compiled_code));
-  /* if (is_compiled_proc(compiled_code)) */
-  /*   compiled_code = compiled_proc_code(compiled_code); */
   int pc = 0;
-  /* while (!is_null(compiled_code)) { */
   while (1) {
     if (pc >= vector_length(compiled_code))
       break;
     lisp_object_t code = /* pair_car(compiled_code); */vector_data_at(compiled_code, pc);
     switch (code_name(code)) {
-      case CONST: /* return code_arg0(code); */
+      case CONST:
         push(code_arg0(code), stack);
         pc++;
         break;
       case LVAR: {
         int i = fixnum_value(code_arg0(code));
         int j = fixnum_value(code_arg1(code));
-        /* return get_variable_by_index(i, j, environment); */
         push(get_variable_by_index(i, j, environment), stack);
       }
         pc++;
@@ -127,13 +133,22 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         pop(stack);
         pc++;
         break;
+      case CALL: {
+        lisp_object_t n = code_arg0(code);
+        lisp_object_t op = pair_car(stack);
+        pop(stack);
+        lisp_object_t args = make_arguments(stack, fixnum_value(n));
+        nth_pop(stack, fixnum_value(n));
+        push(eval_application(op, args), stack);
+        pc++;
+      }
+        break;
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");
         write_object(pair_car(code), make_file_out_port(stdout));
         /* exit(1); */
         return stack;
     }
-    /* compiled_code = pair_cdr(compiled_code); */
   }
   return stack;
 }

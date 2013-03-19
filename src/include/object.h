@@ -36,6 +36,7 @@ extern lisp_object_t make_list(lisp_object_t e, ...);
 extern lisp_object_t search_binding_index(lisp_object_t, lisp_object_t);
 extern lisp_object_t make_vector(unsigned int);
 extern int pair_length(lisp_object_t);
+extern lisp_object_t pair_nthcdr(lisp_object_t, int);
 
 #define environment_vars(x) pair_caar(x)
 #define environment_vals(x) pair_cdar(x)

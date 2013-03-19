@@ -133,6 +133,13 @@ lisp_object_t make_list(lisp_object_t e, ...) {
   return make_pair(e, make_list_aux(ap));
 }
 
+lisp_object_t pair_nthcdr(lisp_object_t pair, int n) {
+  if (0 == n || is_null(pair))
+    return pair;
+  else
+    return pair_nthcdr(pair_cdr(pair), n - 1);
+}
+
 lisp_object_t make_symbol(char *name) {
   lisp_object_t symbol = malloc(sizeof(struct lisp_object_t));
   symbol->type = SYMBOL;
@@ -161,12 +168,6 @@ lisp_object_t make_vector(unsigned int length/* , ... */) {
   vector->type = VECTOR;
   vector_length(vector) = length;
   vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
-  /* va_list ap; */
-  /* va_start(ap, length); */
-  /* for (int i = 0; i < length; i++) { */
-  /*   vector_data_at(vector, i) = va_arg(ap, lisp_object_t); */
-  /* } */
-  /* va_end(ap); */
   return vector;
 }
 
