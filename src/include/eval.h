@@ -16,6 +16,7 @@ extern lisp_object_t make_startup_environment(void);
 extern void init_environment(lisp_object_t);
 extern lisp_object_t extend_environment(lisp_object_t, lisp_object_t, lisp_object_t);
 extern lisp_object_t make_repl_environment(void);
+extern lisp_object_t eval_application(lisp_object_t, lisp_object_t);
 
 /* Parsing utilities */
 extern int is_variable_form(lisp_object_t);

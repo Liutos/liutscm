@@ -293,6 +293,24 @@ lisp_object_t eval_environment(lisp_object_t eval_form) {
   return pair_caddr(eval_form);
 }
 
+lisp_object_t eval_application(lisp_object_t operator, lisp_object_t operands) {
+  if (is_primitive(operator))
+    return (primitive_C_proc(operator))(operands);
+  if (is_compound(operator)) {
+    lisp_object_t body = compound_proc_body(operator);
+    lisp_object_t vars = compound_proc_parameters(operator);
+    lisp_object_t def_env = compound_proc_environment(operator);
+    lisp_object_t object = make_pair(find_or_create_symbol("begin"), body);
+    lisp_object_t environment = extend_environment(vars, operands, def_env);
+    return eval_object(object, environment);
+  }
+  /* if (is_compiled_proc(operator)) { */
+
+  /* } */
+  fprintf(stderr, "Unknown operator type %d\n", operator->type);
+  exit(1);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -396,16 +414,17 @@ tail_loop:
       object = pair_car(operands);
       goto tail_loop;
     }
-    if (is_primitive(operator))
-      return (primitive_C_proc(operator))(operands);
-    else {
-      lisp_object_t body = compound_proc_body(operator);
-      lisp_object_t vars = compound_proc_parameters(operator);
-      lisp_object_t def_env = compound_proc_environment(operator);
-      object = make_pair(find_or_create_symbol("begin"), body);
-      environment = extend_environment(vars, operands, def_env);
-      goto tail_loop;
-    }
+    /* if (is_primitive(operator)) */
+    /*   return (primitive_C_proc(operator))(operands); */
+    /* else { */
+    /*   lisp_object_t body = compound_proc_body(operator); */
+    /*   lisp_object_t vars = compound_proc_parameters(operator); */
+    /*   lisp_object_t def_env = compound_proc_environment(operator); */
+    /*   object = make_pair(find_or_create_symbol("begin"), body); */
+    /*   environment = extend_environment(vars, operands, def_env); */
+    /*   goto tail_loop; */
+    /* } */
+    return eval_application(operator, operands);
   }
   else
     return object;
