@@ -108,6 +108,15 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
       }
         pc++;
         break;
+      case FJUMP: {
+        lisp_object_t top = pair_car(stack);
+        pop(stack);
+        if (is_false(top)) {
+          pc = fixnum_value(code_arg0(code));
+        } else
+          pc++;
+      }
+        break;
       default :
         fprintf(stderr, "Unknown code ");
         write_object(pair_car(code), make_file_out_port(stdout));
