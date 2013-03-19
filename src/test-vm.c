@@ -23,10 +23,10 @@ int main(int argc, char *argv[])
     /* "1", */
     /* "+", */
     /* "'hello", */
-    "(if #t 1 2)",
+    /* "(if #t 1 2)", */
     /* "(set! car car)", */
     /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
-    /* "(begin \"doc\" (write x) y)", */
+    "(begin \"doc\" (write 1) 2)",
     /* "(begin (+ (* a x) (f x)) x)", */
     /* "(lambda (x) (+ x 1))", */
     /* "(f 1)", */

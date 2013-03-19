@@ -20,6 +20,9 @@ enum code_type {
   FJUMP,
   JUMP,
   LSET,
+  POP,
+  GVAR,
+  CALL,
 };
 
 enum code_type code_name(lisp_object_t code) {
@@ -32,7 +35,10 @@ enum code_type code_name(lisp_object_t code) {
   if (S("FJUMP") == name) return FJUMP;
   if (S("JUMP") == name) return JUMP;
   if (S("LSET") == name) return LSET;
-  fprintf(stderr, "Unsupported code: %s\n", symbol_name(pair_car(code)));
+  if (S("POP") == name) return POP;
+  if (S("GVAR") == name) return GVAR;
+  if (S("CALL") == name) return CALL;
+  fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
   exit(1);
 }
 
@@ -117,8 +123,12 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
           pc++;
       }
         break;
+      case POP:
+        pop(stack);
+        pc++;
+        break;
       default :
-        fprintf(stderr, "Unknown code ");
+        fprintf(stderr, "run_compiled_code - Unknown code ");
         write_object(pair_car(code), make_file_out_port(stdout));
         /* exit(1); */
         return stack;
