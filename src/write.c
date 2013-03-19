@@ -45,13 +45,17 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     }
     return;
   }
+  if (is_bool(object)) {
+    fprintf(stream, "#%c", bool_value(object) ? 't': 'f');
+    return;
+  }
   switch (object->type) {
     /* case FIXNUM: */
     /*   fprintf(stream, "%d", object->values.fixnum.value); */
     /*   break; */
-    case BOOLEAN:
-      fprintf(stream, "#%c", object->values.boolean.value ? 't': 'f');
-      break;
+    /* case BOOLEAN: */
+    /*   fprintf(stream, "#%c", object->values.boolean.value ? 't': 'f'); */
+    /*   break; */
     /* case CHARACTER: { */
     /*   char c = object->values.character.value; */
     /*   switch (c) { */

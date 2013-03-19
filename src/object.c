@@ -41,10 +41,11 @@ lisp_object_t make_eof_object(void) {
 }
 
 lisp_object_t make_boolean(int value) {
-  lisp_object_t boolean = malloc(sizeof(struct lisp_object_t));
-  boolean->type = BOOLEAN;
-  boolean->values.boolean.value = value;
-  return boolean;
+  /* lisp_object_t boolean = malloc(sizeof(struct lisp_object_t)); */
+  /* boolean->type = BOOLEAN; */
+  /* boolean->values.boolean.value = value; */
+  /* return boolean; */
+  return (lisp_object_t)((value << BOOL_BITS) | BOOL_TAG);
 }
 
 lisp_object_t make_true(void) {

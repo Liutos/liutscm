@@ -109,6 +109,7 @@ typedef struct hash_table_t {
 #define POINTER_MASK 0x02
 #define POINTER_TAG 0x00
 #define is_pointer(x) (POINTER_TAG == ((int)(x) && POINTER_MASK))
+#define is_of_tag(x, mask, tag) (tag == (((int)(x)) & mask))
 /* PAIR */
 #define pair_car(x) ((x)->values.pair.car)
 #define pair_cdr(x) ((x)->values.pair.cdr)
@@ -124,7 +125,8 @@ typedef struct hash_table_t {
 #define fixnum_value(x) (((int)(x)) >> FIXNUM_BITS)
 #define FIXNUM_MASK 0x03
 #define FIXNUM_TAG 0x01
-#define is_fixnum(x) (FIXNUM_TAG == (((int)(x)) & FIXNUM_MASK))
+/* #define is_fixnum(x) (FIXNUM_TAG == (((int)(x)) & FIXNUM_MASK)) */
+#define is_fixnum(x) is_of_tag(x, FIXNUM_MASK, FIXNUM_TAG)
 /* PRIMITIVE_PROC */
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 #define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
@@ -133,7 +135,8 @@ typedef struct hash_table_t {
 #define CHAR_TAG 0x06
 #define CHAR_MASK 0x0f
 #define CHAR_BITS 4
-#define is_char(x) (CHAR_TAG == (((int)(x)) & CHAR_MASK))
+/* #define is_char(x) (CHAR_TAG == (((int)(x)) & CHAR_MASK)) */
+#define is_char(x) is_of_tag(x, CHAR_MASK, CHAR_TAG)
 #define char_value(x) (((int)(x)) >> CHAR_BITS)
 /* STRING */
 #define string_value(x) ((x)->values.string.value)
@@ -144,8 +147,14 @@ typedef struct hash_table_t {
 #define is_compound(x) (COMPOUND_PROC == (x)->type)
 #define is_function(x) (is_primitive(x) || is_compound(x))
 /* BOOLEAN */
-#define is_bool(x) (BOOLEAN == (x)->type)
-#define bool_value(x) ((x)->values.boolean.value)
+/* #define is_bool(x) (BOOLEAN == (x)->type) */
+#define BOOL_MASK 0x0f
+#define BOOL_TAG 0x0e
+#define BOOL_BITS 4
+/* #define is_bool(x) (BOOL_TAG == (((int)(x)) & BOOL_MASK)) */
+#define is_bool(x) is_of_tag(x, BOOL_MASK, BOOL_TAG)
+/* #define bool_value(x) ((x)->values.boolean.value) */
+#define bool_value(x) (((int)(x)) >> BOOL_BITS)
 #define is_true(x) (is_bool(x) && 1 == bool_value(x))
 #define is_false(x) (is_bool(x) && 0 == bool_value(x))
 /* UNDEFINED */
