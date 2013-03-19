@@ -167,7 +167,7 @@ lisp_object_t compile_raw_object(lisp_object_t object, lisp_object_t environment
 }
 
 lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
-  return compile_lambda(make_empty_list(),
-                        make_list(object, NULL),
-                        make_empty_list());
+  lisp_object_t body = make_pair(object, make_empty_list());
+  lisp_object_t form = make_lambda_form(make_empty_list(), body);
+  return compile_raw_object(form, environment);
 }

@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 {
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
-    /* "1", */
-    /* "+", */
-    /* "'hello", */
+    "1",
+    "+",
+    "'hello",
     "(if #t 1 2)",
     /* "(set! car car)", */
     /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
@@ -41,9 +41,10 @@ int main(int argc, char *argv[])
     printf(">> %s\n", cases[i]);
     lisp_object_t compiled_code =
         compile_raw_object(read_object(in_port), repl_environment);
-    /* write_object(ugly_machine(compiled_code, repl_environment), out_port); */
+    printf("-- ");
+    write_object(compiled_code, make_file_out_port(stdout));
     compiled_code = assemble_code(compiled_code);
-    printf("-> ");
+    printf("\n-> ");
     write_object(compiled_code, out_port);
     printf("\n");
     lisp_object_t stack = make_empty_list();

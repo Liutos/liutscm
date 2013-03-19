@@ -170,6 +170,7 @@ lisp_object_t vectorize_code(lisp_object_t compiled_code, int length, lisp_objec
 }
 
 lisp_object_t assemble_code(lisp_object_t compiled_code) {
+  assert(is_pair(compiled_code));
   int length;
   lisp_object_t label_table = extract_labels(compiled_code, &length);
   return vectorize_code(compiled_code, length, label_table);
