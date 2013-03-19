@@ -49,23 +49,25 @@ lisp_object_t make_boolean(int value) {
 }
 
 lisp_object_t make_true(void) {
-  static lisp_object_t true_object = NULL;
-  if (true_object)
-    return true_object;
-  else {
-    true_object = make_boolean(1);
-    return true_object;
-  }
+  /* static lisp_object_t true_object = NULL; */
+  /* if (true_object) */
+  /*   return true_object; */
+  /* else { */
+  /*   true_object = make_boolean(1); */
+  /*   return true_object; */
+  /* } */
+  return true_object;
 }
 
 lisp_object_t make_false(void) {
-  static lisp_object_t false_object = NULL;
-  if (false_object)
-    return false_object;
-  else {
-    false_object = make_boolean(0);
-    return false_object;
-  }
+  /* static lisp_object_t false_object = NULL; */
+  /* if (false_object) */
+  /*   return false_object; */
+  /* else { */
+  /*   false_object = make_boolean(0); */
+  /*   return false_object; */
+  /* } */
+  return false_object;
 }
 
 lisp_object_t make_character(char c) {
@@ -84,12 +86,13 @@ lisp_object_t make_string(char *str) {
 }
 
 lisp_object_t make_empty_list(void) {
-  static lisp_object_t empty_list = NULL;
-  if (NULL == empty_list) {
-    empty_list = malloc(sizeof(struct lisp_object_t));
-    empty_list->type = EMPTY_LIST;
-  }
-  return empty_list;
+  /* static lisp_object_t empty_list = NULL; */
+  /* if (NULL == empty_list) { */
+  /*   empty_list = malloc(sizeof(struct lisp_object_t)); */
+  /*   empty_list->type = EMPTY_LIST; */
+  /* } */
+  /* return empty_list; */
+  return empty_list_object;
 }
 
 lisp_object_t make_close_object(void) {

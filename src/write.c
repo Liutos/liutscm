@@ -45,8 +45,12 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     }
     return;
   }
-  if (is_bool(object)) {
+  if (is_true(object) || is_false(object)) {
     fprintf(stream, "#%c", bool_value(object) ? 't': 'f');
+    return;
+  }
+  if (is_null(object)) {
+    write_string("()", port);
     return;
   }
   switch (object->type) {
@@ -77,7 +81,7 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     case STRING:
       fprintf(stream, "\"%s\"", object->values.string.value);
       break;
-    case EMPTY_LIST: /* fprintf(stream, "()") */write_string("()", port); break;
+    /* case EMPTY_LIST: /\* fprintf(stream, "()") *\/write_string("()", port); break; */
     case PAIR: {
       /* fprintf(stream, "("); */
       write_string("(", port);
