@@ -105,17 +105,26 @@ typedef struct hash_table_t {
 /* ---ACCESSORS, PREDICATES--- */
 /* ACCESSORS: $(type_name)_$(slot_name) */
 /* PREDICATES: is_$(type_name) */
+/* pointer on heap */
+#define POINTER_MASK 0x02
+#define POINTER_TAG 0x00
+#define is_pointer(x) (POINTER_TAG == ((int)(x) && POINTER_MASK))
 /* PAIR */
 #define pair_car(x) ((x)->values.pair.car)
 #define pair_cdr(x) ((x)->values.pair.cdr)
-#define is_pair(x) (PAIR == (x)->type)
+#define is_pair(x) (is_pointer(x) && (PAIR == (x)->type))
 /* EMPTY_LIST */
 #define is_null(x) (EMPTY_LIST == (x)->type)
 /* SYMBOL */
 #define symbol_name(x) ((x)->values.symbol.name)
-#define is_symbol(x) (SYMBOL == (x)->type)
+#define is_symbol(x) (is_pointer(x) && (SYMBOL == (x)->type))
 /* FIXNUM */
-#define fixnum_value(x) ((x)->values.fixnum.value)
+/* #define fixnum_value(x) ((x)->values.fixnum.value) */
+#define FIXNUM_BITS 2
+#define fixnum_value(x) (((int)(x)) >> FIXNUM_BITS)
+#define FIXNUM_MASK 0x03
+#define FIXNUM_TAG 0x01
+#define is_fixnum(x) (FIXNUM_TAG == (((int)(x)) & FIXNUM_MASK))
 /* PRIMITIVE_PROC */
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 #define is_primitive(x) (PRIMITIVE_PROC == (x)->type)

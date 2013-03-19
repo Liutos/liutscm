@@ -27,10 +27,11 @@ lisp_object_t startup_environment;
 hash_table_t symbol_table;
 
 lisp_object_t make_fixnum(int value) {
-  lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t));
-  fixnum->type = FIXNUM;
-  fixnum->values.fixnum.value = value;
-  return fixnum;
+  /* lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t)); */
+  /* fixnum->type = FIXNUM; */
+  /* fixnum->values.fixnum.value = value; */
+  /* return fixnum; */
+  return (lisp_object_t)((value << FIXNUM_BITS) | FIXNUM_TAG);
 }
 
 lisp_object_t make_eof_object(void) {

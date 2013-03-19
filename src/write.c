@@ -20,6 +20,10 @@ void write_string(char *str, lisp_object_t port) {
 
 void write_object(lisp_object_t object, lisp_object_t port) {
   FILE *stream = out_port_stream(port);
+  if (is_fixnum(object)) {
+    fprintf(stream, "%d", fixnum_value(object));
+    return;
+  }
   switch (object->type) {
     case FIXNUM:
       fprintf(stream, "%d", object->values.fixnum.value);

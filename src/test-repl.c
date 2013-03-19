@@ -32,7 +32,7 @@ void load_init_file(void) {
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    /* "123", */
+    "1",
     /* "-123", */
     /* "#t", */
     /* "#f", */
@@ -128,12 +128,12 @@ int main(int argc, char *argv[])
     /* "(odd? 2)", */
     /* "(even? 2)", */
     /* "(even? 1)", */
-    "#(1 2 3)",
+    /* "#(1 2 3)", */
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
   repl_environment = make_repl_environment();
-  load_init_file();
+  /* load_init_file(); */
   lisp_object_t out_port = make_file_out_port(stdout);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
