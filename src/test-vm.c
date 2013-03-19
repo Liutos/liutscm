@@ -26,10 +26,11 @@ int main(int argc, char *argv[])
     /* "(if #t 1 2)", */
     /* "(set! car car)", */
     /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
-    "(begin \"doc\" (write \"Hello, world\") 2)",
+    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
     /* "(begin (+ (* a x) (f x)) x)", */
     /* "(lambda (x) (+ x 1))", */
-    "(+ 1 1)",
+    /* "(+ 1 1)", */
+    "((lambda (y z) (+ x y)) 1 2)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();

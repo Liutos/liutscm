@@ -24,6 +24,9 @@ enum code_type {
   POP,
   GVAR,
   CALL,
+  FN,
+  ARGS,
+  RETURN,
 };
 
 enum code_type code_name(lisp_object_t code) {
@@ -39,6 +42,9 @@ enum code_type code_name(lisp_object_t code) {
   if (S("POP") == name) return POP;
   if (S("GVAR") == name) return GVAR;
   if (S("CALL") == name) return CALL;
+  if (S("FN") == name) return FN;
+  if (S("ARGS") == name) return ARGS;
+  if (S("RETURN") == name) return RETURN;
   fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
   exit(1);
 }
@@ -89,6 +95,16 @@ lisp_object_t make_arguments(lisp_object_t stack, int n) {
 #define push(e, stack) stack = make_pair(e, stack)
 #define pop(stack) stack = pair_cdr(stack)
 #define nth_pop(stack, n) stack = pair_nthcdr(stack, n)
+
+void push_value2env(lisp_object_t stack, int n, lisp_object_t environment) {
+  lisp_object_t vals = environment_vals(environment);
+  for (; n > 0; n--) {
+    lisp_object_t top = pair_car(stack);
+    pop(stack);
+    push(top, vals);
+  }
+  environment_vals(environment) = vals;
+}
 
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
@@ -142,6 +158,17 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         push(eval_application(op, args), stack);
         pc++;
       }
+        break;
+      /* case ARGS: { */
+      /*   lisp_object_t n = code_arg0(code); */
+      /*   push_value2env(stack, fixnum_value(n), environment); */
+      /*   nth_pop(stack, fixnum_value(n)); */
+      /*   pc++; */
+      /* } */
+      /*   break; */
+      case FN:
+        push(code_arg0(code), stack);
+        pc++;
         break;
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");

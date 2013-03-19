@@ -296,7 +296,7 @@ lisp_object_t eval_environment(lisp_object_t eval_form) {
 lisp_object_t eval_application(lisp_object_t operator, lisp_object_t operands) {
   if (is_primitive(operator))
     return (primitive_C_proc(operator))(operands);
-  else {
+  if (is_compound(operator)) {
     lisp_object_t body = compound_proc_body(operator);
     lisp_object_t vars = compound_proc_parameters(operator);
     lisp_object_t def_env = compound_proc_environment(operator);
@@ -304,6 +304,11 @@ lisp_object_t eval_application(lisp_object_t operator, lisp_object_t operands) {
     lisp_object_t environment = extend_environment(vars, operands, def_env);
     return eval_object(object, environment);
   }
+  /* if (is_compiled_proc(operator)) { */
+
+  /* } */
+  fprintf(stderr, "Unknown operator type %d\n", operator->type);
+  exit(1);
 }
 
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {

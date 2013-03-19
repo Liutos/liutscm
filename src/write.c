@@ -93,14 +93,14 @@ void write_object(lisp_object_t object, lisp_object_t port) {
       write_string("#<eof>", port);
       exit(1);
     case COMPILED_PROC: {
-      /* fprintf(stream, "#<compiled-procedure %p>", object); */
+      fprintf(stream, "#<compiled-procedure %p>", object);
       /* write_object(compiled_proc_code(object), port); */
-      lisp_object_t code = compiled_proc_code(object);
-      while (is_pair(code)) {
-        write_object(pair_car(code), port);
-        write_char('\n', port);
-        code = pair_cdr(code);
-      }
+      /* lisp_object_t code = compiled_proc_code(object); */
+      /* while (is_pair(code)) { */
+      /*   write_object(pair_car(code), port); */
+      /*   write_char('\n', port); */
+      /*   code = pair_cdr(code); */
+      /* } */
     }
       break;
     case VECTOR:
