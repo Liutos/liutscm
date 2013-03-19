@@ -8,14 +8,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "types.h"
+#include "object.h"
 
 void init_environment(lisp_object_t);
-
-#define environment_vars(x) pair_caar(x)
-#define environment_vals(x) pair_cdar(x)
-#define enclosing_environment(x) pair_cdr(x)
 
 /*
  * repl_environment: Environment used by REPL
@@ -103,12 +101,43 @@ lisp_object_t make_dot_object(void) {
   return dot_object;
 }
 
+/* PAIR */
+
 lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
   lisp_object_t pair = malloc(sizeof(struct lisp_object_t));
   pair->type = PAIR;
   pair->values.pair.car = car;
   pair->values.pair.cdr = cdr;
   return pair;
+}
+
+int pair_length(lisp_object_t pair) {
+  if (is_null(pair))
+    return 0;
+  else
+    return 1 + pair_length(pair_cdr(pair));
+}
+
+lisp_object_t make_list_aux(va_list ap) {
+  lisp_object_t car = va_arg(ap, lisp_object_t);
+  if (NULL == car) {
+    va_end(ap);
+    return make_empty_list();
+  } else
+    return make_pair(car, make_list_aux(ap));
+}
+
+lisp_object_t make_list(lisp_object_t e, ...) {
+  va_list ap;
+  va_start(ap, e);
+  return make_pair(e, make_list_aux(ap));
+}
+
+lisp_object_t pair_nthcdr(lisp_object_t pair, int n) {
+  if (0 == n || is_null(pair))
+    return pair;
+  else
+    return pair_nthcdr(pair_cdr(pair), n - 1);
 }
 
 lisp_object_t make_symbol(char *name) {
@@ -122,6 +151,24 @@ lisp_object_t make_undefined(void) {
   lisp_object_t undefined = malloc(sizeof(struct lisp_object_t));
   undefined->type = UNDEFINED;
   return undefined;
+}
+
+/* VECTOR */
+
+unsigned int va_list_length(va_list ap) {
+  if (NULL == va_arg(ap, lisp_object_t)) {
+    va_end(ap);
+    return 0;
+  } else
+    return 1 + va_list_length(ap);
+}
+
+lisp_object_t make_vector(unsigned int length/* , ... */) {
+  lisp_object_t vector = malloc(sizeof(struct lisp_object_t));
+  vector->type = VECTOR;
+  vector_length(vector) = length;
+  vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
+  return vector;
 }
 
 unsigned int hash_symbol_name(char *name) {
@@ -226,6 +273,23 @@ lisp_object_t search_binding(lisp_object_t var, lisp_object_t env) {
       vals = pair_cdr(vals);
     }
     env = enclosing_environment(env);
+  }
+  return NULL;
+}
+
+lisp_object_t search_binding_index(lisp_object_t var, lisp_object_t env) {
+  int i = 0, j;
+  while (!is_empty_environment(env)) {
+    lisp_object_t vars = environment_vars(env);
+    j = 0;
+    while (is_pair(vars)) {
+      if (pair_car(vars) == var)
+        return make_pair(make_fixnum(i), make_fixnum(j));
+      vars = pair_cdr(vars);
+      j++;
+    }
+    env = enclosing_environment(env);
+    i++;
   }
   return NULL;
 }

@@ -26,6 +26,9 @@ enum object_type {
   COMPOUND_PROC,
   FILE_IN_PORT,
   FILE_OUT_PORT,
+  COMPILED_PROC,
+  VECTOR,
+  RETURN_INFO,
 };
 
 typedef struct lisp_object_t {
@@ -65,6 +68,20 @@ typedef struct lisp_object_t {
     struct {
       FILE *stream;
     } file_out_port;
+    struct {
+      struct lisp_object_t *args;
+      struct lisp_object_t *code;
+      struct lisp_object_t *env;
+    } compiled_proc;
+    struct {
+      struct lisp_object_t **datum;
+      unsigned int length;
+    } vector;
+    struct {
+      struct lisp_object_t *code;
+      int pc;
+      struct lisp_object_t *env;
+    } return_info;
   } values;
 } *lisp_object_t;
 
@@ -126,14 +143,31 @@ typedef struct hash_table_t {
 #define out_port_stream(x) ((x)->values.file_out_port.stream)
 /* EOF */
 #define is_eof(x) (EOF_OBJECT == (x)->type)
+/* COMPILED_PROC */
+#define is_compiled_proc(x) (COMPILED_PROC == (x)->type)
+#define compiled_proc_args(x) ((x)->values.compiled_proc.args)
+#define compiled_proc_code(x) ((x)->values.compiled_proc.code)
+#define compiled_proc_env(x) ((x)->values.compiled_proc.env)
+/* VECTOR */
+#define is_vector(x) (VECTOR == (x)->type)
+#define vector_datum(x) ((x)->values.vector.datum)
+#define vector_length(x) ((x)->values.vector.length)
+#define vector_data_at(x, i) (vector_datum(x)[i])
+/* RETURN_INFO */
+#define is_return_info(x) (RETURN_INFO == (x)->type)
+#define return_code(x) ((x)->values.return_info.code)
+#define return_pc(x) ((x)->values.return_info.pc)
+#define return_env(x) ((x)->values.return_info.env)
 
 /*
  * pair_cadr: second element
  * pair_caddr: third element
+ * pair_cadddr: fourth element
  */
 #define pair_cadr(x) pair_car(pair_cdr(x))
 #define pair_cddr(x) pair_cdr(pair_cdr(x))
 #define pair_caddr(x) pair_car(pair_cddr(x))
+#define pair_cadddr(x) pair_car(pair_cdddr(x))
 #define pair_caar(x) pair_car(pair_car(x))
 #define pair_cdar(x) pair_cdr(pair_car(x))
 #define pair_cdddr(x) pair_cdr(pair_cddr(x))

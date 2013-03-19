@@ -124,10 +124,11 @@ int main(int argc, char *argv[])
     /* "(string-length \"Hello, world!\")", */
     /* "(string=? \"abc\" \"abc\")", */
     /* "(char>? #\\a #\\b)", */
-    "(odd? 1)",
+    /* "(odd? 1)", */
     /* "(odd? 2)", */
     /* "(even? 2)", */
     /* "(even? 1)", */
+    "#(1 2 3)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
