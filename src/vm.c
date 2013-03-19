@@ -62,6 +62,18 @@ lisp_object_t get_variable_by_index(int i, int j, lisp_object_t environment) {
   return pair_car(vals);
 }
 
+void set_variable_by_index(int i, int j, lisp_object_t new_value, lisp_object_t environment) {
+  while (i-- != 0)
+    environment = enclosing_environment(environment);
+  lisp_object_t vals = environment_vals(environment);
+  while (j-- != 0)
+    vals = pair_cdr(vals);
+  pair_car(vals) = new_value;
+}
+
+#define push(e, stack) stack = make_pair(e, stack)
+#define pop(stack) stack = pair_cdr(stack)
+
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
   assert(is_vector(compiled_code));
@@ -70,22 +82,41 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
   int pc = 0;
   /* while (!is_null(compiled_code)) { */
   while (1) {
+    if (pc >= vector_length(compiled_code))
+      break;
     lisp_object_t code = /* pair_car(compiled_code); */vector_data_at(compiled_code, pc);
     switch (code_name(code)) {
-      case CONST: return code_arg0(code);
+      case CONST: /* return code_arg0(code); */
+        push(code_arg0(code), stack);
+        pc++;
+        break;
       case LVAR: {
         int i = fixnum_value(code_arg0(code));
         int j = fixnum_value(code_arg1(code));
-        return get_variable_by_index(i, j, environment);
+        /* return get_variable_by_index(i, j, environment); */
+        push(get_variable_by_index(i, j, environment), stack);
       }
+        pc++;
+        break;
+      case LSET: {
+        int i = fixnum_value(code_arg0(code));
+        int j = fixnum_value(code_arg1(code));
+        lisp_object_t value = pair_car(stack);
+        pop(stack);
+        set_variable_by_index(i, j, value, environment);
+        push(make_undefined(), stack);
+      }
+        pc++;
+        break;
       default :
-        fprintf(stderr, "Unknown code\n");
-        exit(1);
+        fprintf(stderr, "Unknown code ");
+        write_object(pair_car(code), make_file_out_port(stdout));
+        /* exit(1); */
+        return stack;
     }
     /* compiled_code = pair_cdr(compiled_code); */
-    pc++;
   }
-  return make_undefined();
+  return stack;
 }
 
 int is_label(lisp_object_t code) {
