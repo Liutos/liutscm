@@ -23,14 +23,14 @@ int main(int argc, char *argv[])
     /* "1", */
     /* "+", */
     /* "'hello", */
-    /* "(if #t 1 2)", */
+    "(if #t 1 2)",
     /* "(set! car car)", */
     /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
     /* "(begin (+ (* a x) (f x)) x)", */
     /* "(lambda (x) (+ x 1))", */
     /* "(+ 1 1)", */
-    "((lambda (y z) (+ x y)) 1 2)",
+    "((lambda (x y) (+ x y)) 1 2)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
@@ -45,9 +45,11 @@ int main(int argc, char *argv[])
     compiled_code = assemble_code(compiled_code);
     printf("-> ");
     write_object(compiled_code, out_port);
-    printf("\n=> ");
+    printf("\n");
     lisp_object_t stack = make_empty_list();
-    write_object(run_compiled_code(compiled_code, repl_environment, stack), out_port);
+    lisp_object_t value = run_compiled_code(compiled_code, repl_environment, stack);
+    printf("=> ");
+    write_object(value, out_port);
     putchar('\n');
     fclose(fp);
   }

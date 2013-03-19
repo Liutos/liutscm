@@ -28,6 +28,7 @@ enum object_type {
   FILE_OUT_PORT,
   COMPILED_PROC,
   VECTOR,
+  RETURN_INFO,
 };
 
 typedef struct lisp_object_t {
@@ -76,6 +77,11 @@ typedef struct lisp_object_t {
       struct lisp_object_t **datum;
       unsigned int length;
     } vector;
+    struct {
+      struct lisp_object_t *code;
+      int pc;
+      struct lisp_object_t *env;
+    } return_info;
   } values;
 } *lisp_object_t;
 
@@ -147,6 +153,11 @@ typedef struct hash_table_t {
 #define vector_datum(x) ((x)->values.vector.datum)
 #define vector_length(x) ((x)->values.vector.length)
 #define vector_data_at(x, i) (vector_datum(x)[i])
+/* RETURN_INFO */
+#define is_return_info(x) (RETURN_INFO == (x)->type)
+#define return_code(x) ((x)->values.return_info.code)
+#define return_pc(x) ((x)->values.return_info.pc)
+#define return_env(x) ((x)->values.return_info.env)
 
 /*
  * pair_cadr: second element
