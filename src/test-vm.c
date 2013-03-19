@@ -1,7 +1,7 @@
 /*
  * test-vm.c
  *
- *
+ * Test samples for the virtual machine
  *
  * Copyright (C) 2013-03-18 liutos <mat.liutos@gmail.com>
  */
@@ -23,7 +23,8 @@ int main(int argc, char *argv[])
     "1",
     "+",
     "'hello",
-    /* "(set! car car)", */
+    "(if #t 1 2)",
+    "(set! car car)",
     /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
     /* "(begin \"doc\" (write x) y)", */
     /* "(begin (+ (* a x) (f x)) x)", */
@@ -39,10 +40,11 @@ int main(int argc, char *argv[])
     printf(">> %s\n", cases[i]);
     lisp_object_t compiled_code =
         compile_raw_object(read_object(in_port), repl_environment);
-    printf("Compiled code: ");
+    printf("-> ");
     write_object(compiled_code, out_port);
     printf("\n=> ");
-    write_object(ugly_machine(compiled_code, repl_environment), out_port);
+    /* write_object(ugly_machine(compiled_code, repl_environment), out_port); */
+    write_object(assemble_code(compiled_code), out_port);
     putchar('\n');
     fclose(fp);
   }
