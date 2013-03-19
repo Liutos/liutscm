@@ -68,10 +68,11 @@ lisp_object_t make_false(void) {
 }
 
 lisp_object_t make_character(char c) {
-  lisp_object_t character = malloc(sizeof(struct lisp_object_t));
-  character->type = CHARACTER;
-  character->values.character.value = c;
-  return character;
+  /* lisp_object_t character = malloc(sizeof(struct lisp_object_t)); */
+  /* character->type = CHARACTER; */
+  /* character->values.character.value = c; */
+  /* return character; */
+  return (lisp_object_t)((c << CHAR_BITS) | CHAR_TAG);
 }
 
 lisp_object_t make_string(char *str) {

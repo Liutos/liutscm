@@ -24,32 +24,52 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     fprintf(stream, "%d", fixnum_value(object));
     return;
   }
+  if (is_char(object)) {
+    /* fprintf(stream, "%c", char_value(object)); */
+    /* return; */
+    char c = /* object->values.character.value */char_value(object);
+    switch (c) {
+      /* case '\n': fprintf(stream, "#\\\\n"); break; */
+      case '\n': write_string("#\\\\n", port); break;
+      case '\r': fprintf(stream, "#\\\\r"); break;
+      case '\t': fprintf(stream, "#\\\\t"); break;
+      case '\f': fprintf(stream, "#\\\\f"); break;
+      case '\b': fprintf(stream, "#\\\\b"); break;
+      case '\v': fprintf(stream, "#\\\\v"); break;
+      case '\a': fprintf(stream, "#\\\\a"); break;
+      default :
+        if (33 <= c && c <= 127)
+          fprintf(stream, "#\\%c", c);
+        else
+          fprintf(stream, "#\\\\x%02d", c);
+    }
+    return;
+  }
   switch (object->type) {
-    case FIXNUM:
-      fprintf(stream, "%d", object->values.fixnum.value);
-      break;
+    /* case FIXNUM: */
+    /*   fprintf(stream, "%d", object->values.fixnum.value); */
+    /*   break; */
     case BOOLEAN:
       fprintf(stream, "#%c", object->values.boolean.value ? 't': 'f');
       break;
-    case CHARACTER: {
-      char c = object->values.character.value;
-      switch (c) {
-        /* case '\n': fprintf(stream, "#\\\\n"); break; */
-        case '\n': write_string("#\\\\n", port); break;
-        case '\r': fprintf(stream, "#\\\\r"); break;
-        case '\t': fprintf(stream, "#\\\\t"); break;
-        case '\f': fprintf(stream, "#\\\\f"); break;
-        case '\b': fprintf(stream, "#\\\\b"); break;
-        case '\v': fprintf(stream, "#\\\\v"); break;
-        case '\a': fprintf(stream, "#\\\\a"); break;
-        default :
-          if (33 <= c && c <= 127)
-            fprintf(stream, "#\\%c", c);
-          else
-            fprintf(stream, "#\\\\x%02d", c);
-      }
-    }
-      break;
+    /* case CHARACTER: { */
+    /*   char c = object->values.character.value; */
+    /*   switch (c) { */
+    /*     case '\n': write_string("#\\\\n", port); break; */
+    /*     case '\r': fprintf(stream, "#\\\\r"); break; */
+    /*     case '\t': fprintf(stream, "#\\\\t"); break; */
+    /*     case '\f': fprintf(stream, "#\\\\f"); break; */
+    /*     case '\b': fprintf(stream, "#\\\\b"); break; */
+    /*     case '\v': fprintf(stream, "#\\\\v"); break; */
+    /*     case '\a': fprintf(stream, "#\\\\a"); break; */
+    /*     default : */
+    /*       if (33 <= c && c <= 127) */
+    /*         fprintf(stream, "#\\%c", c); */
+    /*       else */
+    /*         fprintf(stream, "#\\\\x%02d", c); */
+    /*   } */
+    /* } */
+    /*   break; */
     case STRING:
       fprintf(stream, "\"%s\"", object->values.string.value);
       break;

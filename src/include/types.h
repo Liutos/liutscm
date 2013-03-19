@@ -129,7 +129,12 @@ typedef struct hash_table_t {
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 #define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
 /* CHARACTER */
-#define char_value(x) ((x)->values.character.value)
+/* #define char_value(x) ((x)->values.character.value) */
+#define CHAR_TAG 0x06
+#define CHAR_MASK 0x0f
+#define CHAR_BITS 4
+#define is_char(x) (CHAR_TAG == (((int)(x)) & CHAR_MASK))
+#define char_value(x) (((int)(x)) >> CHAR_BITS)
 /* STRING */
 #define string_value(x) ((x)->values.string.value)
 /* COMPOUND_PROC */
