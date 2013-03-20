@@ -119,34 +119,27 @@ typedef struct hash_table_t {
 #define pair_cdr(x) ((x)->values.pair.cdr)
 #define is_pair(x) (is_pointer(x) && (PAIR == (x)->type))
 /* EMPTY_LIST */
-/* #define is_null(x) (EMPTY_LIST == (x)->type) */
 #define EMPTY_LIST_MASK 0x0f
 #define EMPTY_LIST_TAG 0x0e
 #define EMPTY_LIST_BITS 4
-/* #define is_null(x) is_of_tag(x, EMPTY_LIST_MASK, EMPTY_LIST_TAG) */
-/* #define empty_list_object ((lisp_object_t)((2 << EMPTY_LIST_BITS) | EMPTY_LIST_TAG)) */
 #define empty_list_object MAKE_SINGLETON_OBJECT(2)
 #define is_null(x) (empty_list_object == x)
 /* SYMBOL */
 #define symbol_name(x) ((x)->values.symbol.name)
 #define is_symbol(x) (is_pointer(x) && (SYMBOL == (x)->type))
 /* FIXNUM */
-/* #define fixnum_value(x) ((x)->values.fixnum.value) */
 #define FIXNUM_BITS 2
 #define fixnum_value(x) (((int)(x)) >> FIXNUM_BITS)
 #define FIXNUM_MASK 0x03
 #define FIXNUM_TAG 0x01
-/* #define is_fixnum(x) (FIXNUM_TAG == (((int)(x)) & FIXNUM_MASK)) */
 #define is_fixnum(x) is_of_tag(x, FIXNUM_MASK, FIXNUM_TAG)
 /* PRIMITIVE_PROC */
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 #define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
 /* CHARACTER */
-/* #define char_value(x) ((x)->values.character.value) */
 #define CHAR_TAG 0x06
 #define CHAR_MASK 0x0f
 #define CHAR_BITS 4
-/* #define is_char(x) (CHAR_TAG == (((int)(x)) & CHAR_MASK)) */
 #define is_char(x) is_of_tag(x, CHAR_MASK, CHAR_TAG)
 #define char_value(x) (((int)(x)) >> CHAR_BITS)
 /* STRING */
@@ -158,25 +151,16 @@ typedef struct hash_table_t {
 #define is_compound(x) (COMPOUND_PROC == (x)->type)
 #define is_function(x) (is_primitive(x) || is_compound(x))
 /* BOOLEAN */
-/* #define is_bool(x) (BOOLEAN == (x)->type) */
 #define BOOL_MASK 0x0f
 #define BOOL_TAG 0x0e
 #define BOOL_BITS 4
-/* #define is_bool(x) (BOOL_TAG == (((int)(x)) & BOOL_MASK)) */
-/* #define is_bool(x) is_of_tag(x, BOOL_MASK, BOOL_TAG) */
-/* #define bool_value(x) ((x)->values.boolean.value) */
 #define bool_value(x) (((int)(x)) >> BOOL_BITS)
-/* #define is_true(x) (is_bool(x) && 1 == bool_value(x)) */
-/* #define is_false(x) (is_bool(x) && 0 == bool_value(x)) */
 #define is_bool(x) (is_true(x) || is_false(x))
-/* #define true_object ((lisp_object_t)((1 << BOOL_BITS) | BOOL_TAG)) */
-/* #define false_object ((lisp_object_t)((0 << BOOL_BITS) | BOOL_TAG)) */
 #define true_object MAKE_SINGLETON_OBJECT(1)
 #define false_object MAKE_SINGLETON_OBJECT(0)
 #define is_true(x) (true_object == x)
 #define is_false(x) (false_object == x)
 /* UNDEFINED */
-/* #define is_undefined(x) (UNDEFINED == (x)->type) */
 #define undefined_object MAKE_SINGLETON_OBJECT(4)
 #define is_undefined(x) (undefined_object == x)
 /* CLOSE_OBJECT */
@@ -194,9 +178,7 @@ typedef struct hash_table_t {
 #define EOF_BITS 4
 #define EOF_TAG 0x0e
 #define EOF_MASK 0x0f
-/* #define eof_object ((lisp_object_t)((3 << EOF_BITS) | EOF_TAG)) */
 #define eof_object MAKE_SINGLETON_OBJECT(3)
-/* #define is_eof(x) (EOF_OBJECT == (x)->type) */
 #define is_eof(x) (eof_object == x)
 /* COMPILED_PROC */
 #define is_compiled_proc(x) (COMPILED_PROC == (x)->type)

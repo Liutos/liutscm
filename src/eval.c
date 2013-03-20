@@ -332,11 +332,9 @@ tail_loop:
     lisp_object_t then_part = if_then_part(object);
     lisp_object_t else_part = if_else_part(object);
     if (eval_object(test_part, environment) == make_true()) {
-      /* return eval_object(then_part, environment); */
       object = then_part;
       goto tail_loop;
     } else {
-      /* return eval_object(else_part, environment); */
       object = else_part;
       goto tail_loop;
     }
@@ -354,19 +352,16 @@ tail_loop:
       eval_object(pair_car(actions), environment);
       actions = pair_cdr(actions);
     }
-    /* return eval_object(pair_car(actions), environment); */
     object = pair_car(actions);
     goto tail_loop;
   }
   if (is_cond_form(object)) {
-    /* return eval_object(cond2if(object), environment); */
     object = cond2if(object);
     goto tail_loop;
   }
   if (is_let_form(object)) {
     object = let2lambda(object);
     goto tail_loop;
-    /* return let2lambda(object); */
   }
   if (is_and_form(object)) {
     lisp_object_t tests = and_tests(object);
@@ -414,16 +409,6 @@ tail_loop:
       object = pair_car(operands);
       goto tail_loop;
     }
-    /* if (is_primitive(operator)) */
-    /*   return (primitive_C_proc(operator))(operands); */
-    /* else { */
-    /*   lisp_object_t body = compound_proc_body(operator); */
-    /*   lisp_object_t vars = compound_proc_parameters(operator); */
-    /*   lisp_object_t def_env = compound_proc_environment(operator); */
-    /*   object = make_pair(find_or_create_symbol("begin"), body); */
-    /*   environment = extend_environment(vars, operands, def_env); */
-    /*   goto tail_loop; */
-    /* } */
     return eval_application(operator, operands);
   }
   else
