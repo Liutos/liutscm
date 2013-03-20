@@ -57,6 +57,10 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     write_string("#<eof>", port);
     return;
   }
+  if (is_undefined(object)) {
+    write_string("#<undefined>", port);
+    return;
+  }
   switch (object->type) {
     /* case FIXNUM: */
     /*   fprintf(stream, "%d", object->values.fixnum.value); */
@@ -106,7 +110,7 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     }
       break;
     case SYMBOL: fprintf(stream, "%s", object->values.symbol.name); break;
-    case UNDEFINED: /* fprintf(stream, "#<undefined>") */write_string("#<undefined>", port); break;
+    /* case UNDEFINED: write_string("#<undefined>", port); break; */
     case PRIMITIVE_PROC: fprintf(stream, "#<procedure %p>", object->values.primitive_proc.C_proc); break;
     case COMPOUND_PROC:
       /* fprintf(stream, "#<procedure "); */

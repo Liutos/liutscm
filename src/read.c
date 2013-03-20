@@ -109,12 +109,12 @@ lisp_object_t read_pair(lisp_object_t port) {
     fprintf(stderr, "Incomplete literal for list\n");
     exit(1);
   }
-  if (CLOSE_OBJECT == object->type)
+  if (is_close_object(object))
     return make_empty_list();
-  if (DOT_OBJECT == object->type) {
+  if (is_dot_object(object)) {
     lisp_object_t o1 = read_object(port);
     lisp_object_t o2 = read_object(port);
-    if (CLOSE_OBJECT == o2->type)
+    if (/* CLOSE_OBJECT == o2->type */is_close_object(o2))
       return o1;
     else {
       fprintf(stderr, "More than one objects after '.' at line %d\n", in_port_linum(port));
@@ -193,7 +193,7 @@ lisp_object_t read_object(lisp_object_t port) {
     case '"': return read_string(port);
     case '(': {
       lisp_object_t next = read_object(port);
-      if (CLOSE_OBJECT == next->type)
+      if (is_close_object(next))
         return make_empty_list();
       else
         return make_pair(next, read_pair(port));

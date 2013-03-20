@@ -97,14 +97,16 @@ lisp_object_t make_empty_list(void) {
 }
 
 lisp_object_t make_close_object(void) {
-  lisp_object_t close_object = malloc(sizeof(struct lisp_object_t));
-  close_object->type = CLOSE_OBJECT;
+  /* lisp_object_t close_object = malloc(sizeof(struct lisp_object_t)); */
+  /* close_object->type = CLOSE_OBJECT; */
+  /* return close_object; */
   return close_object;
 }
 
 lisp_object_t make_dot_object(void) {
-  lisp_object_t dot_object = malloc(sizeof(struct lisp_object_t));
-  dot_object->type = DOT_OBJECT;
+  /* lisp_object_t dot_object = malloc(sizeof(struct lisp_object_t)); */
+  /* dot_object->type = DOT_OBJECT; */
+  /* return dot_object; */
   return dot_object;
 }
 
@@ -155,9 +157,10 @@ lisp_object_t make_symbol(char *name) {
 }
 
 lisp_object_t make_undefined(void) {
-  lisp_object_t undefined = malloc(sizeof(struct lisp_object_t));
-  undefined->type = UNDEFINED;
-  return undefined;
+  /* lisp_object_t undefined = malloc(sizeof(struct lisp_object_t)); */
+  /* undefined->type = UNDEFINED; */
+  /* return undefined; */
+  return undefined_object;
 }
 
 /* VECTOR */

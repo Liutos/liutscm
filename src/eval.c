@@ -23,7 +23,7 @@ int is_tag_list(lisp_object_t object, char *symbol_name) {
 /* QUOTE support */
 
 int is_quote_form(lisp_object_t object) {
-  return is_pair(object) && find_or_create_symbol("quote") == pair_car(object);
+  return is_tag_list(object, "quote");
 }
 
 lisp_object_t quotation_text(lisp_object_t quote_form) {

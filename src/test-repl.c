@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
   char *cases[] = {
     /* "1", */
     /* "-123", */
-    "(a ",
+    /* "(a ", */
     /* "#t", */
     /* "#f", */
     /* "#\\a", */
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     /* "#\\ ", */
     /* "\"Hello, world!\"", */
     /* "( )", */
-    /* "'(1 . 2)", */
+    "'(1 . 2)",
     /* "'(1 (2))", */
     /* "hello", */
     /* "'hello", */
@@ -141,6 +141,7 @@ int main(int argc, char *argv[])
     lisp_object_t in_port = make_file_in_port(stream);
     printf(">> %s\n=> ", cases[i]);
     write_object(eval_object(read_object(in_port), repl_environment), out_port);
+    /* write_object(read_object(in_port), out_port); */
     putchar('\n');
     fclose(stream);
   }

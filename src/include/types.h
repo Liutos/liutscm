@@ -106,10 +106,14 @@ typedef struct hash_table_t {
 /* ACCESSORS: $(type_name)_$(slot_name) */
 /* PREDICATES: is_$(type_name) */
 /* pointer on heap */
-#define POINTER_MASK 0x02
+#define POINTER_MASK 0x03
 #define POINTER_TAG 0x00
-#define is_pointer(x) (POINTER_TAG == ((int)(x) && POINTER_MASK))
+#define is_pointer(x) (POINTER_TAG == ((int)(x) & POINTER_MASK))
 #define is_of_tag(x, mask, tag) (tag == (((int)(x)) & mask))
+#define EXTENDED_TAG 0x0e
+#define EXTENDED_MASK 0x0f
+#define EXTENDED_BITS 4
+#define MAKE_SINGLETON_OBJECT(n) ((lisp_object_t)((n << EXTENDED_BITS) | EXTENDED_TAG))
 /* PAIR */
 #define pair_car(x) ((x)->values.pair.car)
 #define pair_cdr(x) ((x)->values.pair.cdr)
@@ -120,7 +124,8 @@ typedef struct hash_table_t {
 #define EMPTY_LIST_TAG 0x0e
 #define EMPTY_LIST_BITS 4
 /* #define is_null(x) is_of_tag(x, EMPTY_LIST_MASK, EMPTY_LIST_TAG) */
-#define empty_list_object ((lisp_object_t)((2 << EMPTY_LIST_BITS) | EMPTY_LIST_TAG))
+/* #define empty_list_object ((lisp_object_t)((2 << EMPTY_LIST_BITS) | EMPTY_LIST_TAG)) */
+#define empty_list_object MAKE_SINGLETON_OBJECT(2)
 #define is_null(x) (empty_list_object == x)
 /* SYMBOL */
 #define symbol_name(x) ((x)->values.symbol.name)
@@ -164,12 +169,22 @@ typedef struct hash_table_t {
 /* #define is_true(x) (is_bool(x) && 1 == bool_value(x)) */
 /* #define is_false(x) (is_bool(x) && 0 == bool_value(x)) */
 #define is_bool(x) (is_true(x) || is_false(x))
-#define true_object ((lisp_object_t)((1 << BOOL_BITS) | BOOL_TAG))
-#define false_object ((lisp_object_t)((0 << BOOL_BITS) | BOOL_TAG))
+/* #define true_object ((lisp_object_t)((1 << BOOL_BITS) | BOOL_TAG)) */
+/* #define false_object ((lisp_object_t)((0 << BOOL_BITS) | BOOL_TAG)) */
+#define true_object MAKE_SINGLETON_OBJECT(1)
+#define false_object MAKE_SINGLETON_OBJECT(0)
 #define is_true(x) (true_object == x)
 #define is_false(x) (false_object == x)
 /* UNDEFINED */
-#define is_undefined(x) (UNDEFINED == (x)->type)
+/* #define is_undefined(x) (UNDEFINED == (x)->type) */
+#define undefined_object MAKE_SINGLETON_OBJECT(4)
+#define is_undefined(x) (undefined_object == x)
+/* CLOSE_OBJECT */
+#define close_object MAKE_SINGLETON_OBJECT(5)
+#define is_close_object(x) (close_object == x)
+/* DOT_OBJECT */
+#define dot_object MAKE_SINGLETON_OBJECT(6)
+#define is_dot_object(x) (dot_object == x)
 /* FILE_IN_PORT */
 #define in_port_stream(x) ((x)->values.file_in_port.stream)
 #define in_port_linum(x) ((x)->values.file_in_port.line_num)
@@ -179,7 +194,8 @@ typedef struct hash_table_t {
 #define EOF_BITS 4
 #define EOF_TAG 0x0e
 #define EOF_MASK 0x0f
-#define eof_object ((lisp_object_t)((3 << EOF_BITS) | EOF_TAG))
+/* #define eof_object ((lisp_object_t)((3 << EOF_BITS) | EOF_TAG)) */
+#define eof_object MAKE_SINGLETON_OBJECT(3)
 /* #define is_eof(x) (EOF_OBJECT == (x)->type) */
 #define is_eof(x) (eof_object == x)
 /* COMPILED_PROC */
