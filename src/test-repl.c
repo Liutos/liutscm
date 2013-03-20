@@ -32,27 +32,28 @@ void load_init_file(void) {
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    /* "123", */
-    /* "-123", */
-    /* "#t", */
-    /* "#f", */
-    /* "#\\a", */
-    /* "#\\A", */
-    /* "#\\\\n", */
-    /* "#\\ ", */
-    /* "\"Hello, world!\"", */
-    /* "( )", */
-    /* "'(1 . 2)", */
+    "1",
+    "-123",
+    /* "(a ", */
+    "#t",
+    "#f",
+    "#\\a",
+    "#\\A",
+    "#\\\\n",
+    "#\\ ",
+    "\"Hello, world!\"",
+    "( )",
+    "'(1 . 2)",
     /* "'(1 (2))", */
     /* "hello", */
     /* "'hello", */
     /* "(quote hello)", */
-    /* "(if #t 1 2)", */
-    /* "(if #f 1 2)", */
+    "(if #t 1 2)",
+    "(if #f 1 2)",
     /* "-", */
-    /* "(+ 1 2)", */
-    /* "(- 4 3)", */
-    /* "(* 5 6)", */
+    "(+ 1 2)",
+    "(- 4 3)",
+    "(* 5 6)",
     /* "(quotient 8 7)", */
     /* "(= 1 2)", */
     /* "(= 1 1)", */
@@ -128,18 +129,19 @@ int main(int argc, char *argv[])
     /* "(odd? 2)", */
     /* "(even? 2)", */
     /* "(even? 1)", */
-    "#(1 2 3)",
+    /* "#(1 2 3)", */
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
   repl_environment = make_repl_environment();
-  load_init_file();
+  /* load_init_file(); */
   lisp_object_t out_port = make_file_out_port(stdout);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     lisp_object_t in_port = make_file_in_port(stream);
     printf(">> %s\n=> ", cases[i]);
     write_object(eval_object(read_object(in_port), repl_environment), out_port);
+    /* write_object(read_object(in_port), out_port); */
     putchar('\n');
     fclose(stream);
   }

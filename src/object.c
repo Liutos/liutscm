@@ -27,50 +27,56 @@ lisp_object_t startup_environment;
 hash_table_t symbol_table;
 
 lisp_object_t make_fixnum(int value) {
-  lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t));
-  fixnum->type = FIXNUM;
-  fixnum->values.fixnum.value = value;
-  return fixnum;
+  /* lisp_object_t fixnum = malloc(sizeof(struct lisp_object_t)); */
+  /* fixnum->type = FIXNUM; */
+  /* fixnum->values.fixnum.value = value; */
+  /* return fixnum; */
+  return (lisp_object_t)((value << FIXNUM_BITS) | FIXNUM_TAG);
 }
 
 lisp_object_t make_eof_object(void) {
-  lisp_object_t eof_object = malloc(sizeof(struct lisp_object_t));
-  eof_object->type = EOF_OBJECT;
+  /* lisp_object_t eof_object = malloc(sizeof(struct lisp_object_t)); */
+  /* eof_object->type = EOF_OBJECT; */
+  /* return eof_object; */
   return eof_object;
 }
 
 lisp_object_t make_boolean(int value) {
-  lisp_object_t boolean = malloc(sizeof(struct lisp_object_t));
-  boolean->type = BOOLEAN;
-  boolean->values.boolean.value = value;
-  return boolean;
+  /* lisp_object_t boolean = malloc(sizeof(struct lisp_object_t)); */
+  /* boolean->type = BOOLEAN; */
+  /* boolean->values.boolean.value = value; */
+  /* return boolean; */
+  return (lisp_object_t)((value << BOOL_BITS) | BOOL_TAG);
 }
 
 lisp_object_t make_true(void) {
-  static lisp_object_t true_object = NULL;
-  if (true_object)
-    return true_object;
-  else {
-    true_object = make_boolean(1);
-    return true_object;
-  }
+  /* static lisp_object_t true_object = NULL; */
+  /* if (true_object) */
+  /*   return true_object; */
+  /* else { */
+  /*   true_object = make_boolean(1); */
+  /*   return true_object; */
+  /* } */
+  return true_object;
 }
 
 lisp_object_t make_false(void) {
-  static lisp_object_t false_object = NULL;
-  if (false_object)
-    return false_object;
-  else {
-    false_object = make_boolean(0);
-    return false_object;
-  }
+  /* static lisp_object_t false_object = NULL; */
+  /* if (false_object) */
+  /*   return false_object; */
+  /* else { */
+  /*   false_object = make_boolean(0); */
+  /*   return false_object; */
+  /* } */
+  return false_object;
 }
 
 lisp_object_t make_character(char c) {
-  lisp_object_t character = malloc(sizeof(struct lisp_object_t));
-  character->type = CHARACTER;
-  character->values.character.value = c;
-  return character;
+  /* lisp_object_t character = malloc(sizeof(struct lisp_object_t)); */
+  /* character->type = CHARACTER; */
+  /* character->values.character.value = c; */
+  /* return character; */
+  return (lisp_object_t)((c << CHAR_BITS) | CHAR_TAG);
 }
 
 lisp_object_t make_string(char *str) {
@@ -81,23 +87,26 @@ lisp_object_t make_string(char *str) {
 }
 
 lisp_object_t make_empty_list(void) {
-  static lisp_object_t empty_list = NULL;
-  if (NULL == empty_list) {
-    empty_list = malloc(sizeof(struct lisp_object_t));
-    empty_list->type = EMPTY_LIST;
-  }
-  return empty_list;
+  /* static lisp_object_t empty_list = NULL; */
+  /* if (NULL == empty_list) { */
+  /*   empty_list = malloc(sizeof(struct lisp_object_t)); */
+  /*   empty_list->type = EMPTY_LIST; */
+  /* } */
+  /* return empty_list; */
+  return empty_list_object;
 }
 
 lisp_object_t make_close_object(void) {
-  lisp_object_t close_object = malloc(sizeof(struct lisp_object_t));
-  close_object->type = CLOSE_OBJECT;
+  /* lisp_object_t close_object = malloc(sizeof(struct lisp_object_t)); */
+  /* close_object->type = CLOSE_OBJECT; */
+  /* return close_object; */
   return close_object;
 }
 
 lisp_object_t make_dot_object(void) {
-  lisp_object_t dot_object = malloc(sizeof(struct lisp_object_t));
-  dot_object->type = DOT_OBJECT;
+  /* lisp_object_t dot_object = malloc(sizeof(struct lisp_object_t)); */
+  /* dot_object->type = DOT_OBJECT; */
+  /* return dot_object; */
   return dot_object;
 }
 
@@ -148,9 +157,10 @@ lisp_object_t make_symbol(char *name) {
 }
 
 lisp_object_t make_undefined(void) {
-  lisp_object_t undefined = malloc(sizeof(struct lisp_object_t));
-  undefined->type = UNDEFINED;
-  return undefined;
+  /* lisp_object_t undefined = malloc(sizeof(struct lisp_object_t)); */
+  /* undefined->type = UNDEFINED; */
+  /* return undefined; */
+  return undefined_object;
 }
 
 /* VECTOR */
