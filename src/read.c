@@ -105,6 +105,10 @@ lisp_object_t read_string(lisp_object_t port) {
 
 lisp_object_t read_pair(lisp_object_t port) {
   lisp_object_t object = read_object(port);
+  if (is_eof(object)) {
+    fprintf(stderr, "Incomplete literal for list\n");
+    exit(1);
+  }
   if (CLOSE_OBJECT == object->type)
     return make_empty_list();
   if (DOT_OBJECT == object->type) {

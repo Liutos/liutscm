@@ -35,8 +35,9 @@ lisp_object_t make_fixnum(int value) {
 }
 
 lisp_object_t make_eof_object(void) {
-  lisp_object_t eof_object = malloc(sizeof(struct lisp_object_t));
-  eof_object->type = EOF_OBJECT;
+  /* lisp_object_t eof_object = malloc(sizeof(struct lisp_object_t)); */
+  /* eof_object->type = EOF_OBJECT; */
+  /* return eof_object; */
   return eof_object;
 }
 

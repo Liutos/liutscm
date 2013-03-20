@@ -176,7 +176,12 @@ typedef struct hash_table_t {
 /* FILE_OUT_PORT */
 #define out_port_stream(x) ((x)->values.file_out_port.stream)
 /* EOF */
-#define is_eof(x) (EOF_OBJECT == (x)->type)
+#define EOF_BITS 4
+#define EOF_TAG 0x0e
+#define EOF_MASK 0x0f
+#define eof_object ((lisp_object_t)((3 << EOF_BITS) | EOF_TAG))
+/* #define is_eof(x) (EOF_OBJECT == (x)->type) */
+#define is_eof(x) (eof_object == x)
 /* COMPILED_PROC */
 #define is_compiled_proc(x) (COMPILED_PROC == (x)->type)
 #define compiled_proc_args(x) ((x)->values.compiled_proc.args)

@@ -53,6 +53,10 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     write_string("()", port);
     return;
   }
+  if (is_eof(object)) {
+    write_string("#<eof>", port);
+    return;
+  }
   switch (object->type) {
     /* case FIXNUM: */
     /*   fprintf(stream, "%d", object->values.fixnum.value); */
@@ -120,10 +124,9 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     case FILE_OUT_PORT:
       fprintf(stream, "#<port :out %p>", object);
       break;
-    case EOF_OBJECT:
-      /* fprintf(stream, "#<eof>"); */
-      write_string("#<eof>", port);
-      exit(1);
+    /* case EOF_OBJECT: */
+    /*   write_string("#<eof>", port); */
+    /*   exit(1); */
     case COMPILED_PROC: {
       fprintf(stream, "#<compiled-procedure %p>", object);
       /* write_object(compiled_proc_code(object), port); */
