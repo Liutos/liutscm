@@ -119,8 +119,9 @@ typedef struct hash_table_t {
 #define EMPTY_LIST_MASK 0x0f
 #define EMPTY_LIST_TAG 0x0e
 #define EMPTY_LIST_BITS 4
-#define is_null(x) is_of_tag(x, EMPTY_LIST_MASK, EMPTY_LIST_TAG)
+/* #define is_null(x) is_of_tag(x, EMPTY_LIST_MASK, EMPTY_LIST_TAG) */
 #define empty_list_object ((lisp_object_t)((2 << EMPTY_LIST_BITS) | EMPTY_LIST_TAG))
+#define is_null(x) (empty_list_object == x)
 /* SYMBOL */
 #define symbol_name(x) ((x)->values.symbol.name)
 #define is_symbol(x) (is_pointer(x) && (SYMBOL == (x)->type))
@@ -157,13 +158,16 @@ typedef struct hash_table_t {
 #define BOOL_TAG 0x0e
 #define BOOL_BITS 4
 /* #define is_bool(x) (BOOL_TAG == (((int)(x)) & BOOL_MASK)) */
-#define is_bool(x) is_of_tag(x, BOOL_MASK, BOOL_TAG)
+/* #define is_bool(x) is_of_tag(x, BOOL_MASK, BOOL_TAG) */
 /* #define bool_value(x) ((x)->values.boolean.value) */
 #define bool_value(x) (((int)(x)) >> BOOL_BITS)
-#define is_true(x) (is_bool(x) && 1 == bool_value(x))
-#define is_false(x) (is_bool(x) && 0 == bool_value(x))
+/* #define is_true(x) (is_bool(x) && 1 == bool_value(x)) */
+/* #define is_false(x) (is_bool(x) && 0 == bool_value(x)) */
+#define is_bool(x) (is_true(x) || is_false(x))
 #define true_object ((lisp_object_t)((1 << BOOL_BITS) | BOOL_TAG))
 #define false_object ((lisp_object_t)((0 << BOOL_BITS) | BOOL_TAG))
+#define is_true(x) (true_object == x)
+#define is_false(x) (false_object == x)
 /* UNDEFINED */
 #define is_undefined(x) (UNDEFINED == (x)->type)
 /* FILE_IN_PORT */

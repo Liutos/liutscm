@@ -45,7 +45,7 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     }
     return;
   }
-  if (is_true(object) || is_false(object)) {
+  if (is_bool(object)) {
     fprintf(stream, "#%c", bool_value(object) ? 't': 'f');
     return;
   }
