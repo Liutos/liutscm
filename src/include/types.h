@@ -33,6 +33,8 @@ enum object_type {
 
 typedef struct lisp_object_t {
   enum object_type type;
+  int ref_count;
+  struct lisp_object_t *next, *prev;
   union {
     struct {
       int value;
@@ -135,7 +137,7 @@ typedef struct hash_table_t {
 #define is_fixnum(x) is_of_tag(x, FIXNUM_MASK, FIXNUM_TAG)
 /* PRIMITIVE_PROC */
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
-#define is_primitive(x) (PRIMITIVE_PROC == (x)->type)
+#define is_primitive(x) (is_pointer(x) && PRIMITIVE_PROC == (x)->type)
 /* CHARACTER */
 #define CHAR_TAG 0x06
 #define CHAR_MASK 0x0f
@@ -144,11 +146,12 @@ typedef struct hash_table_t {
 #define char_value(x) (((int)(x)) >> CHAR_BITS)
 /* STRING */
 #define string_value(x) ((x)->values.string.value)
+#define is_string(x) (is_pointer(x) && STRING == (x)->type)
 /* COMPOUND_PROC */
 #define compound_proc_parameters(x) ((x)->values.compound_proc.parameters)
 #define compound_proc_body(x) ((x)->values.compound_proc.raw_body)
 #define compound_proc_environment(x) ((x)->values.compound_proc.environment)
-#define is_compound(x) (COMPOUND_PROC == (x)->type)
+#define is_compound(x) (is_pointer(x) && COMPOUND_PROC == (x)->type)
 #define is_function(x) (is_primitive(x) || is_compound(x))
 /* BOOLEAN */
 #define BOOL_MASK 0x0f
@@ -181,17 +184,17 @@ typedef struct hash_table_t {
 #define eof_object MAKE_SINGLETON_OBJECT(3)
 #define is_eof(x) (eof_object == x)
 /* COMPILED_PROC */
-#define is_compiled_proc(x) (COMPILED_PROC == (x)->type)
+#define is_compiled_proc(x) (is_pointer(x) && COMPILED_PROC == (x)->type)
 #define compiled_proc_args(x) ((x)->values.compiled_proc.args)
 #define compiled_proc_code(x) ((x)->values.compiled_proc.code)
 #define compiled_proc_env(x) ((x)->values.compiled_proc.env)
 /* VECTOR */
-#define is_vector(x) (VECTOR == (x)->type)
+#define is_vector(x) (is_pointer(x) && VECTOR == (x)->type)
 #define vector_datum(x) ((x)->values.vector.datum)
 #define vector_length(x) ((x)->values.vector.length)
 #define vector_data_at(x, i) (vector_datum(x)[i])
 /* RETURN_INFO */
-#define is_return_info(x) (RETURN_INFO == (x)->type)
+#define is_return_info(x) (is_pointer(x) && RETURN_INFO == (x)->type)
 #define return_code(x) ((x)->values.return_info.code)
 #define return_pc(x) ((x)->values.return_info.pc)
 #define return_env(x) ((x)->values.return_info.env)
