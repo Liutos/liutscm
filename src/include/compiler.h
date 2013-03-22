@@ -8,7 +8,6 @@
 #ifndef COMPILE_H
 #define COMPILE_H
 
-extern lisp_object_t compile_raw_object(lisp_object_t, lisp_object_t);
 extern lisp_object_t compile_object(lisp_object_t, lisp_object_t);
 
 #endif

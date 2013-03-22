@@ -1,7 +1,7 @@
 /*
  * test-compiler.c
  *
- *
+ * Some sample tests for compiler
  *
  * Copyright (C) 2013-03-18 liutos <mat.liutos@gmail.com>
  */
@@ -12,7 +12,7 @@
 #include "object.h"
 #include "read.h"
 #include "write.h"
-#include "compile.h"
+#include "compiler.h"
 #include "eval.h"
 
 int main(int argc, char *argv[])
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
     lisp_object_t in_port = make_file_in_port(fp);
     printf(">> %s\n=> ", cases[i]);
-    write_object(compile_raw_object(read_object(in_port), repl_environment), out_port);
+    write_object(compile_object(read_object(in_port), repl_environment), out_port);
     putchar('\n');
     fclose(fp);
   }

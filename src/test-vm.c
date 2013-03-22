@@ -12,7 +12,7 @@
 #include "object.h"
 #include "read.h"
 #include "write.h"
-#include "compile.h"
+#include "compiler.h"
 #include "eval.h"
 #include "vm.h"
 
