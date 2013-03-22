@@ -93,7 +93,10 @@ void write_object(lisp_object_t object, lisp_object_t port) {
       fprintf(stream, "#<port :out %p>", object);
       break;
     case COMPILED_PROC: {
-      fprintf(stream, "#<compiled-procedure %p>", object);
+      /* fprintf(stream, "#<compiled-procedure %p>", object); */
+      write_string("#<compiled-procedure ", port);
+      write_object(compiled_proc_code(object), port);
+      write_string(">", port);
     }
       break;
     case VECTOR:
@@ -105,8 +108,15 @@ void write_object(lisp_object_t object, lisp_object_t port) {
       }
       write_string(")", port);
       break;
+    case RETURN_INFO: {
+      fprintf(stream, "#<return-info :code %p :pc %d :env %p>",
+              return_code(object),
+              return_pc(object),
+              return_env(object));
+    }
+      break;
     default :
-      fprintf(stderr, "cannot write unknown type\n");
+      fprintf(stderr, "cannot write unknown type %d\n", object->type);
       exit(1);
   }
 }
