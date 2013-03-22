@@ -29,6 +29,7 @@ enum object_type {
   COMPILED_PROC,
   VECTOR,
   RETURN_INFO,
+  FLONUM,
 };
 
 typedef struct lisp_object_t {
@@ -84,6 +85,9 @@ typedef struct lisp_object_t {
       int pc;
       struct lisp_object_t *env;
     } return_info;
+    struct {
+      float value;
+    } flonum;
   } values;
 } *lisp_object_t;
 
@@ -198,6 +202,9 @@ typedef struct hash_table_t {
 #define return_code(x) ((x)->values.return_info.code)
 #define return_pc(x) ((x)->values.return_info.pc)
 #define return_env(x) ((x)->values.return_info.env)
+/* FLONUM */
+#define is_float(x) (is_pointer(x) && FLONUM == (x)->type)
+#define float_value(x) ((x)->values.flonum.value)
 
 /*
  * pair_cadr: second element

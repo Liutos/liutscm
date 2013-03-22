@@ -7,6 +7,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "types.h"
 
@@ -58,6 +59,7 @@ void write_object(lisp_object_t object, lisp_object_t port) {
     write_string("#<undefined>", port);
     return;
   }
+  assert(is_pointer(object));
   switch (object->type) {
     case STRING:
       fprintf(stream, "\"%s\"", object->values.string.value);
@@ -115,6 +117,8 @@ void write_object(lisp_object_t object, lisp_object_t port) {
               return_env(object));
     }
       break;
+    case FLONUM:
+      fprintf(stream, "%f", float_value(object));
     default :
       fprintf(stderr, "cannot write unknown type %d\n", object->type);
       exit(1);

@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   char *cases[] = {
     /* "1", */
     /* "-123", */
+    "1.234",
     /* "(a ", */
     /* "#t", */
     /* "#f", */
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
     /* "(if #t 1 2)", */
     /* "(if #f 1 2)", */
     /* "-", */
-    "(+ 1 2)",
+    /* "(+ 1 2)", */
     /* "(- 4 3)", */
     /* "(* 5 6)", */
     /* "(quotient 8 7)", */
@@ -66,14 +67,14 @@ int main(int argc, char *argv[])
     /* "(char-at 5 \"Hello, world!\")", */
     /* "(car '(1 2))", */
     /* "(cdr '(1 2))", */
-    "(cons 1 '(2))",
+    /* "(cons 1 '(2))", */
     /* "(symbol-name 'hello)", */
     /* "(eq? (string->symbol \"hello\") 'hello)", */
     /* "(type-of 'hello)", */
     /* "(type-of #\\a)", */
-    "(define foo \"Hello, world!\")",
-    "foo",
-    "(set! foo 1)",
+    /* "(define foo \"Hello, world!\")", */
+    /* "foo", */
+    /* "(set! foo 1)", */
     /* "foo", */
     /* "(set-car! foo 2)", */
     /* "foo", */

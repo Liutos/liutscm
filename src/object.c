@@ -73,6 +73,13 @@ lisp_object_t make_fixnum(int value) {
   return (lisp_object_t)((value << FIXNUM_BITS) | FIXNUM_TAG);
 }
 
+lisp_object_t make_flonum(float value) {
+  lisp_object_t object = alloc_object();
+  object->type = FLONUM;
+  float_value(object) = value;
+  return object;
+}
+
 lisp_object_t make_eof_object(void) {
   return eof_object;
 }

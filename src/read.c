@@ -41,12 +41,25 @@ void port_ungetc(char c, lisp_object_t port) {
   ungetc(c, stream);
 }
 
-lisp_object_t read_fixnum(char c, int sign, lisp_object_t port) {
+lisp_object_t read_float(int integer, lisp_object_t port) {
+  int number = 0;
+  int digit, i = 1;
+  while (isdigit(digit = port_read_char(port))) {
+    number = number * 10 + digit - '0';
+    i = i * 10;
+  }
+  port_ungetc(digit, port);
+  return make_flonum(integer + number * 1.0 / i);
+}
+
+lisp_object_t read_number(char c, int sign, lisp_object_t port) {
   int number = c - '0';
   int digit;
   while (isdigit(digit = port_read_char(port))) {
     number = number * 10 + digit - '0';
   }
+  if (digit == '.')
+    return read_float(number, port);
   port_ungetc(digit, port);
   return make_fixnum(number * sign);
 }
@@ -154,11 +167,11 @@ lisp_object_t read_object(lisp_object_t port) {
     case ';': read_comment(port); return read_object(port);
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-      return read_fixnum(c, 1, port);
+      return read_number(c, 1, port);
     case '-': {
       int c = port_read_char(port);
       if (isdigit(c)) {
-        return read_fixnum(c, -1, port);
+        return read_number(c, -1, port);
       } else {
         port_ungetc(c, port);
         return read_symbol('-', port);

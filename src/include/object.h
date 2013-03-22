@@ -41,6 +41,7 @@ extern void inc_ref_count(lisp_object_t);
 extern void dec_ref_count(lisp_object_t);
 extern struct lisp_object_t *init_heap(void);
 extern void free_file_out_port(lisp_object_t);
+extern lisp_object_t make_flonum(float);
 
 extern struct lisp_object_t *objects_heap;
 
