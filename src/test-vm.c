@@ -21,15 +21,13 @@ int main(int argc, char *argv[])
   objects_heap = init_heap();
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
-    /* "1", */
-    /* "+", */
-    /* "'hello", */
-    /* "(if #t 1 2)", */
-    /* "(set! car car)", */
-    /* "(if (= x y) (f (g x)) (h x y (h 1 2)))", */
-    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
-    /* "(begin (+ (* a x) (f x)) x)", */
-    /* "(lambda (x) (+ x 1))", */
+    "1",
+    "+",
+    "'hello",
+    "(if #t 1 2)",
+    "(set! car car)",
+    "(begin \"doc\" (write \"Hello, world\") 2)",
+    "(lambda (x) (+ x 1))",
     "(+ 1 1)",
     "((lambda (x y) (+ x y)) 1 2)",
   };

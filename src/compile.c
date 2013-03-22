@@ -23,6 +23,8 @@ lisp_object_t is_variable_found(lisp_object_t var, lisp_object_t environment) {
 }
 
 lisp_object_t pair_conc(lisp_object_t pair1, lisp_object_t pair2) {
+  if (is_null(pair1)) return pair2;
+  if (is_null(pair2)) return pair1;
   lisp_object_t tmp = pair1;
   while (!is_null(pair_cdr(tmp)))
     tmp = pair_cdr(tmp);
