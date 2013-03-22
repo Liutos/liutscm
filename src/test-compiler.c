@@ -17,6 +17,7 @@
 
 int main(int argc, char *argv[])
 {
+  objects_heap = init_heap();
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
     /* "1", */
@@ -26,8 +27,9 @@ int main(int argc, char *argv[])
     "(if (= x y) (f (g x)) (h x y (h 1 2)))",
     "(begin \"doc\" (write x) y)",
     "(begin (+ (* a x) (f x)) x)",
-    /* "(lambda (x) (+ x 1))", */
+    "(lambda (x) (+ x 1))",
     /* "(f 1)", */
+    "((lambda (x y) (+ x y)) 1 2)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
