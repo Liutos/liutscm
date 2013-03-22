@@ -303,5 +303,5 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
     write_object(stack, make_file_out_port(stdout));
     putchar('\n');
   }
-  return stack;
+  return pair_car(stack);
 }

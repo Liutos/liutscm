@@ -1,3 +1,5 @@
+; The initial file
+
 (define <
   (lambda (n m)
     (if (or (> n m) (= n m))
