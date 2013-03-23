@@ -32,20 +32,32 @@ enum code_type {
 
 enum code_type code_name(lisp_object_t code) {
 #define S(name) find_or_create_symbol(name)
+#define SR(x) if (S(#x) == name) return x
   lisp_object_t name = pair_car(code);
-  if (S("CONST") == name)
-    return CONST;
-  if (S("LVAR") == name)
-    return LVAR;
-  if (S("FJUMP") == name) return FJUMP;
-  if (S("JUMP") == name) return JUMP;
-  if (S("LSET") == name) return LSET;
-  if (S("POP") == name) return POP;
-  if (S("GVAR") == name) return GVAR;
-  if (S("CALL") == name) return CALL;
-  if (S("FN") == name) return FN;
-  if (S("ARGS") == name) return ARGS;
-  if (S("RETURN") == name) return RETURN;
+  /* if (S("CONST") == name) */
+  /*   return CONST; */
+  SR(CONST);
+  /* if (S("LVAR") == name) */
+  /*   return LVAR; */
+  SR(LVAR);
+  /* if (S("FJUMP") == name) return FJUMP; */
+  SR(FJUMP);
+  /* if (S("JUMP") == name) return JUMP; */
+  SR(JUMP);
+  /* if (S("LSET") == name) return LSET; */
+  SR(LSET);
+  /* if (S("POP") == name) return POP; */
+  SR(POP);
+  /* if (S("GVAR") == name) return GVAR; */
+  SR(GVAR);
+  /* if (S("CALL") == name) return CALL; */
+  SR(CALL);
+  /* if (S("FN") == name) return FN; */
+  SR(FN);
+  /* if (S("ARGS") == name) return ARGS; */
+  SR(ARGS);
+  /* if (S("RETURN") == name) return RETURN; */
+  SR(RETURN);
   fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
   exit(1);
 }

@@ -14,7 +14,7 @@
 #include "object.h"
 #include "eval.h"
 
-lisp_object_t compile_object(lisp_object_t, lisp_object_t);
+sexp compile_object(sexp, sexp);
 
 int label_counter = 0;
 
@@ -57,22 +57,26 @@ lisp_object_t va_list2pair(va_list ap) {
     return make_empty_list();
 }
 
+lisp_object_t make_list1(lisp_object_t x) {
+  return make_pair(x, EOL);
+}
+
 lisp_object_t generate_code(char *code_name, ...) {
   va_list ap;
   va_start(ap, code_name);
-  return make_list(make_pair(find_or_create_symbol(code_name),
-                             va_list2pair(ap)),
-                   NULL);
+  return make_list1(make_pair(find_or_create_symbol(code_name),
+                              va_list2pair(ap)));
 }
 
-#define gen_const(x) generate_code("CONST", x, NULL)
+#define gen(...) generate_code(__VA_ARGS__, NULL)
+#define gen_const(x) gen("CONST", x)
 
 lisp_object_t compile_constant(lisp_object_t val) {
   return gen_const(val);
 }
 
-#define gen_gset(x) generate_code("GSET", x, NULL)
-#define gen_lset(i, j) generate_code("LSET", i, j, NULL)
+#define gen_gset(x) gen("GSET", x)
+#define gen_lset(i, j) gen("LSET", i, j)
 
 lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
   lisp_object_t co = is_variable_found(var, environment);
@@ -90,6 +94,8 @@ lisp_object_t make_label(void) {
   return find_or_create_symbol(strndup(buffer, n));
 }
 
+#define gen_pop() gen("POP")
+
 lisp_object_t compile_begin(lisp_object_t actions, lisp_object_t environment) {
   if (is_null(actions))
     return compile_constant(make_empty_list());
@@ -97,7 +103,7 @@ lisp_object_t compile_begin(lisp_object_t actions, lisp_object_t environment) {
     return compile_object(pair_car(actions), environment);
   else
     return seq(compile_object(pair_car(actions), environment),
-               generate_code("POP", NULL),
+               gen_pop(),
                compile_begin(pair_cdr(actions), environment));
 }
 
@@ -110,8 +116,8 @@ lisp_object_t make_compiled_proc(lisp_object_t args, lisp_object_t code, lisp_ob
   return proc;
 }
 
-#define gen_args(x) generate_code("ARGS", x, NULL)
-#define gen_return() generate_code("RETURN", NULL)
+#define gen_args(x) gen("ARGS", x)
+#define gen_return() gen("RETURN")
 
 lisp_object_t compile_lambda(lisp_object_t args, lisp_object_t body, lisp_object_t env) {
   lisp_object_t new_env = extend_environment(args, make_empty_list(), env);
@@ -130,14 +136,15 @@ lisp_object_t compile_arguments(lisp_object_t args, lisp_object_t environment) {
                      compile_arguments(pair_cdr(args), environment));
 }
 
-#define gen_gvar(x) generate_code("GVAR", x, NULL)
-#define gen_lvar(i, j) generate_code("LVAR", i, j, NULL)
-#define gen_fjump(x) generate_code("FJUMP", x, NULL)
-#define gen_jump(x) generate_code("JUMP", x, NULL)
-#define gen_fn(x) generate_code("FN", x, NULL)
+#define gen_gvar(x) gen("GVAR", x)
+#define gen_lvar(i, j) gen("LVAR", i, j)
+#define gen_fjump(x) gen("FJUMP", x)
+#define gen_jump(x) gen("JUMP", x)
+#define gen_fn(x) gen("FN", x)
+#define gen_call(x) gen("CALL", x)
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
-lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
+sexp compile_object(sexp object, sexp environment) {
   if (is_variable_form(object)) {
     lisp_object_t co = is_variable_found(object, environment);
     if (NULL == co)
@@ -159,9 +166,9 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
                gen_fjump(l1),
                compile_object(if_then_part(object), environment),
                gen_jump(l2),
-               make_list(l1, NULL),
+               make_list1(l1),
                compile_object(if_else_part(object), environment),
-               make_list(l2, NULL));
+               make_list1(l2));
   }
   if (is_begin_form(object)) {
     return compile_begin(begin_actions(object), environment);
@@ -175,7 +182,7 @@ lisp_object_t compile_object(lisp_object_t object, lisp_object_t environment) {
     int length = pair_length(application_operands(object));
     return seq(compile_arguments(application_operands(object), environment),
                compile_object(application_operator(object), environment),
-               generate_code("CALL", make_fixnum(length), NULL));
+               gen_call(make_fixnum(length)));
   }
   return compile_constant(object);
 }

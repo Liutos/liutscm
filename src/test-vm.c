@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     lisp_object_t in_port = make_file_in_port(fp);
     printf(">> %s\n", cases[i]);
     lisp_object_t compiled_code =
-        compile_raw_object(read_object(in_port), repl_environment);
+        compile_object(read_object(in_port), repl_environment);
     printf("-- ");
     write_object(compiled_code, make_file_out_port(stdout));
     compiled_code = assemble_code(compiled_code);

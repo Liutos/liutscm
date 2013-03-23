@@ -32,6 +32,8 @@ enum object_type {
   FLONUM,
 };
 
+typedef struct lisp_object_t *sexp;
+
 typedef struct lisp_object_t {
   enum object_type type;
   int ref_count;
@@ -130,6 +132,7 @@ typedef struct hash_table_t {
 #define EMPTY_LIST_BITS 4
 #define empty_list_object MAKE_SINGLETON_OBJECT(2)
 #define is_null(x) (empty_list_object == x)
+#define EOL empty_list_object
 /* SYMBOL */
 #define symbol_name(x) ((x)->values.symbol.name)
 #define is_symbol(x) (is_pointer(x) && (SYMBOL == (x)->type))
