@@ -32,20 +32,32 @@ enum code_type {
 
 enum code_type code_name(lisp_object_t code) {
 #define S(name) find_or_create_symbol(name)
+#define SR(x) if (S(#x) == name) return x
   lisp_object_t name = pair_car(code);
-  if (S("CONST") == name)
-    return CONST;
-  if (S("LVAR") == name)
-    return LVAR;
-  if (S("FJUMP") == name) return FJUMP;
-  if (S("JUMP") == name) return JUMP;
-  if (S("LSET") == name) return LSET;
-  if (S("POP") == name) return POP;
-  if (S("GVAR") == name) return GVAR;
-  if (S("CALL") == name) return CALL;
-  if (S("FN") == name) return FN;
-  if (S("ARGS") == name) return ARGS;
-  if (S("RETURN") == name) return RETURN;
+  /* if (S("CONST") == name) */
+  /*   return CONST; */
+  SR(CONST);
+  /* if (S("LVAR") == name) */
+  /*   return LVAR; */
+  SR(LVAR);
+  /* if (S("FJUMP") == name) return FJUMP; */
+  SR(FJUMP);
+  /* if (S("JUMP") == name) return JUMP; */
+  SR(JUMP);
+  /* if (S("LSET") == name) return LSET; */
+  SR(LSET);
+  /* if (S("POP") == name) return POP; */
+  SR(POP);
+  /* if (S("GVAR") == name) return GVAR; */
+  SR(GVAR);
+  /* if (S("CALL") == name) return CALL; */
+  SR(CALL);
+  /* if (S("FN") == name) return FN; */
+  SR(FN);
+  /* if (S("ARGS") == name) return ARGS; */
+  SR(ARGS);
+  /* if (S("RETURN") == name) return RETURN; */
+  SR(RETURN);
   fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
   exit(1);
 }
@@ -176,6 +188,15 @@ lisp_object_t assemble_code(lisp_object_t compiled_code) {
   return vectorize_code(compiled_code, length, label_table);
 }
 
+void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
+  while (n - 1 != 0) {
+    pair = pair_cdr(pair);
+    n--;
+  }
+  lisp_object_t new_cdr = make_pair(object, pair_cdr(pair));
+  pair_cdr(pair) = new_cdr;
+}
+
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
   assert(is_vector(compiled_code));
@@ -184,9 +205,6 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
     lisp_object_t code = vector_data_at(compiled_code, pc);
     printf("++ ");
     write_object(code, make_file_out_port(stdout));
-    printf(" <> ");
-    write_object(stack, make_file_out_port(stdout));
-    putchar('\n');
     switch (code_name(code)) {
       case CONST:
         push(code_arg0(code), stack);
@@ -239,11 +257,22 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         lisp_object_t op = pair_car(stack);
         pop(stack);
         if (is_compiled_proc(op)) {
+          /* Save the current context */
+          lisp_object_t info = make_return_info(compiled_code, pc, environment);
+          /* push(info, stack); */
+          if (fixnum_value(n) != 0)
+            nth_insert_pair(fixnum_value(n), info, stack);
+          else
+            push(info, stack);
+          /* Set the new context */
           lisp_object_t code = compiled_proc_code(op);
           lisp_object_t env = compiled_proc_env(op);
           code = assemble_code(code);
-          stack = run_compiled_code(code, env, stack);
-          pc++;
+          /* stack = run_compiled_code(code, env, stack); */
+          /* pc++; */
+          compiled_code = code;
+          environment = env;
+          pc = 0;
         } else {
           lisp_object_t args = make_arguments(stack, fixnum_value(n));
           nth_pop(stack, fixnum_value(n));
@@ -259,8 +288,18 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         pc++;
       }
         break;
-      case RETURN:
+      case RETURN: {
+        lisp_object_t value = pair_car(stack);
+        pop(stack);
+        lisp_object_t info = pair_car(stack);
+        pop(stack);
+        /* Restore the last context */
+        compiled_code = return_code(info);
+        environment = return_env(info);
+        pc = return_pc(info);
+        push(value, stack);
         pc++;
+      }
         break;
       case FN:
         push(code_arg0(code), stack);
@@ -272,6 +311,9 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         /* exit(1); */
         return stack;
     }
+    printf(" <> ");
+    write_object(stack, make_file_out_port(stdout));
+    putchar('\n');
   }
-  return stack;
+  return pair_car(stack);
 }

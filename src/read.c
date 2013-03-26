@@ -41,31 +41,39 @@ void port_ungetc(char c, lisp_object_t port) {
   ungetc(c, stream);
 }
 
-lisp_object_t read_fixnum(char c, int sign, lisp_object_t port) {
+lisp_object_t read_float(int integer, lisp_object_t port) {
+  int number = 0;
+  int digit, i = 1;
+  while (isdigit(digit = port_read_char(port))) {
+    number = number * 10 + digit - '0';
+    i = i * 10;
+  }
+  port_ungetc(digit, port);
+  return make_flonum(integer + number * 1.0 / i);
+}
+
+lisp_object_t read_number(char c, int sign, lisp_object_t port) {
   int number = c - '0';
   int digit;
-  while (isdigit(digit = port_read_char(port)/* fgetc(stream) */)) {
+  while (isdigit(digit = port_read_char(port))) {
     number = number * 10 + digit - '0';
   }
-  /* ungetc(digit, stream); */
+  if (digit == '.')
+    return read_float(number, port);
   port_ungetc(digit, port);
   return make_fixnum(number * sign);
 }
 
 void read_comment(lisp_object_t port) {
-  /* int c = fgetc(stream); */
   int c = port_read_char(port);
   while (c != '\n' && c != EOF)
-    /* c = fgetc(stream); */
     c = port_read_char(port);
 }
 
 lisp_object_t read_character(lisp_object_t port) {
-  /* int c = fgetc(stream); */
   int c = port_read_char(port);
   switch (c) {
     case '\\': {
-      /* int c = fgetc(stream); */
       int c = port_read_char(port);
       switch (c) {
         case 'n': return make_character('\n');
@@ -90,11 +98,9 @@ lisp_object_t read_character(lisp_object_t port) {
 lisp_object_t read_string(lisp_object_t port) {
   static char buffer[BUFFER_SIZE];
   int i = 0;
-  /* int c = fgetc(stream); */
   int c = port_read_char(port);
   while (i < BUFFER_SIZE - 2 && c != EOF && c != '"') {
     buffer[i++] = c;
-    /* c = fgetc(stream); */
     c = port_read_char(port);
   }
   char *str = malloc((i + 2) * sizeof(char));
@@ -105,12 +111,16 @@ lisp_object_t read_string(lisp_object_t port) {
 
 lisp_object_t read_pair(lisp_object_t port) {
   lisp_object_t object = read_object(port);
-  if (CLOSE_OBJECT == object->type)
+  if (is_eof(object)) {
+    fprintf(stderr, "Incomplete literal for list\n");
+    exit(1);
+  }
+  if (is_close_object(object))
     return make_empty_list();
-  if (DOT_OBJECT == object->type) {
+  if (is_dot_object(object)) {
     lisp_object_t o1 = read_object(port);
     lisp_object_t o2 = read_object(port);
-    if (CLOSE_OBJECT == o2->type)
+    if (is_close_object(o2))
       return o1;
     else {
       fprintf(stderr, "More than one objects after '.' at line %d\n", in_port_linum(port));
@@ -123,15 +133,12 @@ lisp_object_t read_pair(lisp_object_t port) {
 lisp_object_t read_symbol(char init, lisp_object_t port) {
   static char buffer[BUFFER_SIZE];
   int i = 1;
-  /* int c = fgetc(stream); */
   int c = port_read_char(port);
   buffer[0] = init;
   while (i < BUFFER_SIZE -2 && !is_separator(c)) {
     buffer[i++] = c;
-    /* c = fgetc(stream); */
     c = port_read_char(port);
   }
-  /* ungetc(c, stream); */
   port_ungetc(c, port);
   char *name = malloc((i + 1) * sizeof(char));
   strncpy(name, buffer, i);
@@ -150,7 +157,6 @@ lisp_object_t read_vector(lisp_object_t port) {
 }
 
 lisp_object_t read_object(lisp_object_t port) {
-  /* int c = fgetc(stream); */
   int c = port_read_char(port);
   switch (c) {
     case EOF: return make_eof_object();
@@ -161,20 +167,17 @@ lisp_object_t read_object(lisp_object_t port) {
     case ';': read_comment(port); return read_object(port);
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-      return read_fixnum(c, 1, port);
+      return read_number(c, 1, port);
     case '-': {
-      /* int c = fgetc(stream); */
       int c = port_read_char(port);
       if (isdigit(c)) {
-        return read_fixnum(c, -1, port);
+        return read_number(c, -1, port);
       } else {
-        /* ungetc(c, stream); */
         port_ungetc(c, port);
         return read_symbol('-', port);
       }
     }
     case '#': {
-      /* int c = fgetc(stream); */
       int c = port_read_char(port);
       switch (c) {
         case 't': return make_true();
@@ -189,7 +192,7 @@ lisp_object_t read_object(lisp_object_t port) {
     case '"': return read_string(port);
     case '(': {
       lisp_object_t next = read_object(port);
-      if (CLOSE_OBJECT == next->type)
+      if (is_close_object(next))
         return make_empty_list();
       else
         return make_pair(next, read_pair(port));

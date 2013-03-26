@@ -1,7 +1,7 @@
 /*
  * test-compiler.c
  *
- *
+ * Some sample tests for compiler
  *
  * Copyright (C) 2013-03-18 liutos <mat.liutos@gmail.com>
  */
@@ -12,22 +12,21 @@
 #include "object.h"
 #include "read.h"
 #include "write.h"
-#include "compile.h"
+#include "compiler.h"
 #include "eval.h"
 
 int main(int argc, char *argv[])
 {
+  objects_heap = init_heap();
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
     /* "1", */
-    /* "+", */
+    "+",
     /* "'hello", */
-    /* "(set! car car)", */
-    "(if (= x y) (f (g x)) (h x y (h 1 2)))",
+    "(set! car car)",
     "(begin \"doc\" (write x) y)",
-    "(begin (+ (* a x) (f x)) x)",
-    /* "(lambda (x) (+ x 1))", */
-    /* "(f 1)", */
+    "(lambda (x) (+ x 1))",
+    "((lambda (x y) (+ x y)) 1 2)",
   };
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
   startup_environment = make_startup_environment();
