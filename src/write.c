@@ -19,7 +19,7 @@ void write_string(char *str, lisp_object_t port) {
   fprintf(out_port_stream(port), "%s", str);
 }
 
-void write_object(lisp_object_t object, lisp_object_t port) {
+void write_object(sexp object, sexp port) {
   FILE *stream = out_port_stream(port);
   if (is_fixnum(object)) {
     fprintf(stream, "%d", fixnum_value(object));
@@ -95,7 +95,6 @@ void write_object(lisp_object_t object, lisp_object_t port) {
       fprintf(stream, "#<port :out %p>", object);
       break;
     case COMPILED_PROC: {
-      /* fprintf(stream, "#<compiled-procedure %p>", object); */
       write_string("#<compiled-procedure ", port);
       write_object(compiled_proc_code(object), port);
       write_string(">", port);
@@ -119,6 +118,7 @@ void write_object(lisp_object_t object, lisp_object_t port) {
       break;
     case FLONUM:
       fprintf(stream, "%f", float_value(object));
+      break;
     default :
       fprintf(stderr, "cannot write unknown type %d\n", object->type);
       exit(1);

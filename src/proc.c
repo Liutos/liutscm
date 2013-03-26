@@ -20,7 +20,7 @@ extern lisp_object_t read_object(lisp_object_t);
 
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
-/* ARITHEMTIC */
+/* ARITHMETIC */
 
 /* Binary plus */
 lisp_object_t plus_proc(lisp_object_t args) {
@@ -69,11 +69,59 @@ lisp_object_t greater_than_proc(lisp_object_t args) {
   return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false();
 }
 
+sexp bit_and_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) & fixnum_value(n2));
+}
+
+sexp bit_or_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_fixnum(fixnum_value(n1) | fixnum_value(n2));
+}
+
+sexp bit_not_proc(sexp args) {
+  sexp n = pair_car(args);
+  return make_fixnum(~fixnum_value(n));
+}
+
 /* Are the two arguments identical? */
 lisp_object_t is_identical_proc(lisp_object_t args) {
   lisp_object_t o1 = pair_car(args);
   lisp_object_t o2 = pair_cadr(args);
   return o1 == o2 ? make_true(): make_false();
+}
+
+/* FLONUM */
+
+sexp flonum_plus_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) + float_value(n2));
+}
+
+sexp flonum_minus_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) - float_value(n2));
+}
+
+sexp flonum_multiply_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) * float_value(n2));
+}
+
+sexp flonum_divide_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) / float_value(n2));
+}
+
+sexp integer_to_float_proc(sexp args) {
+  sexp n = pair_car(args);
+  return make_flonum((float)(fixnum_value(n)));
 }
 
 /* CHAR */
@@ -287,7 +335,16 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("=", numeric_equal_proc, environment);
   add_primitive_proc("remainder", mod_proc, environment);
   add_primitive_proc(">", greater_than_proc, environment);
+  ADD("&", bit_and_proc);
+  ADD("|", bit_or_proc);
+  ADD("~", bit_not_proc);
   ADD("eq?", is_identical_proc);
+  /* FLONUM */
+  ADD("+.", flonum_plus_proc);
+  ADD("-.", flonum_minus_proc);
+  ADD("*.", flonum_multiply_proc);
+  ADD("/.", flonum_divide_proc);
+  ADD("integer->float", integer_to_float_proc);
   /* CHAR */
   add_primitive_proc("char->code", char2code_proc, environment);
   add_primitive_proc("code->char", code2char_proc, environment);
