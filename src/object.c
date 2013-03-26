@@ -338,14 +338,17 @@ lisp_object_t search_binding(lisp_object_t var, lisp_object_t env) {
   return NULL;
 }
 
-lisp_object_t search_binding_index(lisp_object_t var, lisp_object_t env) {
+int search_binding_index(sexp var, sexp env, int *x, int *y) {
   int i = 0, j;
   while (!is_empty_environment(env)) {
-    lisp_object_t vars = environment_vars(env);
+    sexp vars = environment_vars(env);
     j = 0;
     while (is_pair(vars)) {
       if (pair_car(vars) == var) {
-        return make_pair(make_fixnum(i), make_fixnum(j));
+        *x = i;
+        *y = j;
+        /* return make_pair(make_fixnum(i), make_fixnum(j)); */
+        return 1;
       }
       vars = pair_cdr(vars);
       j++;
@@ -353,7 +356,7 @@ lisp_object_t search_binding_index(lisp_object_t var, lisp_object_t env) {
     env = enclosing_environment(env);
     i++;
   }
-  return NULL;
+  return 0;
 }
 
 void add_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment) {
