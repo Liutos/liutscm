@@ -30,6 +30,7 @@ enum object_type {
   VECTOR,
   RETURN_INFO,
   FLONUM,
+  MACRO,
 };
 
 typedef struct lisp_object_t *sexp;
@@ -160,6 +161,11 @@ typedef struct hash_table_t {
 #define compound_proc_environment(x) ((x)->values.compound_proc.environment)
 #define is_compound(x) (is_pointer(x) && COMPOUND_PROC == (x)->type)
 #define is_function(x) (is_primitive(x) || is_compound(x))
+/* MACRO */
+#define macro_proc_pars(x) compound_proc_parameters(x)
+#define macro_proc_body(x) compound_proc_body(x)
+#define macro_proc_env(x) compound_proc_environment(x)
+#define is_macro(x) (is_pointer(x) && MACRO == (x)->type)
 /* BOOLEAN */
 #define BOOL_MASK 0x0f
 #define BOOL_TAG 0x0e

@@ -88,6 +88,13 @@ void write_object(sexp object, sexp port) {
       write_object(compound_proc_body(object), port);
       write_string(">", port);
       break;
+    case MACRO:
+      write_string("#<macro ", port);
+      write_object(macro_proc_pars(object), port);
+      write_string(" ", port);
+      write_object(macro_proc_body(object), port);
+      write_string(">", port);
+      break;
     case FILE_IN_PORT:
       fprintf(stream, "#<port :in %p>", object);
       break;

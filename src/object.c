@@ -212,6 +212,24 @@ lisp_object_t make_undefined(void) {
   return undefined_object;
 }
 
+lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body, lisp_object_t environment) {
+  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
+  proc->type = COMPOUND_PROC;
+  compound_proc_parameters(proc) = parameters;
+  compound_proc_body(proc) = body;
+  compound_proc_environment(proc) = environment;
+  return proc;
+}
+
+sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
+  sexp macro = alloc_object();
+  macro->type = MACRO;
+  macro_proc_pars(macro) = pars;
+  macro_proc_body(macro) = body;
+  macro_proc_env(macro) = env;
+  return macro;
+}
+
 /* VECTOR */
 
 unsigned int va_list_length(va_list ap) {

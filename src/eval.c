@@ -124,15 +124,6 @@ lisp_object_t lambda_body(lisp_object_t lambda_form) {
   return pair_cddr(lambda_form);
 }
 
-lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body, lisp_object_t environment) {
-  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
-  proc->type = COMPOUND_PROC;
-  compound_proc_parameters(proc) = parameters;
-  compound_proc_body(proc) = body;
-  compound_proc_environment(proc) = environment;
-  return proc;
-}
-
 /* BEGIN support */
 
 int is_begin_form(lisp_object_t object) {
@@ -141,6 +132,15 @@ int is_begin_form(lisp_object_t object) {
 
 lisp_object_t begin_actions(lisp_object_t begin_form) {
   return pair_cdr(begin_form);
+}
+
+sexp eval_begin(sexp actions, sexp env) {
+  if (is_null(actions)) return EOL;
+  while (!is_null(pair_cdr(actions))) {
+    eval_object(pair_car(actions), env);
+    actions = pair_cdr(actions);
+  }
+  return eval_object(pair_car(actions), env);
 }
 
 /* COND support */
@@ -311,6 +311,20 @@ lisp_object_t eval_application(lisp_object_t operator, lisp_object_t operands) {
   exit(1);
 }
 
+/* MACRO support */
+
+int is_macro_form(sexp object) {
+  return is_tag_list(object, "macro");
+}
+
+sexp macro_parameters(sexp macro_form) {
+  return pair_cadr(macro_form);
+}
+
+sexp macro_body(sexp macro_form) {
+  return pair_cddr(macro_form);
+}
+
 lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
 tail_loop:
   if (is_quote_form(object))
@@ -345,15 +359,7 @@ tail_loop:
     return make_lambda_procedure(parameters, body, environment);
   }
   if (is_begin_form(object)) {
-    lisp_object_t actions = begin_actions(object);
-    if (is_null(actions))
-      return make_empty_list();
-    while (!is_null(pair_cdr(actions))) {
-      eval_object(pair_car(actions), environment);
-      actions = pair_cdr(actions);
-    }
-    object = pair_car(actions);
-    goto tail_loop;
+    return eval_begin(object, environment);
   }
   if (is_cond_form(object)) {
     object = cond2if(object);
@@ -387,17 +393,33 @@ tail_loop:
     }
     return eval_object(pair_car(tests), environment);
   }
+  if (is_macro_form(object)) {
+    sexp pars = macro_parameters(object);
+    sexp body = macro_body(object);
+    return make_macro_procedure(pars, body, environment);
+  }
   if (is_application_form(object)) {
     lisp_object_t operator = application_operator(object);
     lisp_object_t operands = application_operands(object);
     operator = eval_object(operator, environment);
-    if (!is_function(operator)) {
+    if (!is_function(operator) && !is_macro(operator)) {
       fprintf(stderr, "Illegal functional object ");
       write_object(operator, make_file_out_port(stderr));
       fprintf(stderr, " from ");
       write_object(pair_car(object), make_file_out_port(stderr));
       fputc('\n', stderr);
       exit(1);
+    }
+    /* Expand the macro before evaluating arguments */
+    if (is_macro(operator)) {
+      sexp body = macro_proc_body(operator);
+      sexp vars = macro_proc_pars(operator);
+      sexp def_env = macro_proc_env(operator);
+      sexp object = make_pair(find_or_create_symbol("begin"), body);
+      sexp env = extend_environment(vars, operands, def_env);
+      sexp exp = eval_object(object, env);
+      /* return exp; */
+      return eval_object(exp, environment);
     }
     operands = eval_arguments(operands, environment);
     if (is_apply(operator)) {

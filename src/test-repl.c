@@ -40,9 +40,14 @@ int main(int argc, char *argv[])
     /* "(*. 1.1 1.1)", */
     /* "(/. 3.14 2.0)", */
     /* "(integer->float 123)", */
-    "(& 5 7)",
-    "(| 5 7)",
-    "(~ 5)",
+    /* "(& 5 7)", */
+    /* "(| 5 7)", */
+    /* "(~ 5)", */
+    "(define inc (macro (x) (cons 'set! (cons x (cons (cons '+ (cons x (cons 1 ()))) ())))))",
+    "inc",
+    "(define x 1)",
+    "(inc x)",
+    "x",
     /* "(a ", */
     /* "#t", */
     /* "#f", */
