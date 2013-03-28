@@ -147,15 +147,24 @@ sexp compile_assignment(sexp object, sexp env, int is_val, int is_more) {
 }
 
 sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
+  /* sexp l1 = make_label(); */
+  /* sexp l2 = make_label(); */
+  /* return seq(compile_object(if_test_part(object), env, is_val, is_more), */
+  /*            gen_fjump(l1), */
+  /*            compile_object(if_then_part(object), env, is_val, is_more), */
+  /*            gen_jump(l2), */
+  /*            make_list1(l1), */
+  /*            compile_object(if_else_part(object), env, is_val, is_more), */
+  /*            make_list1(l2)); */
+  sexp pcode = compile_object(if_test_part(object), env, is_val, is_more);
+  sexp tcode = compile_object(if_then_part(object), env, is_val, is_more);
+  sexp ecode = compile_object(if_else_part(object), env, is_val, is_more);
   sexp l1 = make_label();
-  sexp l2 = make_label();
-  return seq(compile_object(if_test_part(object), env, is_val, is_more),
-             gen_fjump(l1),
-             compile_object(if_then_part(object), env, is_val, is_more),
-             gen_jump(l2),
-             make_list1(l1),
-             compile_object(if_else_part(object), env, is_val, is_more),
-             make_list1(l2));
+  sexp l2 = is_more ? make_label(): EOL;
+  return seq(pcode, gen_fjump(l1), tcode,
+             (is_more ? gen_jump(l2): EOL),
+             make_list1(l1), ecode,
+             (is_more ? make_list1(l2): EOL));
 }
 
 sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
@@ -174,7 +183,7 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
   if (is_assignment_form(object))
     return compile_assignment(object, env, yes, no);
   if (is_if_form(object))
-    return compile_if(object, env, yes, no);
+    return compile_if(object, env, yes, yes);
   if (is_begin_form(object))
     return compile_begin(begin_actions(object), env, yes, no);
   if (is_lambda_form(object)) {

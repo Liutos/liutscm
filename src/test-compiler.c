@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     /* "1", */
     "+",
     /* "'hello", */
+    "(if #f 1 2)",
     "(set! car car)",
     "(begin \"doc\" (write x) y)",
     "(lambda (x) (+ x 1))",
