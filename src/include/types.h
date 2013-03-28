@@ -110,16 +110,20 @@ typedef struct hash_table_t {
 #define MAKE_SINGLETON_OBJECT(n)\
   ((lisp_object_t)((n << EXTENDED_BITS) | EXTENDED_TAG))
 /* tagged pointer constant definitions */
-#define false_object\
+#define false_object                            \
   MAKE_SINGLETON_OBJECT(0)
-#define true_object\
+#define true_object                             \
   MAKE_SINGLETON_OBJECT(1)
-#define empty_list_object\
+#define empty_list_object                       \
   MAKE_SINGLETON_OBJECT(2)
-#define eof_object\
+#define eof_object                              \
   MAKE_SINGLETON_OBJECT(3)
-#define undefined_object\
+#define undefined_object                        \
   MAKE_SINGLETON_OBJECT(4)
+#define close_object                            \
+  MAKE_SINGLETON_OBJECT(5)
+#define dot_object                              \
+  MAKE_SINGLETON_OBJECT(6)
 
 #define is_of_tag(x, mask, tag) (tag == (((int)(x)) & mask))
 /* BOOLEAN */
@@ -131,10 +135,8 @@ typedef struct hash_table_t {
 #define is_bool(x) (is_true(x) || is_false(x))
 #define bool_value(x) (((int)(x)) >> BOOL_BITS)
 /* CLOSE_OBJECT */
-#define close_object MAKE_SINGLETON_OBJECT(5)
 #define is_close_object(x) (close_object == x)
 /* DOT_OBJECT */
-#define dot_object MAKE_SINGLETON_OBJECT(6)
 #define is_dot_object(x) (dot_object == x)
 /* EMPTY_LIST */
 #define EMPTY_LIST_MASK 0x0f

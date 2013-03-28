@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
     inc_ref_count(in_port);
     printf(">> %s\n=> ", cases[i]);
     sexp input = read_object(in_port);
+    if (is_eof(input))
+      break;
     inc_ref_count(input);
     sexp value = eval_object(input, repl_environment);
     if (!is_self_eval(input))
