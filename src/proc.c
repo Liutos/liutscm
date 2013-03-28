@@ -142,8 +142,8 @@ lisp_object_t code2char_proc(lisp_object_t args) {
 
 /* Get the specific character in a string */
 lisp_object_t char_at_proc(lisp_object_t args) {
-  lisp_object_t n = pair_car(args);
-  lisp_object_t str = pair_cadr(args);
+  lisp_object_t n = pair_cadr(args);
+  lisp_object_t str = pair_car(args);
   return make_character(string_value(str)[fixnum_value(n)]);
 }
 
@@ -240,6 +240,22 @@ lisp_object_t get_startup_environment(lisp_object_t args) {
 /* Return a environment with nothing */
 lisp_object_t get_null_environment(lisp_object_t args) {
   return null_environment;
+}
+
+/* VECTOR */
+
+sexp vector_ref_proc(sexp args) {
+  sexp vector = pair_car(args);
+  sexp n = pair_cadr(args);
+  return vector_data_at(vector, fixnum_value(n));
+}
+
+sexp vector_set_proc(sexp args) {
+  sexp vector = pair_car(args);
+  sexp n = pair_cadr(args);
+  sexp value = pair_caddr(args);
+  vector_data_at(vector, fixnum_value(n)) = value;
+  return value;
 }
 
 /* File port support */
@@ -346,10 +362,10 @@ void init_environment(lisp_object_t environment) {
   ADD("/.", flonum_divide_proc);
   ADD("integer->float", integer_to_float_proc);
   /* CHAR */
-  add_primitive_proc("char->code", char2code_proc, environment);
-  add_primitive_proc("code->char", code2char_proc, environment);
+  add_primitive_proc("char->integer", char2code_proc, environment);
+  add_primitive_proc("integer->char", code2char_proc, environment);
   /* STRING */
-  add_primitive_proc("char-at", char_at_proc, environment);
+  add_primitive_proc("string-ref", char_at_proc, environment);
   ADD("string-length", string_length_proc);
   ADD("string=?", string_equal_proc);
   /* PAIR */
@@ -375,4 +391,7 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("write-char", write_char_proc, environment);
   add_primitive_proc("close-out", close_out_proc, environment);
   add_primitive_proc("write", write_proc, environment);
+  /* VECTOR */
+  ADD("vector-ref", vector_ref_proc);
+  ADD("vector-set!", vector_set_proc);
 }

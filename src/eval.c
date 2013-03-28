@@ -325,37 +325,36 @@ sexp macro_body(sexp macro_form) {
   return pair_cddr(macro_form);
 }
 
-lisp_object_t eval_object(lisp_object_t object, lisp_object_t environment) {
+sexp eval_object(sexp object, sexp environment) {
 tail_loop:
   if (is_quote_form(object))
     return quotation_text(object);
   if (is_variable_form(object))
     return get_variable_value(object, environment);
   if (is_define_form(object)) {
-    lisp_object_t value = eval_object(definition_value(object), environment);
+    sexp value = eval_object(definition_value(object), environment);
     add_binding(definition_variable(object), value, environment);
-    return make_undefined();
+    return value;
   }
   if (is_assignment_form(object)) {
-    lisp_object_t value = eval_object(assignment_value(object), environment);
+    sexp value = eval_object(assignment_value(object), environment);
     set_binding(assignment_variable(object), value, environment);
-    return make_undefined();
+    return value;
   }
   if (is_if_form(object)) {
-    lisp_object_t test_part = if_test_part(object);
-    lisp_object_t then_part = if_then_part(object);
-    lisp_object_t else_part = if_else_part(object);
-    if (eval_object(test_part, environment) == make_true()) {
+    sexp test_part = if_test_part(object);
+    sexp then_part = if_then_part(object);
+    sexp else_part = if_else_part(object);
+    if (!is_false(eval_object(test_part, environment))) {
       object = then_part;
-      goto tail_loop;
     } else {
       object = else_part;
-      goto tail_loop;
     }
+    goto tail_loop;
   }
   if (is_lambda_form(object)) {
-    lisp_object_t parameters = lambda_parameters(object);
-    lisp_object_t body = lambda_body(object);
+    sexp parameters = lambda_parameters(object);
+    sexp body = lambda_body(object);
     return make_lambda_procedure(parameters, body, environment);
   }
   if (is_begin_form(object)) {
@@ -370,11 +369,11 @@ tail_loop:
     goto tail_loop;
   }
   if (is_and_form(object)) {
-    lisp_object_t tests = and_tests(object);
+    sexp tests = and_tests(object);
     if (is_null(tests))
       return make_true();
     while (is_pair(pair_cdr(tests))) {
-      lisp_object_t result = eval_object(pair_car(tests), environment);
+      sexp result = eval_object(pair_car(tests), environment);
       if (is_false(result))
         return make_false();
       tests = pair_cdr(tests);
@@ -382,11 +381,11 @@ tail_loop:
     return eval_object(pair_car(tests), environment);
   }
   if (is_or_form(object)) {
-    lisp_object_t tests = or_tests(object);
+    sexp tests = or_tests(object);
     if (is_null(tests))
       return make_false();
     while (is_pair(pair_cdr(tests))) {
-      lisp_object_t result = eval_object(pair_car(tests), environment);
+      sexp result = eval_object(pair_car(tests), environment);
       if (!is_false(result))
         return result;
       tests = pair_cdr(tests);
@@ -399,8 +398,8 @@ tail_loop:
     return make_macro_procedure(pars, body, environment);
   }
   if (is_application_form(object)) {
-    lisp_object_t operator = application_operator(object);
-    lisp_object_t operands = application_operands(object);
+    sexp operator = application_operator(object);
+    sexp operands = application_operands(object);
     operator = eval_object(operator, environment);
     if (!is_function(operator) && !is_macro(operator)) {
       fprintf(stderr, "Illegal functional object ");

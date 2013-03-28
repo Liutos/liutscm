@@ -14,24 +14,16 @@
 #include "read.h"
 #include "object.h"
 
-void load_init_file(void) {
-  char *path = ".liut.scm";
-  FILE *fp = fopen(path, "r");
-  if (NULL == fp) {
-    fprintf(stderr, "No initialization file '%s'\n", path);
-    exit(1);
-  }
-  lisp_object_t in_port = make_file_in_port(fp);
-  lisp_object_t exp = read_object(in_port);
-  while (!is_eof(exp)) {
-    eval_object(exp, repl_environment);
-    exp = read_object(in_port);
-  }
-}
+void load_init_file(void);
 
 int main(int argc, char *argv[])
 {
   char *cases[] = {
+    /* "(define fac (lambda (n) (if (zero? n) 1 (* n (fac (- n 1))))))", */
+    /* "(fac 5)", */
+    /* "(string<? \"abc\" \"abd\")", */
+    /* "(string<? \"a\" \"b\")", */
+    /* "(string<? \"abc\" \"ab\")", */
     /* "1", */
     /* "-123", */
     /* "1.234", */
@@ -43,17 +35,19 @@ int main(int argc, char *argv[])
     /* "(& 5 7)", */
     /* "(| 5 7)", */
     /* "(~ 5)", */
-    "(define inc (macro (x) (cons 'set! (cons x (cons (cons '+ (cons x (cons 1 ()))) ())))))",
-    "inc",
-    "(define x 1)",
-    "(inc x)",
-    "x",
-    /* "(a ", */
+    /* "(define inc (macro (x) (cons 'set! (cons x (cons (cons '+ (cons x (cons 1 ()))) ())))))", */
+    /* "inc", */
+    /* "(define x 1)", */
+    /* "(inc x)", */
+    /* "x", */
     /* "#t", */
     /* "#f", */
     /* "#\\a", */
     /* "#\\A", */
     /* "#\\\\n", */
+    /* "#\\\\r", */
+    /* "#\\\\t", */
+    /* "#\\ ", */
     /* "#\\ ", */
     /* "\"Hello, world!\"", */
     /* "( )", */
@@ -142,7 +136,9 @@ int main(int argc, char *argv[])
     /* "(odd? 2)", */
     /* "(even? 2)", */
     /* "(even? 1)", */
-    /* "#(1 2 3)", */
+    "(define v #(1 2 3))",
+    "(vector-ref v 0)",
+    "(begin (vector-set! v 0 4) v)",
   };
   objects_heap = init_heap();
   symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
@@ -152,19 +148,32 @@ int main(int argc, char *argv[])
   lisp_object_t out_port = make_file_out_port(stdout);
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
-    lisp_object_t in_port = make_file_in_port(stream);
+    DECL(in_port, make_file_in_port(stream));
     printf(">> %s\n=> ", cases[i]);
-    lisp_object_t input = read_object(in_port);
-    inc_ref_count(input);
-    lisp_object_t value = eval_object(input, repl_environment);
-    inc_ref_count(value);
+    DECL(input, read_object(in_port));
+    DECL(value, eval_object(input, repl_environment));
     write_object(value, out_port);
-    /* write_object(read_object(in_port), out_port); */
     putchar('\n');
     dec_ref_count(value);
     dec_ref_count(input);
-    free_file_out_port(in_port);
+    /* free_file_out_port(in_port); */
+    dec_ref_count(in_port);
     fclose(stream);
   }
   return 0;
+}
+
+void load_init_file(void) {
+  char *path = ".liut.scm";
+  FILE *fp = fopen(path, "r");
+  if (NULL == fp) {
+    fprintf(stderr, "No initialization file '%s'\n", path);
+    exit(1);
+  }
+  lisp_object_t in_port = make_file_in_port(fp);
+  lisp_object_t exp = read_object(in_port);
+  while (!is_eof(exp)) {
+    eval_object(exp, repl_environment);
+    exp = read_object(in_port);
+  }
 }

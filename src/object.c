@@ -51,16 +51,10 @@ struct lisp_object_t *init_heap(void) {
 }
 
 lisp_object_t alloc_object(void) {
-  /* lisp_object_t object = malloc(sizeof(struct lisp_object_t)); */
-  /* object->ref_count = 0; */
-  /* return object; */
-  /* if (free_index >= HEAP_SIZE) { */
   if (NULL == free_objects) {
     fprintf(stderr, "Memory exhausted\n");
     exit(1);
   }
-  /* lisp_object_t object = &objects_heap[free_index]; */
-  /* free_index++; */
   lisp_object_t object = free_objects;
   free_objects = free_objects->next;
   /* Concatenate the new allocated object into list `used_objects' */
@@ -101,7 +95,6 @@ lisp_object_t make_character(char c) {
 }
 
 lisp_object_t make_string(char *str) {
-  /* lisp_object_t string = malloc(sizeof(struct lisp_object_t)); */
   lisp_object_t string = alloc_object();
   string->type = STRING;
   string->values.string.value = str;
@@ -109,7 +102,7 @@ lisp_object_t make_string(char *str) {
 }
 
 lisp_object_t make_empty_list(void) {
-  return empty_list_object;
+  return EOL;
 }
 
 lisp_object_t make_close_object(void) {
@@ -123,9 +116,6 @@ lisp_object_t make_dot_object(void) {
 void inc_ref_count(lisp_object_t object) {
   if (object && is_pointer(object)) {
     object->ref_count++;
-    /* printf("Increasing ref_count of "); */
-    /* write_object(object, make_file_out_port(stdout)); */
-    /* putchar('\n'); */
   }
 }
 
@@ -138,29 +128,23 @@ void inc_ref_count(lisp_object_t object) {
   } while (0)
 
 void dec_ref_count(lisp_object_t object) {
-  if (object && is_pointer(object)) {
-    object->ref_count--;
-    /* printf("Decreasing ref_count of "); */
-    /* write_object(object, make_file_out_port(stdout)); */
-    /* putchar('\n'); */
-    if (0 == object->ref_count) {
-      printf("Releasing ");
-      write_object(object, make_file_out_port(stdout));
-      putchar('\n');
-      /* Unlink this object within the `used_objects' list */
-      unlink(object);
-      /* if (object->prev != NULL) */
-      /*   object->prev->next = object->next; */
-      /* object->next = free_objects; */
-      /* free_objects = object; */
-    }
+  if (!object || !is_pointer(object)) return;
+  object->ref_count--;
+  if (object->ref_count) return;
+  printf("Releasing ");
+  write_object(object, make_file_out_port(stdout));
+  putchar('\n');
+  /* Unlink this object within the `used_objects' list */
+  unlink(object);
+  if (is_pair(object)) {
+    dec_ref_count(pair_car(object));
+    dec_ref_count(pair_cdr(object));
   }
 }
 
 /* PAIR */
 
 lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
-  /* lisp_object_t pair = malloc(sizeof(struct lisp_object_t)); */
   lisp_object_t pair = alloc_object();
   pair->type = PAIR;
   /* Increase the reference count of the objects in car and cdr parts */
@@ -201,7 +185,6 @@ lisp_object_t pair_nthcdr(lisp_object_t pair, int n) {
 }
 
 lisp_object_t make_symbol(char *name) {
-  /* lisp_object_t symbol = malloc(sizeof(struct lisp_object_t)); */
   lisp_object_t symbol = alloc_object();
   symbol->type = SYMBOL;
   symbol->values.symbol.name = name;
@@ -212,12 +195,12 @@ lisp_object_t make_undefined(void) {
   return undefined_object;
 }
 
-lisp_object_t make_lambda_procedure(lisp_object_t parameters, lisp_object_t body, lisp_object_t environment) {
-  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
+sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
+  sexp proc = alloc_object();
   proc->type = COMPOUND_PROC;
-  compound_proc_parameters(proc) = parameters;
-  compound_proc_body(proc) = body;
-  compound_proc_environment(proc) = environment;
+  ASIG(compound_proc_parameters(proc), pars);
+  ASIG(compound_proc_body(proc), body);
+  ASIG(compound_proc_environment(proc), env);
   return proc;
 }
 
@@ -241,7 +224,6 @@ unsigned int va_list_length(va_list ap) {
 }
 
 lisp_object_t make_vector(unsigned int length/* , ... */) {
-  /* lisp_object_t vector = malloc(sizeof(struct lisp_object_t)); */
   lisp_object_t vector = alloc_object();
   vector->type = VECTOR;
   vector_length(vector) = length;
@@ -422,7 +404,6 @@ lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
 }
 
 lisp_object_t make_file_in_port(FILE *stream) {
-  /* lisp_object_t port = malloc(sizeof(struct lisp_object_t)); */
   lisp_object_t port = alloc_object();
   port->type = FILE_IN_PORT;
   in_port_stream(port) = stream;
@@ -431,7 +412,6 @@ lisp_object_t make_file_in_port(FILE *stream) {
 }
 
 lisp_object_t make_file_out_port(FILE *stream) {
-  /* lisp_object_t port = malloc(sizeof(struct lisp_object_t)); */
   lisp_object_t port = alloc_object();
   port->type = FILE_OUT_PORT;
   out_port_stream(port) = stream;

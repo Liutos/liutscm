@@ -228,4 +228,16 @@ typedef struct hash_table_t {
 #define pair_cdar(x) pair_cdr(pair_car(x))
 #define pair_cdddr(x) pair_cdr(pair_cddr(x))
 
+/* Declare, initialize and increase the references count */
+#define DECL(var, expr)                         \
+  sexp var = expr;                              \
+  inc_ref_count(var);
+
+/* Assign and increase the ref_count */
+#define ASIG(var, value)                        \
+  do {                                          \
+    var = value;                                \
+    inc_ref_count(value);                       \
+  } while(0)
+
 #endif
