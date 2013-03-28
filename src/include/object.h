@@ -45,6 +45,7 @@ extern sexp make_vector(unsigned int);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
 
 extern sexp make_list(sexp e, ...);
+extern sexp nconc_pair(sexp, sexp);
 extern int pair_length(sexp);
 extern sexp pair_nthcdr(sexp, int);
 

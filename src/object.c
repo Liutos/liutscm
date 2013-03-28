@@ -161,8 +161,7 @@ sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
 }
 
 sexp make_compiled_proc(sexp args, sexp code, sexp env) {
-  sexp proc = /* malloc(sizeof(struct lisp_object_t)) */alloc_object(COMPILED_PROC);
-  /* proc->type = COMPILED_PROC; */
+  sexp proc = alloc_object(COMPILED_PROC);
   compiled_proc_args(proc) = args;
   compiled_proc_env(proc) = env;
   compiled_proc_code(proc) = code;
@@ -199,6 +198,17 @@ sexp make_list(sexp e, ...) {
   va_list ap;
   va_start(ap, e);
   return make_pair(e, make_list_aux(ap));
+}
+
+/* Set the `pair2' as the last cdr of proper list `pair1' */
+sexp nconc_pair(sexp pair1, sexp pair2) {
+  if (is_null(pair1)) return pair2;
+  if (is_null(pair2)) return pair1;
+  sexp head = pair1;
+  while (!is_null(pair_cdr(pair1)))
+    pair1 = pair_cdr(pair1);
+  pair_cdr(pair1) = pair2;
+  return head;
 }
 
 /* Returns the number of elements in proper list */

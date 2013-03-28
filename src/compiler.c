@@ -39,16 +39,6 @@ int is_variable_found(sexp var, sexp env, int *i, int *j) {
   return search_binding_index(var, env, i, j);
 }
 
-lisp_object_t pair_conc(lisp_object_t pair1, lisp_object_t pair2) {
-  if (is_null(pair1)) return pair2;
-  if (is_null(pair2)) return pair1;
-  lisp_object_t tmp = pair1;
-  while (!is_null(pair_cdr(tmp)))
-    tmp = pair_cdr(tmp);
-  pair_cdr(tmp) = pair2;
-  return pair1;
-}
-
 lisp_object_t va_list2pair(va_list ap) {
   lisp_object_t o = va_arg(ap, lisp_object_t);
   if (o)
@@ -82,14 +72,14 @@ lisp_object_t sequenzie_aux(va_list ap) {
     va_end(ap);
     return make_empty_list();
   } else
-    return pair_conc(e, sequenzie_aux(ap));
+    return nconc_pair(e, sequenzie_aux(ap));
 }
 
 /* Concatenates a series of list of instructions */
 lisp_object_t sequenzie(lisp_object_t pair, ...) {
   va_list ap;
   va_start(ap, pair);
-  return pair_conc(pair, sequenzie_aux(ap));
+  return nconc_pair(pair, sequenzie_aux(ap));
 }
 
 /* Compiler */
@@ -129,8 +119,8 @@ sexp compile_arguments(sexp args, sexp environment) {
   if (is_null(args))
     return make_empty_list();
   else
-    return pair_conc(compile_object(pair_car(args), environment),
-                     compile_arguments(pair_cdr(args), environment));
+    return seq(compile_object(pair_car(args), environment),
+               compile_arguments(pair_cdr(args), environment));
 }
 
 sexp compile_var(sexp object, sexp env) {
@@ -143,7 +133,7 @@ sexp compile_var(sexp object, sexp env) {
 
 sexp compile_assignment(sexp object, sexp env) {
   sexp value = compile_object(assignment_value(object), env);
-  return pair_conc(value, compile_set(assignment_variable(object), env));
+  return seq(value, compile_set(assignment_variable(object), env));
 }
 
 sexp compile_if(sexp object, sexp env) {
