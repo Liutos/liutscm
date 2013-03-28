@@ -146,13 +146,6 @@ sexp make_file_out_port(FILE *stream) {
   return port;
 }
 
-sexp make_vector(unsigned int length) {
-  sexp vector = alloc_object(VECTOR);
-  vector_length(vector) = length;
-  vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
-  return vector;
-}
-
 sexp make_flonum(float value) {
   sexp object = alloc_object(FLONUM);
   float_value(object) = value;
@@ -165,6 +158,22 @@ sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
   ASIG(compound_proc_body(proc), body);
   ASIG(compound_proc_environment(proc), env);
   return proc;
+}
+
+sexp make_compiled_proc(sexp args, sexp code, sexp env) {
+  sexp proc = /* malloc(sizeof(struct lisp_object_t)) */alloc_object(COMPILED_PROC);
+  /* proc->type = COMPILED_PROC; */
+  compiled_proc_args(proc) = args;
+  compiled_proc_env(proc) = env;
+  compiled_proc_code(proc) = code;
+  return proc;
+}
+
+sexp make_vector(unsigned int length) {
+  sexp vector = alloc_object(VECTOR);
+  vector_length(vector) = length;
+  vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
+  return vector;
 }
 
 sexp make_macro_procedure(sexp pars, sexp body, sexp env) {

@@ -10,24 +10,26 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "eval.h"
 #include "types.h"
 #include "object.h"
-#include "eval.h"
+
+#define BUFFER_SIZE 10
 
 #define seq(...) sequenzie(__VA_ARGS__, NULL)
 #define gen(...) generate_code(__VA_ARGS__, NULL)
-#define gen_const(x) gen("CONST", x)
-#define gen_gset(x) gen("GSET", x)
-#define gen_lset(i, j) gen("LSET", i, j)
-#define gen_pop() gen("POP")
 #define gen_args(x) gen("ARGS", x)
-#define gen_return() gen("RETURN")
-#define gen_gvar(x) gen("GVAR", x)
-#define gen_lvar(i, j) gen("LVAR", i, j)
-#define gen_fjump(x) gen("FJUMP", x)
-#define gen_jump(x) gen("JUMP", x)
-#define gen_fn(x) gen("FN", x)
 #define gen_call(x) gen("CALL", x)
+#define gen_const(x) gen("CONST", x)
+#define gen_fjump(x) gen("FJUMP", x)
+#define gen_fn(x) gen("FN", x)
+#define gen_gset(x) gen("GSET", x)
+#define gen_gvar(x) gen("GVAR", x)
+#define gen_jump(x) gen("JUMP", x)
+#define gen_lset(i, j) gen("LSET", i, j)
+#define gen_lvar(i, j) gen("LVAR", i, j)
+#define gen_pop() gen("POP")
+#define gen_return() gen("RETURN")
 
 sexp compile_object(sexp, sexp);
 
@@ -47,21 +49,6 @@ lisp_object_t pair_conc(lisp_object_t pair1, lisp_object_t pair2) {
   return pair1;
 }
 
-lisp_object_t sequenzie_aux(va_list ap) {
-  lisp_object_t e = va_arg(ap, lisp_object_t);
-  if (NULL == e) {
-    va_end(ap);
-    return make_empty_list();
-  } else
-    return pair_conc(e, sequenzie_aux(ap));
-}
-
-lisp_object_t sequenzie(lisp_object_t pair, ...) {
-  va_list ap;
-  va_start(ap, pair);
-  return pair_conc(pair, sequenzie_aux(ap));
-}
-
 lisp_object_t va_list2pair(va_list ap) {
   lisp_object_t o = va_arg(ap, lisp_object_t);
   if (o)
@@ -74,6 +61,14 @@ lisp_object_t make_list1(lisp_object_t x) {
   return make_pair(x, EOL);
 }
 
+lisp_object_t make_label(void) {
+  static char buffer[BUFFER_SIZE];
+  int n = sprintf(buffer, "L%d", label_counter);
+  label_counter++;
+  return find_or_create_symbol(strndup(buffer, n));
+}
+
+/* Generate a list contains one instruction */
 lisp_object_t generate_code(char *code_name, ...) {
   va_list ap;
   va_start(ap, code_name);
@@ -81,6 +76,23 @@ lisp_object_t generate_code(char *code_name, ...) {
                               va_list2pair(ap)));
 }
 
+lisp_object_t sequenzie_aux(va_list ap) {
+  lisp_object_t e = va_arg(ap, lisp_object_t);
+  if (NULL == e) {
+    va_end(ap);
+    return make_empty_list();
+  } else
+    return pair_conc(e, sequenzie_aux(ap));
+}
+
+/* Concatenates a series of list of instructions */
+lisp_object_t sequenzie(lisp_object_t pair, ...) {
+  va_list ap;
+  va_start(ap, pair);
+  return pair_conc(pair, sequenzie_aux(ap));
+}
+
+/* Compiler */
 lisp_object_t compile_constant(lisp_object_t val) {
   return gen_const(val);
 }
@@ -93,14 +105,6 @@ lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
     return gen_lset(make_fixnum(i), make_fixnum(j));
 }
 
-lisp_object_t make_label(void) {
-#define BUFFER_SIZE 10
-  static char buffer[BUFFER_SIZE];
-  int n = sprintf(buffer, "L%d", label_counter);
-  label_counter++;
-  return find_or_create_symbol(strndup(buffer, n));
-}
-
 sexp compile_begin(sexp actions, sexp environment) {
   if (is_null(actions))
     return compile_constant(make_empty_list());
@@ -110,15 +114,6 @@ sexp compile_begin(sexp actions, sexp environment) {
     return seq(compile_object(pair_car(actions), environment),
                gen_pop(),
                compile_begin(pair_cdr(actions), environment));
-}
-
-lisp_object_t make_compiled_proc(lisp_object_t args, lisp_object_t code, lisp_object_t env) {
-  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
-  proc->type = COMPILED_PROC;
-  compiled_proc_args(proc) = args;
-  compiled_proc_env(proc) = env;
-  compiled_proc_code(proc) = code;
-  return proc;
 }
 
 sexp compile_lambda(sexp args, sexp body, sexp env) {

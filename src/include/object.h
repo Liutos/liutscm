@@ -38,9 +38,10 @@ extern sexp make_pair(sexp, sexp);
 extern sexp make_symbol(char *);
 extern sexp make_file_in_port(FILE *);
 extern sexp make_file_out_port(FILE *);
-extern sexp make_vector(unsigned int);
 extern sexp make_flonum(float);
 extern sexp make_lambda_procedure(sexp, sexp, sexp);
+extern sexp make_compiled_proc(sexp, sexp, sexp);
+extern sexp make_vector(unsigned int);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
 
 extern sexp make_list(sexp e, ...);
