@@ -20,44 +20,53 @@ void load_init_file(void);
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    "1.234",
-    "(+. 1.1 1.2)",
-    "(integer->float 123)",
-    "(& 5 7)",
-    "#t",
-    "#f",
-    "\"Hello, world!\"",
-    "'(1 . 2)",
-    "'hello",
-    "(if #f 1 2)",
-    "-",
-    "(+ 1 2)",
-    "(eq? 'hello 'hello)",
-    "(eq? 1 1)",
-    "(eq? (string->symbol \"hello\") 'hello)",
-    "(type-of 'hello)",
-    "type-of",
-    "#\\a",
-    "(type-of #\\a)",
-    "(lambda (x) (+ x 1))",
-    "((lambda (x) (+ x 1)) 1)",
-    "(define plus-one (lambda (n) (+ n 1)))",
-    "plus-one",
-    "(plus-one 1)",
-    "(cond)",
-    "(cond ((eq? 1 1) 2) (else 3))",
+    "(define a #(1 2 3))",
+    "(set! a 2)",
+    /* "1.234", */
+    /* "(+. 1.1 1.2)", */
+    /* "(integer->float 123)", */
+    /* "(& 5 7)", */
+    /* "#t", */
+    /* "#f", */
+    /* "\"Hello, world!\"", */
+    /* "'(1 . 2)", */
+    /* "'hello", */
+    /* "(if #f 1 2)", */
+    /* "-", */
+    /* "(+ 1 2)", */
+    /* "(eq? 'hello 'hello)", */
+    /* "(eq? 1 1)", */
+    /* "(eq? (string->symbol \"hello\") 'hello)", */
+    /* "(type-of 'hello)", */
+    /* "type-of", */
+    /* "#\\a", */
+    /* "(type-of #\\a)", */
+    /* "(lambda (x) (+ x 1))", */
+    /* "((lambda (x) (+ x 1)) 1)", */
+    /* "(define plus-one (lambda (n) (+ n 1)))", */
+    /* "plus-one", */
+    /* "(plus-one 1)", */
+    /* "(cond)", */
+    /* "(cond ((eq? 1 1) 2) (else 3))", */
   };
   init_impl();
   load_init_file();
-  /* sexp out_port = make_file_out_port(stdout); */
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     sexp in_port = make_file_in_port(stream);
+    inc_ref_count(in_port);
     printf(">> %s\n=> ", cases[i]);
     sexp input = read_object(in_port);
+    inc_ref_count(input);
     sexp value = eval_object(input, repl_environment);
+    if (!is_self_eval(input))
+      inc_ref_count(value);
     write_object(value, scm_out_port);
     putchar('\n');
+    if (!is_self_eval(input))
+      dec_ref_count(value);
+    dec_ref_count(input);
+    dec_ref_count(in_port);
   }
   return 0;
 }

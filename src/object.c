@@ -76,8 +76,6 @@ void reclaim(sexp object) {
 void dec_ref_count(sexp object) {
   if (!object || !is_pointer(object)) return;
   object->ref_count--;
-  /* if (object->ref_count) return; */
-  /* unlink(object); */
   if (object->ref_count == 0)
     reclaim(object);
 }
@@ -364,9 +362,9 @@ void set_binding(sexp var, sexp val, sexp environment) {
     sexp vals = environment_vals(environment);
     while (is_pair(vars)) {
       if (pair_car(vars) == var) {
-        /* dec_ref_count(pair_car(vals)); */
+        dec_ref_count(pair_car(vals));
         pair_car(vals) = val;
-        /* inc_ref_count(val); */
+        inc_ref_count(val);
         break;
       }
       vars = pair_cdr(vars);
