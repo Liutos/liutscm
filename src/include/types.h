@@ -188,8 +188,11 @@ typedef struct hash_table_t {
 /* FILE_IN_PORT */
 #define in_port_stream(x) ((x)->values.file_in_port.stream)
 #define in_port_linum(x) ((x)->values.file_in_port.line_num)
+#define is_in_port(x) (is_pointer(x) && FILE_IN_PORT == (x)->type)
 /* FILE_OUT_PORT */
 #define out_port_stream(x) ((x)->values.file_out_port.stream)
+#define is_out_port(x) (is_pointer(x) && FILE_OUT_PORT == (x)->type)
+#define is_port(x) (is_in_port(x) || is_out_port(x))
 /* EOF */
 #define EOF_BITS 4
 #define EOF_TAG 0x0e

@@ -145,21 +145,20 @@ int main(int argc, char *argv[])
   startup_environment = make_startup_environment();
   repl_environment = make_repl_environment();
   load_init_file();
-  lisp_object_t out_port = make_file_out_port(stdout);
+  DECL(out_port, make_file_out_port(stdout));
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     DECL(in_port, make_file_in_port(stream));
     printf(">> %s\n=> ", cases[i]);
     DECL(input, read_object(in_port));
+    dec_ref_count(in_port);
     DECL(value, eval_object(input, repl_environment));
+    dec_ref_count(input);
     write_object(value, out_port);
     putchar('\n');
     dec_ref_count(value);
-    dec_ref_count(input);
-    /* free_file_out_port(in_port); */
-    dec_ref_count(in_port);
-    fclose(stream);
   }
+  dec_ref_count(out_port);
   return 0;
 }
 

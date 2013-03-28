@@ -40,12 +40,12 @@ extern lisp_object_t pair_nthcdr(lisp_object_t, int);
 extern void inc_ref_count(lisp_object_t);
 extern void dec_ref_count(lisp_object_t);
 extern struct lisp_object_t *init_heap(void);
-extern void free_file_out_port(lisp_object_t);
 extern lisp_object_t make_flonum(float);
 extern sexp make_lambda_procedure(sexp, sexp, sexp);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
 
 extern struct lisp_object_t *objects_heap;
+extern int free_index;
 
 #define environment_vars(x) pair_caar(x)
 #define environment_vals(x) pair_cdar(x)

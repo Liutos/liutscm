@@ -46,7 +46,7 @@ struct lisp_object_t *init_heap(void) {
   heap[0].prev = NULL;
   free_objects = heap;
   used_objects = NULL;
-  free_index = 0;
+  free_index = HEAP_SIZE;
   return heap;
 }
 
@@ -60,6 +60,7 @@ lisp_object_t alloc_object(void) {
   /* Concatenate the new allocated object into list `used_objects' */
   object->next = used_objects;
   used_objects = object;
+  free_index--;
   return object;
 }
 
@@ -125,6 +126,7 @@ void inc_ref_count(lisp_object_t object) {
       (x)->prev->next = (x)->next;              \
     (x)->next = free_objects;                   \
     free_objects = (x);                         \
+    free_index++;                               \
   } while (0)
 
 void dec_ref_count(lisp_object_t object) {
@@ -140,6 +142,10 @@ void dec_ref_count(lisp_object_t object) {
     dec_ref_count(pair_car(object));
     dec_ref_count(pair_cdr(object));
   }
+  if (is_in_port(object))
+    fclose(in_port_stream(object));
+  if (is_out_port(object))
+    fclose(out_port_stream(object));
 }
 
 /* PAIR */
@@ -416,14 +422,4 @@ lisp_object_t make_file_out_port(FILE *stream) {
   port->type = FILE_OUT_PORT;
   out_port_stream(port) = stream;
   return port;
-}
-
-void free_file_out_port(lisp_object_t port) {
-  /* free(port); */
-  port->ref_count = 0;
-  /* if (port->prev != NULL) */
-  /*   port->prev->next = port->next; */
-  /* port->next = free_objects; */
-  /* free_objects = port; */
-  unlink(port);
 }
