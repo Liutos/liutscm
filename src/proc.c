@@ -11,10 +11,6 @@
 #include "types.h"
 #include "object.h"
 
-extern lisp_object_t repl_environment;
-extern lisp_object_t startup_environment;
-extern lisp_object_t null_environment;
-
 extern void write_object(lisp_object_t, lisp_object_t);
 extern lisp_object_t read_object(lisp_object_t);
 
@@ -212,18 +208,21 @@ lisp_object_t string2symbol_proc(lisp_object_t args) {
 /* Return a symbol indicates the argument's type */
 lisp_object_t type_of_proc(lisp_object_t args) {
   lisp_object_t o = pair_car(args);
-  switch (o->type) {
-    case FIXNUM: return find_or_create_symbol("fixnum");
-    case BOOLEAN: return find_or_create_symbol("boolean");
-    case CHARACTER: return find_or_create_symbol("character");
-    case STRING: return find_or_create_symbol("string");
-    case EMPTY_LIST: return find_or_create_symbol("empty_list");
-    case PAIR: return find_or_create_symbol("pair");
-    case SYMBOL: return find_or_create_symbol("symbol");
-    case PRIMITIVE_PROC: return find_or_create_symbol("function");
-    default :
-      fprintf(stderr, "Unknown data type: %d\n", o->type);
-      exit(1);
+  if (is_fixnum(o)) return S("fixnum");
+  else if (is_bool(o)) return S("boolean");
+  else if (is_char(o)) return S("character");
+  else if (is_null(o)) return S("empty-list");
+  else {
+    switch (o->type) {
+      case STRING: return S("string");
+      case PAIR: return S("pair");
+      case SYMBOL: return S("symbol");
+      case PRIMITIVE_PROC: return S("function");
+      case FILE_IN_PORT: return S("file-in-port");
+      default :
+        fprintf(stderr, "Unknown data type: %d\n", o->type);
+        exit(1);
+    }
   }
 }
 

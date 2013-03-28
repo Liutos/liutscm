@@ -11,5 +11,6 @@
 #include "types.h"
 
 extern void write_object(lisp_object_t, lisp_object_t);
+extern void port_format(sexp, const char *, ...);
 
 #endif

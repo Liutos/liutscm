@@ -12,6 +12,7 @@
 #include "eval.h"
 #include "read.h"
 #include "object.h"
+#include "init.h"
 
 void load_init_file(void) {
   char *path = ".liut.scm";
@@ -30,10 +31,11 @@ void load_init_file(void) {
 
 int main(int argc, char *argv[])
 {
-  objects_heap = init_heap();
-  symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
-  startup_environment = make_startup_environment();
-  repl_environment = make_repl_environment();
+  /* objects_heap = init_heap(); */
+  /* symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11); */
+  /* startup_environment = make_startup_environment(); */
+  /* repl_environment = make_repl_environment(); */
+  init_impl();
   /* lisp_object_t in_port = make_file_in_port(stdin); */
   /* lisp_object_t out_port = make_file_out_port(stdout); */
   DECL(in_port, make_file_in_port(stdin));

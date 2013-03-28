@@ -5,177 +5,105 @@
  *
  * Copyright (C) 2013-03-13 liutos <mat.liutos@gmail.com>
  */
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "types.h"
-#include "read.h"
 #include "object.h"
+#include "types.h"
+#include "write.h"
 
-extern void write_object(lisp_object_t, lisp_object_t);
+#define DEFACC(fn, acc)                         \
+  sexp fn(sexp form) {                          \
+    return acc(form);                           \
+  }
 
-lisp_object_t eval_object(lisp_object_t, lisp_object_t);
+#define DEFORM(name, sym)                       \
+  int name(sexp obj) {                          \
+    return is_tag_list(obj, sym);               \
+  }
 
-int is_tag_list(lisp_object_t object, char *symbol_name) {
-  return is_pair(object) && find_or_create_symbol(symbol_name) == pair_car(object);
+extern lisp_object_t apply_proc(lisp_object_t);
+extern lisp_object_t eval_proc(lisp_object_t);
+
+sexp eval_object(sexp, sexp);
+
+int is_tag_list(sexp object, char *symbol_name) {
+  return is_pair(object) && S(symbol_name) == pair_car(object);
 }
 
-/* QUOTE support */
-
-int is_quote_form(lisp_object_t object) {
-  return is_tag_list(object, "quote");
-}
-
-lisp_object_t quotation_text(lisp_object_t quote_form) {
-  return pair_cadr(quote_form);
-}
-
-/* Variable support */
-
-int is_variable_form(lisp_object_t object) {
+int is_variable_form(sexp object) {
   return is_symbol(object);
 }
 
-/* DEFINE support */
+/* quote */
 
-int is_define_form(lisp_object_t object) {
-  return is_tag_list(object, "define");
+DEFORM(is_quote_form, "quote")
+DEFACC(quotation_text, pair_cadr)
+
+/* define */
+
+DEFORM(is_define_form, "define")
+DEFACC(definition_variable, pair_cadr)
+DEFACC(definition_value, pair_caddr)
+
+/* set! */
+
+DEFORM(is_assignment_form, "set!")
+DEFACC(assignment_variable, pair_cadr)
+DEFACC(assignment_value, pair_caddr)
+
+/* if */
+
+DEFORM(is_if_form, "if")
+DEFACC(if_test_part, pair_cadr)
+DEFACC(if_then_part, pair_caddr)
+
+sexp if_else_part(sexp if_form) {
+  sexp alt = pair_cdddr(if_form);
+  if (is_null(alt)) return EOL;
+  else return pair_car(alt);
 }
 
-lisp_object_t definition_variable(lisp_object_t define_form) {
-  return pair_cadr(define_form);
-}
+/* lambda */
 
-lisp_object_t definition_value(lisp_object_t define_form) {
-  return pair_caddr(define_form);
-}
+DEFORM(is_lambda_form, "lambda")
+DEFACC(lambda_parameters, pair_cadr)
+DEFACC(lambda_body, pair_cddr)
 
-/* SET! support */
+/* begin */
 
-int is_assignment_form(lisp_object_t object) {
-  return is_tag_list(object, "set!");
-}
+DEFORM(is_begin_form, "begin")
+DEFACC(begin_actions, pair_cdr)
 
-lisp_object_t assignment_variable(lisp_object_t assignment_form) {
-  return pair_cadr(assignment_form);
-}
+/* application case */
 
-lisp_object_t assignment_value(lisp_object_t assignment_form) {
-  return pair_caddr(assignment_form);
-}
-
-/* IF support */
-
-int is_if_form(lisp_object_t object) {
-  return is_tag_list(object, "if");
-}
-
-lisp_object_t if_test_part(lisp_object_t if_form) {
-  return pair_cadr(if_form);
-}
-
-lisp_object_t if_then_part(lisp_object_t if_form) {
-  return pair_caddr(if_form);
-}
-
-lisp_object_t if_else_part(lisp_object_t if_form) {
-  lisp_object_t alt = pair_cdddr(if_form);
-  if (is_null(alt))
-    return make_empty_list();
-  else
-    return pair_car(alt);
-}
-
-/* Procedures application support */
-
-int is_application_form(lisp_object_t object) {
+int is_application_form(sexp object) {
   return is_pair(object);
 }
 
-lisp_object_t application_operator(lisp_object_t application_form) {
-  return pair_car(application_form);
-}
+DEFACC(application_operator, pair_car)
+DEFACC(application_operands, pair_cdr)
 
-lisp_object_t application_operands(lisp_object_t application_form) {
-  return pair_cdr(application_form);
-}
+/* cond */
 
-lisp_object_t eval_arguments(lisp_object_t arguments, lisp_object_t environment) {
-  if (is_null(arguments))
-    return make_empty_list();
-  else {
-    lisp_object_t first = pair_car(arguments);
-    return make_pair(eval_object(first, environment),
-                     eval_arguments(pair_cdr(arguments), environment));
-  }
-}
+DEFORM(is_cond_form, "cond")
+DEFACC(cond_clauses, pair_cdr)
+DEFACC(clause_test, pair_car)
 
-/* LAMBDA support */
-
-int is_lambda_form(lisp_object_t object) {
-  return is_tag_list(object, "lambda");
-}
-
-lisp_object_t lambda_parameters(lisp_object_t lambda_form) {
-  return pair_cadr(lambda_form);
-}
-
-lisp_object_t lambda_body(lisp_object_t lambda_form) {
-  return pair_cddr(lambda_form);
-}
-
-/* BEGIN support */
-
-int is_begin_form(lisp_object_t object) {
-  return is_tag_list(object, "begin");
-}
-
-lisp_object_t begin_actions(lisp_object_t begin_form) {
-  return pair_cdr(begin_form);
-}
-
-sexp eval_begin(sexp actions, sexp env) {
-  if (is_null(actions)) return EOL;
-  while (!is_null(pair_cdr(actions))) {
-    eval_object(pair_car(actions), env);
-    actions = pair_cdr(actions);
-  }
-  return eval_object(pair_car(actions), env);
-}
-
-/* COND support */
-
-int is_cond_form(lisp_object_t object) {
-  return is_tag_list(object, "cond");
-}
-
-lisp_object_t cond_clauses(lisp_object_t cond_form) {
-  return pair_cdr(cond_form);
-}
-
-lisp_object_t clause_test(lisp_object_t clause) {
-  return pair_car(clause);
-}
-
-lisp_object_t clause_actions(lisp_object_t clause) {
-  return make_pair(find_or_create_symbol("begin"),
-                   pair_cdr(clause));
+sexp clause_actions(sexp clause) {
+  return make_pair(S("begin"), pair_cdr(clause));
 }
 
 int is_cond_else_clause(lisp_object_t clause) {
-  return find_or_create_symbol("else") == clause_test(clause);
+  return S("else") == clause_test(clause);
 }
 
-lisp_object_t make_if_form(lisp_object_t test, lisp_object_t then_part, lisp_object_t else_part) {
-  return make_pair(find_or_create_symbol("if"),
-                   make_pair(test,
-                             make_pair(then_part,
-                                       make_pair(else_part, make_empty_list()))));
+sexp make_if_form(sexp test, sexp then_part, sexp else_part) {
+  return LIST(S("if"), test, then_part, else_part);
 }
 
 lisp_object_t expand_cond_clauses(lisp_object_t clauses) {
-  if (is_null(clauses))
-    return make_empty_list();
+  if (is_null(clauses)) return EOL;
   lisp_object_t first = pair_car(clauses);
   lisp_object_t rest = pair_cdr(clauses);
   if (is_cond_else_clause(first))
@@ -190,11 +118,10 @@ lisp_object_t cond2if(lisp_object_t cond_form) {
   return expand_cond_clauses(cond_clauses(cond_form));
 }
 
-/* LET support */
+/* let */
 
-int is_let_form(lisp_object_t object) {
-  return is_tag_list(object, "let");
-}
+DEFORM(is_let_form, "let")
+DEFACC(let_body, pair_cddr)
 
 lisp_object_t let_vars_aux(lisp_object_t bindings) {
   if (is_null(bindings))
@@ -224,10 +151,6 @@ lisp_object_t let_vals(lisp_object_t let_form) {
   return let_vals_aux(bindings);
 }
 
-lisp_object_t let_body(lisp_object_t let_form) {
-  return pair_cddr(let_form);
-}
-
 lisp_object_t make_lambda_form(lisp_object_t vars, lisp_object_t body) {
   return make_pair(find_or_create_symbol("lambda"),
                    make_pair(vars, body));
@@ -241,35 +164,24 @@ lisp_object_t let2lambda(lisp_object_t let_form) {
   return make_pair(lambda_form, vals);
 }
 
-/* AND and OR support */
+/* and */
 
-int is_and_form(lisp_object_t object) {
-  return is_tag_list(object, "and");
-}
+DEFORM(is_and_form, "and")
+DEFACC(and_tests, pair_cdr)
 
-lisp_object_t and_tests(lisp_object_t and_form) {
-  return pair_cdr(and_form);
-}
+/* or */
 
-int is_or_form(lisp_object_t object) {
-  return is_tag_list(object, "or");
-}
+DEFORM(is_or_form, "or")
+DEFACC(or_tests, pair_cdr)
 
-lisp_object_t or_tests(lisp_object_t or_form) {
-  return pair_cdr(or_form);
-}
-
-/* APPLY support */
-
-extern lisp_object_t apply_proc(lisp_object_t);
+/* apply */
 
 int is_apply(lisp_object_t proc) {
   return is_primitive(proc) && apply_proc == primitive_C_proc(proc);
 }
 
 lisp_object_t apply_operands_conc(lisp_object_t operands) {
-  if (is_null(operands))
-    return make_empty_list();
+  if (is_null(operands)) return EOL;
   if (is_null(pair_cdr(operands)))
     return pair_car(operands);
   else
@@ -277,58 +189,58 @@ lisp_object_t apply_operands_conc(lisp_object_t operands) {
                      apply_operands_conc(pair_cdr(operands)));
 }
 
-/* EVAL support */
-
-extern lisp_object_t eval_proc(lisp_object_t);
+/* eval */
 
 int is_eval(lisp_object_t proc) {
   return is_primitive(proc) && eval_proc == primitive_C_proc(proc);
 }
 
-lisp_object_t eval_expression(lisp_object_t eval_form) {
-  return pair_cadr(eval_form);
+DEFACC(eval_expression, pair_cadr)
+DEFACC(eval_environment, pair_caddr)
+
+/* macro */
+
+DEFORM(is_macro_form, "macro")
+DEFACC(macro_parameters, pair_cadr)
+DEFACC(macro_body, pair_cddr)
+
+/* evaluators */
+sexp eval_begin(sexp actions, sexp env) {
+  if (is_null(actions)) return EOL;
+  while (!is_null(pair_cdr(actions))) {
+    eval_object(pair_car(actions), env);
+    actions = pair_cdr(actions);
+  }
+  return eval_object(pair_car(actions), env);
 }
 
-lisp_object_t eval_environment(lisp_object_t eval_form) {
-  return pair_caddr(eval_form);
-}
-
-lisp_object_t eval_application(lisp_object_t operator, lisp_object_t operands) {
+sexp eval_application(sexp operator, sexp operands) {
   if (is_primitive(operator))
     return (primitive_C_proc(operator))(operands);
   if (is_compound(operator)) {
-    lisp_object_t body = compound_proc_body(operator);
-    lisp_object_t vars = compound_proc_parameters(operator);
-    lisp_object_t def_env = compound_proc_environment(operator);
-    lisp_object_t object = make_pair(find_or_create_symbol("begin"), body);
-    lisp_object_t environment = extend_environment(vars, operands, def_env);
-    return eval_object(object, environment);
+    sexp body = compound_proc_body(operator);
+    sexp vars = compound_proc_parameters(operator);
+    sexp def_env = compound_proc_environment(operator);
+    sexp object = make_pair(find_or_create_symbol("begin"), body);
+    sexp env = extend_environment(vars, operands, def_env);
+    return eval_object(object, env);
   }
-  /* if (is_compiled_proc(operator)) { */
-
-  /* } */
   fprintf(stderr, "Unknown operator type %d\n", operator->type);
   exit(1);
 }
 
-/* MACRO support */
-
-int is_macro_form(sexp object) {
-  return is_tag_list(object, "macro");
-}
-
-sexp macro_parameters(sexp macro_form) {
-  return pair_cadr(macro_form);
-}
-
-sexp macro_body(sexp macro_form) {
-  return pair_cddr(macro_form);
+sexp eval_arguments(sexp arguments, sexp env) {
+  if (is_null(arguments)) return EOL;
+  else {
+    sexp first = pair_car(arguments);
+    return make_pair(eval_object(first, env),
+                     eval_arguments(pair_cdr(arguments), env));
+  }
 }
 
 sexp eval_object(sexp object, sexp environment) {
 tail_loop:
-  if (is_quote_form(object))
-    return quotation_text(object);
+  if (is_quote_form(object)) return quotation_text(object);
   if (is_variable_form(object))
     return get_variable_value(object, environment);
   if (is_define_form(object)) {
@@ -414,10 +326,9 @@ tail_loop:
       sexp body = macro_proc_body(operator);
       sexp vars = macro_proc_pars(operator);
       sexp def_env = macro_proc_env(operator);
-      sexp object = make_pair(find_or_create_symbol("begin"), body);
+      sexp object = make_pair(S("begin"), body);
       sexp env = extend_environment(vars, operands, def_env);
       sexp exp = eval_object(object, env);
-      /* return exp; */
       return eval_object(exp, environment);
     }
     operands = eval_arguments(operands, environment);
@@ -431,7 +342,5 @@ tail_loop:
       goto tail_loop;
     }
     return eval_application(operator, operands);
-  }
-  else
-    return object;
+  } else return object;
 }
