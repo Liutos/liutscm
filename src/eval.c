@@ -35,6 +35,10 @@ int is_variable_form(sexp object) {
   return is_symbol(object);
 }
 
+sexp make_lambda_form(sexp vars, sexp body) {
+  return make_pair(S("lambda"), make_pair(vars, body));
+}
+
 /* quote */
 
 DEFORM(is_quote_form, "quote")
@@ -43,8 +47,22 @@ DEFACC(quotation_text, pair_cadr)
 /* define */
 
 DEFORM(is_define_form, "define")
-DEFACC(definition_variable, pair_cadr)
-DEFACC(definition_value, pair_caddr)
+/* DEFACC(definition_variable, pair_cadr) */
+/* DEFACC(definition_value, pair_caddr) */
+
+sexp definition_variable(sexp form) {
+  if (is_symbol(pair_cadr(form)))
+    return pair_cadr(form);
+  else
+    return pair_car(pair_cadr(form));
+}
+
+sexp definition_value(sexp form) {
+  if (is_symbol(pair_cadr(form)))
+    return pair_caddr(form);
+  else
+    return make_lambda_form(pair_cdr(pair_cadr(form)), pair_cddr(form));
+}
 
 /* set! */
 
@@ -149,11 +167,6 @@ lisp_object_t let_vals_aux(lisp_object_t bindings) {
 lisp_object_t let_vals(lisp_object_t let_form) {
   lisp_object_t bindings = pair_cadr(let_form);
   return let_vals_aux(bindings);
-}
-
-lisp_object_t make_lambda_form(lisp_object_t vars, lisp_object_t body) {
-  return make_pair(find_or_create_symbol("lambda"),
-                   make_pair(vars, body));
 }
 
 lisp_object_t let2lambda(lisp_object_t let_form) {

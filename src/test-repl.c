@@ -20,8 +20,13 @@ void load_init_file(void);
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    "(define a #(1 2 3))",
-    "(set! a 2)",
+    /* "(define a #(1 2 3))", */
+    /* "(set! a 2)", */
+    "(lambda (n) (+ n 1))",
+    "((lambda (n) (+ n 1)) 1)",
+    "(define (plus1 n) (+ n 1))",
+    "plus1",
+    "(plus1 1)",
     /* "1.234", */
     /* "(+. 1.1 1.2)", */
     /* "(integer->float 123)", */
@@ -50,7 +55,7 @@ int main(int argc, char *argv[])
     /* "(cond ((eq? 1 1) 2) (else 3))", */
   };
   init_impl();
-  load_init_file();
+  /* load_init_file(); */
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     sexp in_port = make_file_in_port(stream);
@@ -63,10 +68,10 @@ int main(int argc, char *argv[])
       inc_ref_count(value);
     write_object(value, scm_out_port);
     putchar('\n');
-    if (!is_self_eval(input))
-      dec_ref_count(value);
-    dec_ref_count(input);
-    dec_ref_count(in_port);
+    /* if (!is_self_eval(input)) */
+    /*   dec_ref_count(value); */
+    /* dec_ref_count(input); */
+    /* dec_ref_count(in_port); */
   }
   return 0;
 }
