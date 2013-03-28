@@ -21,6 +21,7 @@
 #define gen(...) generate_code(__VA_ARGS__, NULL)
 #define gen_args(x) gen("ARGS", x)
 #define gen_call(x) gen("CALL", x)
+#define gen_callj(x) gen("CALLJ", x)
 #define gen_const(x) gen("CONST", x)
 #define gen_fjump(x) gen("FJUMP", x)
 #define gen_fn(x) gen("FN", x)
@@ -31,6 +32,7 @@
 #define gen_lvar(i, j) gen("LVAR", i, j)
 #define gen_pop() gen("POP")
 #define gen_return() gen("RETURN")
+#define gen_save(k) gen("SAVE", k)
 
 int label_counter = 0;
 
@@ -168,10 +170,25 @@ sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
 }
 
 sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
-  int length = pair_length(application_operands(object));
-  return seq(compile_arguments(application_operands(object), env),
-             compile_object(application_operator(object), env, is_val, is_more),
-             gen_call(make_fixnum(length)));
+  /* int length = pair_length(application_operands(object)); */
+  /* return seq(compile_arguments(application_operands(object), env), */
+  /*            compile_object(application_operator(object), env, is_val, is_more), */
+  /*            gen_call(make_fixnum(length))); */
+  sexp operator = application_operator(object);
+  sexp operands = application_operands(object);
+  int len = pair_length(operands);
+  if (is_more) {
+    sexp k = make_label();
+    return seq(gen_save(k),
+               compile_arguments(operands, env),
+               compile_object(operator, env, yes, yes),
+               gen_callj(make_fixnum(len)),
+               make_list1(k),
+               (is_val ? EOL: gen_pop()));
+  } else
+    return seq(compile_arguments(operands, env),
+               compile_object(operator, env, yes, yes),
+               gen_callj(make_fixnum(len)));
 }
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
@@ -192,6 +209,6 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
     return gen_fn(compile_lambda(args, body, env, yes, no));
   }
   if (is_application_form(object))
-    return compile_application(object, env, yes, no);
+    return compile_application(object, env, yes, yes);
   return compile_constant(object, yes, yes);
 }
