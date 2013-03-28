@@ -114,12 +114,10 @@ sexp compile_lambda(sexp args, sexp body, sexp env, int is_val, int is_more) {
   return make_compiled_proc(args, code, new_env);
 }
 
-sexp compile_arguments(sexp args, sexp environment) {
-  if (is_null(args))
-    return make_empty_list();
-  else
-    return seq(compile_object(pair_car(args), environment, yes, no),
-               compile_arguments(pair_cdr(args), environment));
+sexp compile_arguments(sexp args, sexp env) {
+  if (is_null(args)) return EOL;
+  return seq(compile_object(pair_car(args), env, yes, yes),
+             compile_arguments(pair_cdr(args), env));
 }
 
 sexp compile_var(sexp object, sexp env, int is_val, int is_more) {
