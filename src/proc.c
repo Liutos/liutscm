@@ -8,16 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "types.h"
 #include "object.h"
-
-extern void write_object(lisp_object_t, lisp_object_t);
-extern lisp_object_t read_object(lisp_object_t);
+#include "read.h"
+#include "types.h"
+#include "write.h"
 
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
-/* ARITHMETIC */
-
+/* FIXNUM */
 /* Binary plus */
 lisp_object_t plus_proc(lisp_object_t args) {
   lisp_object_t n1 = pair_car(args);
@@ -53,7 +51,7 @@ lisp_object_t numeric_equal_proc(lisp_object_t args) {
   return fixnum_value(n1) == fixnum_value(n2) ? make_true(): make_false();
 }
 
-lisp_object_t mod_proc(lisp_object_t args) {
+lisp_object_t modulo_proc(lisp_object_t args) {
   lisp_object_t n1 = pair_car(args);
   lisp_object_t n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) % fixnum_value(n2));
@@ -65,28 +63,24 @@ lisp_object_t greater_than_proc(lisp_object_t args) {
   return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false();
 }
 
+/* Bitwise and */
 sexp bit_and_proc(sexp args) {
   sexp n1 = pair_car(args);
   sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) & fixnum_value(n2));
 }
 
+/* Bitwise or */
 sexp bit_or_proc(sexp args) {
   sexp n1 = pair_car(args);
   sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) | fixnum_value(n2));
 }
 
+/* Bitwise not */
 sexp bit_not_proc(sexp args) {
   sexp n = pair_car(args);
   return make_fixnum(~fixnum_value(n));
-}
-
-/* Are the two arguments identical? */
-lisp_object_t is_identical_proc(lisp_object_t args) {
-  lisp_object_t o1 = pair_car(args);
-  lisp_object_t o2 = pair_cadr(args);
-  return o1 == o2 ? make_true(): make_false();
 }
 
 /* FLONUM */
@@ -327,11 +321,11 @@ lisp_object_t eval_proc(lisp_object_t args) {
   exit(1);
 }
 
-lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
-  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
-  proc->type = PRIMITIVE_PROC;
-  proc->values.primitive_proc.C_proc = C_proc;
-  return proc;
+/* Are the two arguments identical? */
+lisp_object_t is_identical_proc(lisp_object_t args) {
+  lisp_object_t o1 = pair_car(args);
+  lisp_object_t o2 = pair_cadr(args);
+  return o1 == o2 ? make_true(): make_false();
 }
 
 void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) {
@@ -348,7 +342,7 @@ void init_environment(lisp_object_t environment) {
   add_primitive_proc("*", multiply_proc, environment);
   add_primitive_proc("quotient", divide_proc, environment);
   add_primitive_proc("=", numeric_equal_proc, environment);
-  add_primitive_proc("remainder", mod_proc, environment);
+  add_primitive_proc("remainder", modulo_proc, environment);
   add_primitive_proc(">", greater_than_proc, environment);
   ADD("&", bit_and_proc);
   ADD("|", bit_or_proc);

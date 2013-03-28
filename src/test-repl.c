@@ -22,15 +22,15 @@ int main(int argc, char *argv[])
   char *cases[] = {
     /* "(define a #(1 2 3))", */
     /* "(set! a 2)", */
-    "(lambda (n) (+ n 1))",
-    "((lambda (n) (+ n 1)) 1)",
-    "(define (plus1 n) (+ n 1))",
-    "plus1",
-    "(plus1 1)",
+    /* "(lambda (n) (+ n 1))", */
+    /* "((lambda (n) (+ n 1)) 1)", */
+    /* "(define (plus1 n) (+ n 1))", */
+    /* "plus1", */
+    /* "(plus1 1)", */
     /* "1.234", */
-    /* "(+. 1.1 1.2)", */
-    /* "(integer->float 123)", */
-    /* "(& 5 7)", */
+    "(+. 1.1 1.2)",
+    "(integer->float 123)",
+    "(& 5 7)",
     /* "#t", */
     /* "#f", */
     /* "\"Hello, world!\"", */

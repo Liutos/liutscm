@@ -152,6 +152,15 @@ sexp make_flonum(float value) {
   return object;
 }
 
+sexp make_primitive_proc(C_proc_t C_proc) {
+  /* sexp proc = malloc(sizeof(struct sexp)); */
+  sexp proc = alloc_object(PRIMITIVE_PROC);
+  /* proc->type = ; */
+  /* proc->values.primitive_proc.C_proc = C_proc; */
+  primitive_C_proc(proc) = C_proc;
+  return proc;
+}
+
 sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
   sexp proc = alloc_object(COMPOUND_PROC);
   ASIG(compound_proc_parameters(proc), pars);
