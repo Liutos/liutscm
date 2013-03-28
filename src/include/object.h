@@ -9,12 +9,14 @@
 #define environment_vals(x) pair_cdar(x)
 #define enclosing_environment(x) pair_cdr(x)
 
-extern int free_index;
 extern hash_table_t symbol_table;
 
 extern sexp null_environment;
 extern sexp repl_environment;
 extern sexp startup_environment;
+
+extern sexp scm_in_port;
+extern sexp scm_out_port;
 
 extern struct lisp_object_t *objects_heap;
 

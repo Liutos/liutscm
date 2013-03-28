@@ -12,6 +12,7 @@
 
 #include "object.h"
 #include "types.h"
+#include "write.h"
 
 #define HEAP_SIZE 1000
 
@@ -21,10 +22,8 @@
       (x)->prev->next = (x)->next;              \
     (x)->next = free_objects;                   \
     free_objects = (x);                         \
-    free_index++;                               \
   } while (0)
 
-int free_index;
 hash_table_t symbol_table;
 /*
  * null_environment: Environment with no bindings
@@ -34,6 +33,9 @@ hash_table_t symbol_table;
 sexp null_environment = EOL;
 sexp repl_environment;
 sexp startup_environment;
+
+sexp scm_in_port;
+sexp scm_out_port;
 
 /*
  * objects_heap: A large consecutive memory for allocating Lisp objects
@@ -54,7 +56,6 @@ sexp alloc_object(enum object_type type) {
   free_objects = free_objects->next;
   object->next = used_objects;
   used_objects = object;
-  free_index--;
   object->type = type;
   return object;
 }
@@ -64,6 +65,7 @@ void dec_ref_count(sexp object) {
   object->ref_count--;
   if (object->ref_count) return;
   unlink(object);
+  port_format(scm_out_port, "Releasing %*\n", object);
   if (is_pair(object)) {
     dec_ref_count(pair_car(object));
     dec_ref_count(pair_cdr(object));
@@ -81,16 +83,15 @@ void inc_ref_count(lisp_object_t object) {
 
 struct lisp_object_t *init_heap(void) {
   struct lisp_object_t *heap = malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
-  for (int i = 0; i < HEAP_SIZE; i++) {
+  memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t));
+  for (int i = 0; i < HEAP_SIZE; i++)
     heap[i].next = &(heap[i + 1]);
-  }
   heap[HEAP_SIZE - 1].next = NULL;
-  for (int i = HEAP_SIZE - 1; i >= 0; i--)
+  for (int i = HEAP_SIZE - 1; i > 0; i--)
     heap[i].prev = &(heap[i - 1]);
   heap[0].prev = NULL;
   free_objects = heap;
   used_objects = NULL;
-  free_index = HEAP_SIZE;
   return heap;
 }
 

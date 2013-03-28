@@ -327,12 +327,6 @@ lisp_object_t eval_proc(lisp_object_t args) {
   exit(1);
 }
 
-/* System */
-
-sexp free_count_proc(sexp args) {
-  return make_fixnum(free_index);
-}
-
 lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
   lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
   proc->type = PRIMITIVE_PROC;
@@ -399,6 +393,4 @@ void init_environment(lisp_object_t environment) {
   /* VECTOR */
   ADD("vector-ref", vector_ref_proc);
   ADD("vector-set!", vector_set_proc);
-  /* Others */
-  ADD("free-count", free_count_proc);
 }

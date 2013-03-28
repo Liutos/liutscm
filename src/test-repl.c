@@ -29,23 +29,23 @@ int main(int argc, char *argv[])
     "\"Hello, world!\"",
     "'(1 . 2)",
     "'hello",
-    "(if #f 1 2)",
-    "-",
-    "(+ 1 2)",
-    "(eq? 'hello 'hello)",
-    "(eq? 1 1)",
-    "(eq? (string->symbol \"hello\") 'hello)",
-    "(type-of 'hello)",
-    "type-of",
-    "#\\a",
-    "(type-of #\\a)",
-    "(lambda (x) (+ x 1))",
-    "((lambda (x) (+ x 1)) 1)",
-    "(define plus-one (lambda (n) (+ n 1)))",
-    "plus-one",
-    "(plus-one 1)",
-    "(cond)",
-    "(cond ((eq? 1 1) 2) (else 3))",
+    /* "(if #f 1 2)", */
+    /* "-", */
+    /* "(+ 1 2)", */
+    /* "(eq? 'hello 'hello)", */
+    /* "(eq? 1 1)", */
+    /* "(eq? (string->symbol \"hello\") 'hello)", */
+    /* "(type-of 'hello)", */
+    /* "type-of", */
+    /* "#\\a", */
+    /* "(type-of #\\a)", */
+    /* "(lambda (x) (+ x 1))", */
+    /* "((lambda (x) (+ x 1)) 1)", */
+    /* "(define plus-one (lambda (n) (+ n 1)))", */
+    /* "plus-one", */
+    /* "(plus-one 1)", */
+    /* "(cond)", */
+    /* "(cond ((eq? 1 1) 2) (else 3))", */
   };
   init_impl();
   /* load_init_file(); */
