@@ -2,7 +2,8 @@
 
 1. system header files
 1. user-defined header files
-2. macro definition
+2. constant macro definition
+2. function macro definition
 2. external function declarations
 3. external variable declarations
 4. global variable definitions
