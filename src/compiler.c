@@ -94,15 +94,15 @@ lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
     return gen_lset(make_fixnum(i), make_fixnum(j));
 }
 
-sexp compile_begin(sexp actions, sexp environment, int is_val, int is_more) {
+sexp compile_begin(sexp actions, sexp env, int is_val, int is_more) {
   if (is_null(actions))
-    return compile_constant(make_empty_list(), yes, no);
+    return compile_constant(EOL, is_val, is_more);
   if (is_null(pair_cdr(actions)))
-    return compile_object(pair_car(actions), environment, is_val, is_more);
+    return compile_object(pair_car(actions), env, is_val, is_more);
   else
-    return seq(compile_object(pair_car(actions), environment, is_val, is_more),
+    return seq(compile_object(pair_car(actions), env, no, yes),
                gen_pop(),
-               compile_begin(pair_cdr(actions), environment, yes, no));
+               compile_begin(pair_cdr(actions), env, is_val, is_more));
 }
 
 sexp compile_lambda(sexp args, sexp body, sexp env, int is_val, int is_more) {
