@@ -157,28 +157,22 @@ sexp compile_application(sexp object, sexp env) {
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
 sexp compile_object(sexp object, sexp env) {
-  if (is_variable_form(object)) {
+  if (is_variable_form(object))
     return compile_var(object, env);
-  }
-  if (is_quote_form(object)) {
+  if (is_quote_form(object))
     return compile_constant(quotation_text(object));
-  }
-  if (is_assignment_form(object)) {
+  if (is_assignment_form(object))
     return compile_assignment(object, env);
-  }
-  if (is_if_form(object)) {
+  if (is_if_form(object))
     return compile_if(object, env);
-  }
-  if (is_begin_form(object)) {
+  if (is_begin_form(object))
     return compile_begin(begin_actions(object), env);
-  }
   if (is_lambda_form(object)) {
     sexp args = lambda_parameters(object);
     sexp body = lambda_body(object);
     return gen_fn(compile_lambda(args, body, env));
   }
-  if (is_application_form(object)) {
+  if (is_application_form(object))
     return compile_application(object, env);
-  }
   return compile_constant(object);
 }
