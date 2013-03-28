@@ -74,6 +74,14 @@ lisp_object_t sequenzie_aux(va_list ap) {
     return nconc_pair(e, sequenzie_aux(ap));
 }
 
+sexp gen_var(sexp x, sexp env) {
+  int i, j;
+  if (!is_variable_found(x, env, &i, &j))
+    return gen_gvar(x);
+  else
+    return gen_lvar(make_fixnum(i), make_fixnum(j));
+}
+
 /* Concatenates a series of list of instructions */
 lisp_object_t sequenzie(lisp_object_t pair, ...) {
   va_list ap;
@@ -83,7 +91,9 @@ lisp_object_t sequenzie(lisp_object_t pair, ...) {
 
 /* Compiler */
 lisp_object_t compile_constant(lisp_object_t val, int is_val, int is_more) {
-  return gen_const(val);
+  /* return gen_const(val); */
+  if (!is_val) return EOL;
+  return seq(gen_const(val), is_more ? EOL: gen_return());
 }
 
 lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
@@ -121,11 +131,14 @@ sexp compile_arguments(sexp args, sexp env) {
 }
 
 sexp compile_var(sexp object, sexp env, int is_val, int is_more) {
-  int i, j;
-  if (!is_variable_found(object, env, &i, &j))
-    return gen_gvar(object);
-  else
-    return gen_lvar(make_fixnum(i), make_fixnum(j));
+  /* int i, j; */
+  /* if (!is_variable_found(object, env, &i, &j)) */
+  /*   return gen_gvar(object); */
+  /* else */
+  /*   return gen_lvar(make_fixnum(i), make_fixnum(j)); */
+  /* return gen_var(object, env); */
+  if (!is_val) return EOL;
+  return seq(gen_var(object, env), is_more ? EOL: gen_return());
 }
 
 sexp compile_assignment(sexp object, sexp env, int is_val, int is_more) {
@@ -155,9 +168,9 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
 /* Generate a list of instructions based-on a stack-based virtual machine. */
 sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
   if (is_variable_form(object))
-    return compile_var(object, env, yes, no);
+    return compile_var(object, env, yes, yes);
   if (is_quote_form(object))
-    return compile_constant(quotation_text(object), yes, no);
+    return compile_constant(quotation_text(object), yes, yes);
   if (is_assignment_form(object))
     return compile_assignment(object, env, yes, no);
   if (is_if_form(object))
@@ -171,5 +184,5 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
   }
   if (is_application_form(object))
     return compile_application(object, env, yes, no);
-  return compile_constant(object, yes, no);
+  return compile_constant(object, yes, yes);
 }
