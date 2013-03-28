@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "compiler.h"
 #include "eval.h"
 #include "types.h"
 #include "object.h"
@@ -30,8 +31,6 @@
 #define gen_lvar(i, j) gen("LVAR", i, j)
 #define gen_pop() gen("POP")
 #define gen_return() gen("RETURN")
-
-sexp compile_object(sexp, sexp);
 
 int label_counter = 0;
 
@@ -83,7 +82,7 @@ lisp_object_t sequenzie(lisp_object_t pair, ...) {
 }
 
 /* Compiler */
-lisp_object_t compile_constant(lisp_object_t val) {
+lisp_object_t compile_constant(lisp_object_t val, int is_val, int is_more) {
   return gen_const(val);
 }
 
@@ -95,22 +94,22 @@ lisp_object_t compile_set(lisp_object_t var, lisp_object_t environment) {
     return gen_lset(make_fixnum(i), make_fixnum(j));
 }
 
-sexp compile_begin(sexp actions, sexp environment) {
+sexp compile_begin(sexp actions, sexp environment, int is_val, int is_more) {
   if (is_null(actions))
-    return compile_constant(make_empty_list());
+    return compile_constant(make_empty_list(), yes, no);
   if (is_null(pair_cdr(actions)))
-    return compile_object(pair_car(actions), environment);
+    return compile_object(pair_car(actions), environment, is_val, is_more);
   else
-    return seq(compile_object(pair_car(actions), environment),
+    return seq(compile_object(pair_car(actions), environment, is_val, is_more),
                gen_pop(),
-               compile_begin(pair_cdr(actions), environment));
+               compile_begin(pair_cdr(actions), environment, yes, no));
 }
 
-sexp compile_lambda(sexp args, sexp body, sexp env) {
+sexp compile_lambda(sexp args, sexp body, sexp env, int is_val, int is_more) {
   sexp new_env = extend_environment(args, make_empty_list(), env);
   sexp code =
       seq(gen_args(make_fixnum(pair_length(args))),
-          compile_begin(body, new_env),
+          compile_begin(body, new_env, yes, no),
           gen_return());
   return make_compiled_proc(args, code, new_env);
 }
@@ -119,11 +118,11 @@ sexp compile_arguments(sexp args, sexp environment) {
   if (is_null(args))
     return make_empty_list();
   else
-    return seq(compile_object(pair_car(args), environment),
+    return seq(compile_object(pair_car(args), environment, yes, no),
                compile_arguments(pair_cdr(args), environment));
 }
 
-sexp compile_var(sexp object, sexp env) {
+sexp compile_var(sexp object, sexp env, int is_val, int is_more) {
   int i, j;
   if (!is_variable_found(object, env, &i, &j))
     return gen_gvar(object);
@@ -131,48 +130,48 @@ sexp compile_var(sexp object, sexp env) {
     return gen_lvar(make_fixnum(i), make_fixnum(j));
 }
 
-sexp compile_assignment(sexp object, sexp env) {
-  sexp value = compile_object(assignment_value(object), env);
+sexp compile_assignment(sexp object, sexp env, int is_val, int is_more) {
+  sexp value = compile_object(assignment_value(object), env, is_val, is_more);
   return seq(value, compile_set(assignment_variable(object), env));
 }
 
-sexp compile_if(sexp object, sexp env) {
+sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
   sexp l1 = make_label();
   sexp l2 = make_label();
-  return seq(compile_object(if_test_part(object), env),
+  return seq(compile_object(if_test_part(object), env, is_val, is_more),
              gen_fjump(l1),
-             compile_object(if_then_part(object), env),
+             compile_object(if_then_part(object), env, is_val, is_more),
              gen_jump(l2),
              make_list1(l1),
-             compile_object(if_else_part(object), env),
+             compile_object(if_else_part(object), env, is_val, is_more),
              make_list1(l2));
 }
 
-sexp compile_application(sexp object, sexp env) {
+sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
   int length = pair_length(application_operands(object));
   return seq(compile_arguments(application_operands(object), env),
-             compile_object(application_operator(object), env),
+             compile_object(application_operator(object), env, is_val, is_more),
              gen_call(make_fixnum(length)));
 }
 
 /* Generate a list of instructions based-on a stack-based virtual machine. */
-sexp compile_object(sexp object, sexp env) {
+sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
   if (is_variable_form(object))
-    return compile_var(object, env);
+    return compile_var(object, env, yes, no);
   if (is_quote_form(object))
-    return compile_constant(quotation_text(object));
+    return compile_constant(quotation_text(object), yes, no);
   if (is_assignment_form(object))
-    return compile_assignment(object, env);
+    return compile_assignment(object, env, yes, no);
   if (is_if_form(object))
-    return compile_if(object, env);
+    return compile_if(object, env, yes, no);
   if (is_begin_form(object))
-    return compile_begin(begin_actions(object), env);
+    return compile_begin(begin_actions(object), env, yes, no);
   if (is_lambda_form(object)) {
     sexp args = lambda_parameters(object);
     sexp body = lambda_body(object);
-    return gen_fn(compile_lambda(args, body, env));
+    return gen_fn(compile_lambda(args, body, env, yes, no));
   }
   if (is_application_form(object))
-    return compile_application(object, env);
-  return compile_constant(object);
+    return compile_application(object, env, yes, no);
+  return compile_constant(object, yes, no);
 }

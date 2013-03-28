@@ -103,6 +103,9 @@ typedef struct hash_table_t {
   unsigned int size;
 } *hash_table_t;
 
+#define yes 1
+#define no 0
+
 /* predicates and accessors */
 #define EXTENDED_BITS 4
 #define EXTENDED_MASK 0x0f

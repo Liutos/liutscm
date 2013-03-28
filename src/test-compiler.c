@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
     lisp_object_t in_port = make_file_in_port(fp);
     printf(">> %s\n=> ", cases[i]);
-    write_object(compile_object(read_object(in_port), repl_environment), out_port);
+    write_object(compile_object(read_object(in_port), repl_environment, yes, no), out_port);
     putchar('\n');
     fclose(fp);
   }
