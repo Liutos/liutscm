@@ -60,10 +60,7 @@ sexp alloc_object(enum object_type type) {
   return object;
 }
 
-void dec_ref_count(sexp object) {
-  if (!object || !is_pointer(object)) return;
-  object->ref_count--;
-  if (object->ref_count) return;
+void reclaim(sexp object) {
   unlink(object);
   port_format(scm_out_port, "Releasing %*\n", object);
   if (is_pair(object)) {
@@ -74,6 +71,15 @@ void dec_ref_count(sexp object) {
     fclose(in_port_stream(object));
   if (is_out_port(object))
     fclose(out_port_stream(object));
+}
+
+void dec_ref_count(sexp object) {
+  if (!object || !is_pointer(object)) return;
+  object->ref_count--;
+  /* if (object->ref_count) return; */
+  /* unlink(object); */
+  if (object->ref_count == 0)
+    reclaim(object);
 }
 
 void inc_ref_count(lisp_object_t object) {
@@ -202,6 +208,11 @@ tail_loop:
   pair = pair_cdr(pair);
   n--;
   goto tail_loop;
+}
+
+/* Others */
+int is_self_eval(sexp obj) {
+  return !is_pointer(obj) || obj->type == FIXNUM || obj->type == CHARACTER;
 }
 
 /* hash table manipulation */
@@ -353,9 +364,9 @@ void set_binding(sexp var, sexp val, sexp environment) {
     sexp vals = environment_vals(environment);
     while (is_pair(vars)) {
       if (pair_car(vars) == var) {
-        dec_ref_count(pair_car(vals));
+        /* dec_ref_count(pair_car(vals)); */
         pair_car(vals) = val;
-        inc_ref_count(val);
+        /* inc_ref_count(val); */
         break;
       }
       vars = pair_cdr(vars);

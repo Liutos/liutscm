@@ -20,6 +20,8 @@ extern sexp scm_out_port;
 
 extern struct lisp_object_t *objects_heap;
 
+extern void reclaim(sexp);
+
 extern sexp make_close_object(void);
 extern sexp make_dot_object(void);
 extern sexp make_empty_list(void);
@@ -44,6 +46,8 @@ extern sexp make_macro_procedure(sexp, sexp, sexp);
 extern sexp make_list(sexp e, ...);
 extern int pair_length(sexp);
 extern sexp pair_nthcdr(sexp, int);
+
+extern int is_self_eval(sexp);
 
 extern hash_table_t make_hash_table(hash_fn_t, comp_fn_t, unsigned int);
 

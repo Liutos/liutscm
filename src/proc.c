@@ -170,18 +170,18 @@ lisp_object_t pair_cdr_proc(lisp_object_t args) {
 lisp_object_t pair_set_car_proc(lisp_object_t args) {
   lisp_object_t pair = pair_car(args);
   lisp_object_t val = pair_cadr(args);
-  dec_ref_count(pair_car(pair));        /* Decrease the reference count of the previous object in car part */
+  /* dec_ref_count(pair_car(pair)); */
   pair_car(pair) = val;
-  inc_ref_count(val);                   /* Increase the reference count of the new object in car part */
+  /* inc_ref_count(val); */
   return make_undefined();
 }
 
 lisp_object_t pair_set_cdr_proc(lisp_object_t args) {
   lisp_object_t pair = pair_car(args);
   lisp_object_t val = pair_cadr(args);
-  dec_ref_count(pair_cdr(pair));        /* Decrease the reference count of the previous object in cdr part */
+  /* dec_ref_count(pair_cdr(pair)); */
   pair_cdr(pair) = val;
-  inc_ref_count(val);                   /* Increase the reference count of the new object in cdr part */
+  /* inc_ref_count(val); */
   return make_undefined();
 }
 
