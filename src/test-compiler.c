@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     /* "(if (+ 1 1) 1 1)", */
 
     /* "(f (g x))", */
-    "(if p (+ x y) (* x y))",
+    "(begin (if p (+ x y) (* x y)) z)",
     /* "(define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l))))", */
     /* "(begin \"doc\" (write x) y)", */
     /* "(lambda () (if (null? (car l)) (f (+ (* a x) b)) (g (/ x 2))))", */

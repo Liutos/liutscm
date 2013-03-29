@@ -329,10 +329,15 @@ lisp_object_t get_null_environment(lisp_object_t args) {
   return null_environment;
 }
 
-void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) {
-  lisp_object_t proc = make_primitive_proc(C_proc);
-  lisp_object_t var = find_or_create_symbol(Lisp_name);
-  add_binding(var, proc, environment);
+/* void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) { */
+/*   lisp_object_t proc = make_primitive_proc(C_proc); */
+/*   lisp_object_t var = find_or_create_symbol(Lisp_name); */
+/*   add_binding(var, proc, environment); */
+/* } */
+
+void add_primitive_proc(sexp proc, sexp env) {
+  sexp var = S(primitive_name(proc));
+  add_binding(var, proc, env);
 }
 
 struct lisp_object_t primitive_procs[] = {
@@ -384,9 +389,10 @@ void init_environment(lisp_object_t environment) {
   int len = sizeof(primitive_procs) / sizeof(struct lisp_object_t);
   for (int i = 0; i < len; i++) {
     sexp pp = &primitive_procs[i];
-    char *name = primitive_name(pp);
-    C_proc_t proc = primitive_C_proc(pp);
-    ADD(name, proc);
+    /* char *name = primitive_name(pp); */
+    /* C_proc_t proc = primitive_C_proc(pp); */
+    add_primitive_proc(pp, environment);
+    /* ADD(name, proc); */
   }
   /* FIXNUM */
   /* ADD("+", plus_proc); */

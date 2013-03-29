@@ -62,6 +62,15 @@ lisp_object_t make_label(void) {
   return find_or_create_symbol(strndup(buffer, n));
 }
 
+/* Returns true when the symbol is the name of a primitive function */
+int is_primitive_name(sexp sym, sexp env) {
+  if (!is_symbol(sym)) return no;
+  sexp obj = get_variable_value(sym, env);
+  if (is_primitive(obj)) return yes;
+  else return no;
+}
+
+/* Code Generation */
 /* Generate a list contains one instruction */
 lisp_object_t generate_code(char *code_name, ...) {
   va_list ap;
@@ -219,6 +228,13 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
   sexp operator = application_operator(object);
   sexp operands = application_operands(object);
   int len = pair_length(operands);
+  /* optimize: side-effect free primitive */
+  if (is_symbol(operator)) {
+    sexp op = get_variable_value(operator, env);
+    if (is_primitive(op) && primitive_se(op) == no)
+      return compile_begin(operands, env, no, is_more);
+  }
+
   if (is_more) {
     sexp k = make_label();
     return seq(gen_save(k),
