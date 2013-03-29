@@ -183,8 +183,11 @@ sexp compile_var(sexp object, sexp env, int is_val, int is_more) {
 }
 
 sexp compile_assignment(sexp object, sexp env, int is_val, int is_more) {
-  sexp value = compile_object(assignment_value(object), env, is_val, is_more);
-  return seq(value, compile_set(assignment_variable(object), env));
+  sexp value = compile_object(assignment_value(object), env, yes, yes);
+  return seq(value,
+             compile_set(assignment_variable(object), env),
+             (is_val ? EOL: gen_pop()),
+             (is_more ? EOL: gen_return()));
 }
 
 sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
@@ -253,16 +256,22 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
 sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
   if (is_variable_form(object))
     return compile_var(object, env, is_val, is_more);
+  /* quote */
   if (is_quote_form(object))
     return compile_constant(quotation_text(object), is_val, is_more);
-  if (is_assignment_form(object))
-    return compile_assignment(object, env, is_val, is_more);
-  if (is_define_form(object))
-    return compile_object(define2set(object), env, is_val, is_more);
-  if (is_if_form(object))
-    return compile_if(object, env, is_val, is_more);
+  /* begin */
   if (is_begin_form(object))
     return compile_begin(begin_actions(object), env, is_val, is_more);
+  /* set! */
+  if (is_assignment_form(object))
+    return compile_assignment(object, env, is_val, is_more);
+  /* define */
+  if (is_define_form(object))
+    return compile_object(define2set(object), env, is_val, is_more);
+  /* if */
+  if (is_if_form(object))
+    return compile_if(object, env, is_val, is_more);
+  /* lambda */
   if (is_lambda_form(object) && is_val) {
     sexp args = lambda_parameters(object);
     sexp body = lambda_body(object);

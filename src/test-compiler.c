@@ -31,15 +31,12 @@ int main(int argc, char *argv[])
     /* "(if (+ 1 1) 1 1)", */
 
     /* "(f (g x))", */
-    "(begin (if p (+ x y) (* x y)) z)",
+    "(begin (if p (f x) (* x x)) z)",
     /* "(define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l))))", */
     /* "(begin \"doc\" (write x) y)", */
     /* "(lambda () (if (null? (car l)) (f (+ (* a x) b)) (g (/ x 2))))", */
     /* "((lambda (x y) (+ x y)) 1 2)", */
   };
-  /* symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11); */
-  /* startup_environment = make_startup_environment(); */
-  /* repl_environment = make_repl_environment(); */
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
     lisp_object_t in_port = make_file_in_port(fp);
