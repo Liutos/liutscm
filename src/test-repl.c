@@ -20,32 +20,40 @@ void load_init_file(void);
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    "(define a #(1 2 3))",
-    "(set! a 2)",
+    /* "(define a #(1 2 3))", */
+    /* "(set! a 2)", */
     /* "(lambda (n) (+ n 1))", */
     /* "((lambda (n) (+ n 1)) 1)", */
     /* "(define (plus1 n) (+ n 1))", */
     /* "plus1", */
     /* "(plus1 1)", */
     /* "1.234", */
-    /* "(+. 1.1 1.2)", */
-    /* "(integer->float 123)", */
-    /* "(& 5 7)", */
+    "(+. 1.1 1.2)",
+    "(integer->float 123)",
+    "(& 5 7)",
     /* "#t", */
     /* "#f", */
     /* "\"Hello, world!\"", */
     /* "'(1 . 2)", */
-    /* "'hello", */
+    "'hello",
     /* "(if #f 1 2)", */
-    /* "-", */
-    /* "(+ 1 2)", */
-    /* "(eq? 'hello 'hello)", */
-    /* "(eq? 1 1)", */
-    /* "(eq? (string->symbol \"hello\") 'hello)", */
-    /* "(type-of 'hello)", */
-    /* "type-of", */
-    /* "#\\a", */
-    /* "(type-of #\\a)", */
+    "-",
+    "(+ 1 2)",
+    "(* 3 4)",
+    "(quotient 10 3)",
+    "(remainder 10 3)",
+    "(= 1 2)",
+    "(> 4 5)",
+    "(& 5 7)",
+    "(| 5 7)",
+    "(~ 5)",
+    "(eq? 'hello 'hello)",
+    "(eq? 1 1)",
+    "(eq? (string->symbol \"hello\") 'hello)",
+    "(type-of 'hello)",
+    "type-of",
+    "#\\a",
+    "(type-of #\\a)",
     /* "(lambda (x) (+ x 1))", */
     /* "((lambda (x) (+ x 1)) 1)", */
     /* "(define plus-one (lambda (n) (+ n 1)))", */

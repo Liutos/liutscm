@@ -58,6 +58,8 @@ typedef struct lisp_object_t {
     } symbol;
     struct {
       C_proc_t C_proc;
+      int is_side_effect;
+      char *Lisp_name;
     } primitive_proc;
     struct {
       sexp parameters;
@@ -207,6 +209,8 @@ typedef struct hash_table_t {
 /* PRIMITIVE_PROC */
 #define is_primitive(x) is_pointer_tag(x, PRIMITIVE_PROC)
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
+#define primitive_se(x) ((x)->values.primitive_proc.is_side_effect)
+#define primitive_name(x) ((x)->values.primitive_proc.Lisp_name)
 /* COMPOUND_PROC */
 #define is_compound(x) is_pointer_tag(x, COMPOUND_PROC)
 #define is_function(x) (is_primitive(x) || is_compound(x))
