@@ -116,7 +116,7 @@ sexp compile_begin(sexp actions, sexp env, int is_val, int is_more) {
     return compile_object(pair_car(actions), env, is_val, is_more);
   else
     return seq(compile_object(pair_car(actions), env, no, yes),
-               gen_pop(),
+               /* gen_pop(), */
                compile_begin(pair_cdr(actions), env, is_val, is_more));
 }
 
