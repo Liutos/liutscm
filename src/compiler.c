@@ -200,7 +200,7 @@ sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
     return seq(compile_object(if_test_part(object), env, no, yes),
                compile_object(if_then_part(object), env, yes, no));
 
-  sexp pcode = compile_object(if_test_part(object), env, is_val, is_more);
+  sexp pcode = compile_object(if_test_part(object), env, yes, yes);
   sexp tcode = compile_object(if_then_part(object), env, is_val, is_more);
   sexp ecode = compile_object(if_else_part(object), env, is_val, is_more);
   sexp l1 = make_label();
@@ -247,10 +247,11 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
     return compile_if(object, env, is_val, is_more);
   if (is_begin_form(object))
     return compile_begin(begin_actions(object), env, is_val, is_more);
-  if (is_lambda_form(object)) {
+  if (is_lambda_form(object) && is_val) {
     sexp args = lambda_parameters(object);
     sexp body = lambda_body(object);
-    return gen_fn(compile_lambda(args, body, env));
+    sexp code = compile_lambda(args, body, env);
+    return seq(gen_fn(code), is_more ? EOL: gen_return());
   }
   if (is_application_form(object))
     return compile_application(object, env, is_val, is_more);
