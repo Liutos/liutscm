@@ -158,8 +158,8 @@ sexp compile_lambda(sexp args, sexp body, sexp env) {
 
 sexp compile_arguments(sexp args, sexp env) {
   if (is_null(args)) return EOL;
-  return seq(compile_object(pair_car(args), env, yes, yes),
-             compile_arguments(pair_cdr(args), env));
+  sexp first = compile_object(pair_car(args), env, yes, yes);
+  return seq(first, compile_arguments(pair_cdr(args), env));
 }
 
 sexp compile_var(sexp object, sexp env, int is_val, int is_more) {
@@ -241,6 +241,8 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
     return compile_constant(quotation_text(object), is_val, is_more);
   if (is_assignment_form(object))
     return compile_assignment(object, env, is_val, is_more);
+  if (is_define_form(object))
+    return compile_object(define2set(object), env, is_val, is_more);
   if (is_if_form(object))
     return compile_if(object, env, is_val, is_more);
   if (is_begin_form(object))
