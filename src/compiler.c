@@ -35,6 +35,8 @@
 #define gen_return() gen("RETURN")
 #define gen_save(k) gen("SAVE", k)
 
+extern sexp make_lambda_form(sexp, sexp);
+
 int label_counter = 0;
 
 int is_variable_found(sexp var, sexp env, int *i, int *j) {
@@ -186,9 +188,17 @@ sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
   /*            make_list1(l1), */
   /*            compile_object(if_else_part(object), env, is_val, is_more), */
   /*            make_list1(l2)); */
+
   /* optimize: (if #f x y) => y */
   if (is_false(if_test_part(object)))
     return compile_object(if_else_part(object), env, is_val, is_more);
+  /* optimize: (if #t x y) => x */
+  if (is_self_eval(if_test_part(object)))
+    return compile_object(if_then_part(object), env, is_val, is_more);
+  /* optimize: (if p x x) => (begin p x) */
+  if (if_then_part(object) == if_else_part(object))
+    return seq(compile_object(if_test_part(object), env, no, yes),
+               compile_object(if_then_part(object), env, yes, no));
 
   sexp pcode = compile_object(if_test_part(object), env, is_val, is_more);
   sexp tcode = compile_object(if_then_part(object), env, is_val, is_more);
@@ -243,4 +253,8 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
   if (is_application_form(object))
     return compile_application(object, env, is_val, is_more);
   return compile_constant(object, is_val, is_more);
+}
+
+sexp compile_as_fn(sexp obj, sexp env) {
+  return compile_lambda(EOL, make_list1(obj), env);
 }

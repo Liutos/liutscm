@@ -25,7 +25,10 @@ int main(int argc, char *argv[])
     /* "(lambda () 1)", */
     /* "+", */
     /* "'hello", */
-    "(lambda () (if #f 1 2))",
+    "(if #f 1 2)",
+    "(if #t 1 2)",
+    "(if 1 'a 'b)",
+    "(if (+ 1 1) 1 1)",
     /* "(set! car car)", */
     /* "(begin \"doc\" (write x) y)", */
     /* "(lambda () (if (null? (car l)) (f (+ (* a x) b)) (g (/ x 2))))", */
@@ -38,7 +41,9 @@ int main(int argc, char *argv[])
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
     lisp_object_t in_port = make_file_in_port(fp);
     printf(">> %s\n=> ", cases[i]);
-    write_object(compile_object(read_object(in_port), repl_environment, yes, no), out_port);
+    sexp input = read_object(in_port);
+    sexp code = compile_as_fn(input, repl_environment);
+    write_object(code, out_port);
     putchar('\n');
     fclose(fp);
   }
