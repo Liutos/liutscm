@@ -238,7 +238,8 @@ tail_loop:
 
 /* Others */
 int is_self_eval(sexp obj) {
-  return !is_pointer(obj) || obj->type == FIXNUM || obj->type == CHARACTER;
+  /* return !is_pointer(obj) || obj->type == FIXNUM || obj->type == CHARACTER; */
+  return !is_pair(obj) && !is_symbol(obj);
 }
 
 /* hash table manipulation */

@@ -16,17 +16,19 @@ typedef unsigned int (*hash_fn_t)(char *);
 typedef int (*comp_fn_t)(char *, char *);
 
 enum object_type {
-  FIXNUM,
-  EOF_OBJECT,
-  BOOLEAN,
-  CHARACTER,
+  /* tagged pointer types */
+  /* FIXNUM, */
+  /* EOF_OBJECT, */
+  /* BOOLEAN, */
+  /* CHARACTER, */
+  /* EMPTY_LIST, */
+  /* CLOSE_OBJECT, */
+  /* DOT_OBJECT, */
+  /* UNDEFINED, */
+  /* compound structure types */
   STRING,
-  EMPTY_LIST,
-  CLOSE_OBJECT,
   PAIR,
   SYMBOL,
-  DOT_OBJECT,
-  UNDEFINED,
   PRIMITIVE_PROC,
   COMPOUND_PROC,
   FILE_IN_PORT,
