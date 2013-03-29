@@ -23,13 +23,13 @@ int main(int argc, char *argv[])
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
     /* "1", */
-    "+",
+    /* "+", */
     /* "'hello", */
-    "(if #f 1 2)",
-    "(set! car car)",
-    "(begin \"doc\" (write x) y)",
-    "(lambda (x) (+ x 1))",
-    "((lambda (x y) (+ x y)) 1 2)",
+    /* "(if #f 1 2)", */
+    /* "(set! car car)", */
+    /* "(begin \"doc\" (write x) y)", */
+    "(lambda () (if (null? (car l)) (f (+ (* a x) b)) (g (/ x 2))))",
+    /* "((lambda (x y) (+ x y)) 1 2)", */
   };
   /* symbol_table = make_hash_table(hash_symbol_name, symbol_name_comparator, 11); */
   /* startup_environment = make_startup_environment(); */
