@@ -196,6 +196,16 @@ sexp make_vector(unsigned int length) {
   return vector;
 }
 
+sexp make_return_info(sexp code, int pc, sexp env) {
+  /* sexp info = malloc(sizeof(struct sexp)); */
+  sexp info = alloc_object(RETURN_INFO);
+  /* info->type = ; */
+  return_code(info) = code;
+  return_pc(info) = pc;
+  return_env(info) = env;
+  return info;
+}
+
 sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
   sexp macro = alloc_object(MACRO);
   ASIG(macro_proc_pars(macro), pars);

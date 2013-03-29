@@ -1,19 +1,26 @@
 /*
  * vm.c
  *
- *
+ * The implementation of the virtual machine
  *
  * Copyright (C) 2013-03-18 liutos <mat.liutos@gmail.com>
  */
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
-#include "types.h"
-#include "object.h"
 #include "eval.h"
+#include "object.h"
+#include "types.h"
+#include "write.h"
 
-extern void write_object(lisp_object_t, lisp_object_t);
+#define SR(x) if (S(#x) == name) return x
+#define code_arg0(x) pair_cadr(code)
+#define code_arg1(x) pair_caddr(code)
+#define code_arg2(x) pair_cadddr(code)
+#define push(e, stack) stack = make_pair(e, stack)
+#define pop(stack) stack = pair_cdr(stack)
+#define nth_pop(stack, n) stack = pair_nthcdr(stack, n)
 
 enum code_type {
   CONST,
@@ -31,8 +38,6 @@ enum code_type {
 };
 
 enum code_type code_name(lisp_object_t code) {
-#define S(name) find_or_create_symbol(name)
-#define SR(x) if (S(#x) == name) return x
   lisp_object_t name = pair_car(code);
   /* if (S("CONST") == name) */
   /*   return CONST; */
@@ -61,10 +66,6 @@ enum code_type code_name(lisp_object_t code) {
   fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
   exit(1);
 }
-
-#define code_arg0(x) pair_cadr(code)
-#define code_arg1(x) pair_caddr(code)
-#define code_arg2(x) pair_cadddr(code)
 
 lisp_object_t get_variable_by_index(int i, int j, lisp_object_t environment) {
   while (i != 0) {
@@ -96,10 +97,6 @@ lisp_object_t make_arguments(lisp_object_t stack, int n) {
                      make_arguments(pair_cdr(stack), n - 1));
 }
 
-#define push(e, stack) stack = make_pair(e, stack)
-#define pop(stack) stack = pair_cdr(stack)
-#define nth_pop(stack, n) stack = pair_nthcdr(stack, n)
-
 void push_value2env(lisp_object_t stack, int n, lisp_object_t environment) {
   lisp_object_t vals = environment_vals(environment);
   for (; n > 0; n--) {
@@ -110,35 +107,24 @@ void push_value2env(lisp_object_t stack, int n, lisp_object_t environment) {
   environment_vals(environment) = vals;
 }
 
-lisp_object_t make_return_info(lisp_object_t code, int pc, lisp_object_t env) {
-  lisp_object_t info = malloc(sizeof(struct lisp_object_t));
-  info->type = RETURN_INFO;
-  return_code(info) = code;
-  return_pc(info) = pc;
-  return_env(info) = env;
-  return info;
-}
-
-/* int is_label(lisp_object_t code) { */
-/*   return is_symbol(code); */
-/* } */
-
-lisp_object_t extract_labels_aux(lisp_object_t compiled_code, int offset, int *length) {
+/* Assembler */
+sexp extract_labels_aux(sexp compiled_code, int offset, int *length) {
   if (is_null(compiled_code)) {
     *length = offset;
-    return make_empty_list();
+    return EOL;
   } else {
-    lisp_object_t first = pair_car(compiled_code);
-    lisp_object_t rest = pair_cdr(compiled_code);
+    sexp first = pair_car(compiled_code);
+    sexp rest = pair_cdr(compiled_code);
     if (is_label(first)) {
-      lisp_object_t lo = make_pair(first, make_fixnum(offset));
+      sexp lo = make_pair(first, make_fixnum(offset));
       return make_pair(lo, extract_labels_aux(rest, offset, length));
     } else
       return extract_labels_aux(rest, offset + 1, length);
   }
 }
 
-lisp_object_t extract_labels(lisp_object_t compiled_code, int *length) {
+/* Returns an a-list contains label-offset pairs. Parameter `length' stores the length of compiled code. */
+sexp extract_labels(sexp compiled_code, int *length) {
   return extract_labels_aux(compiled_code, 0, length);
 }
 
@@ -188,6 +174,7 @@ lisp_object_t assemble_code(lisp_object_t compiled_code) {
   return vectorize_code(compiled_code, length, label_table);
 }
 
+/* Virtual Machine */
 void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
   while (n - 1 != 0) {
     pair = pair_cdr(pair);
@@ -206,51 +193,12 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
     printf("++ ");
     write_object(code, make_file_out_port(stdout));
     switch (code_name(code)) {
-      case CONST:
-        push(code_arg0(code), stack);
+      case ARGS: {
+        lisp_object_t n = code_arg0(code);
+        push_value2env(stack, fixnum_value(n), environment);
+        nth_pop(stack, fixnum_value(n));
         pc++;
-        break;
-      case LVAR: {
-        int i = fixnum_value(code_arg0(code));
-        int j = fixnum_value(code_arg1(code));
-        push(get_variable_by_index(i, j, environment), stack);
       }
-        pc++;
-        break;
-      case LSET: {
-        int i = fixnum_value(code_arg0(code));
-        int j = fixnum_value(code_arg1(code));
-        lisp_object_t value = pair_car(stack);
-        pop(stack);
-        set_variable_by_index(i, j, value, environment);
-        push(make_undefined(), stack);
-      }
-        pc++;
-        break;
-      case FJUMP: {
-        lisp_object_t top = pair_car(stack);
-        pop(stack);
-        if (is_false(top)) {
-          pc = fixnum_value(code_arg0(code));
-        } else
-          pc++;
-      }
-        break;
-      case TJUMP: {
-        lisp_object_t top = pair_car(stack);
-        pop(stack);
-        if (is_true(top)) {
-          pc = fixnum_value(code_arg0(code));
-        } else
-          pc++;
-      }
-        break;
-      case JUMP:
-        pc = fixnum_value(code_arg0(code));
-        break;
-      case POP:
-        pop(stack);
-        pc++;
         break;
       case CALL: {
         lisp_object_t n = code_arg0(code);
@@ -281,12 +229,46 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         }
       }
         break;
-      case ARGS: {
-        lisp_object_t n = code_arg0(code);
-        push_value2env(stack, fixnum_value(n), environment);
-        nth_pop(stack, fixnum_value(n));
+      case CONST:
+        push(code_arg0(code), stack);
         pc++;
+        break;
+      case FJUMP: {
+        lisp_object_t top = pair_car(stack);
+        pop(stack);
+        if (is_false(top)) {
+          pc = fixnum_value(code_arg0(code));
+        } else
+          pc++;
       }
+        break;
+      case FN:
+        push(code_arg0(code), stack);
+        pc++;
+        break;
+      case JUMP:
+        pc = fixnum_value(code_arg0(code));
+        break;
+      case LSET: {
+        int i = fixnum_value(code_arg0(code));
+        int j = fixnum_value(code_arg1(code));
+        lisp_object_t value = pair_car(stack);
+        pop(stack);
+        set_variable_by_index(i, j, value, environment);
+        push(make_undefined(), stack);
+      }
+        pc++;
+        break;
+      case LVAR: {
+        int i = fixnum_value(code_arg0(code));
+        int j = fixnum_value(code_arg1(code));
+        push(get_variable_by_index(i, j, environment), stack);
+      }
+        pc++;
+        break;
+      case POP:
+        pop(stack);
+        pc++;
         break;
       case RETURN: {
         lisp_object_t value = pair_car(stack);
@@ -301,9 +283,14 @@ lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t envir
         pc++;
       }
         break;
-      case FN:
-        push(code_arg0(code), stack);
-        pc++;
+      case TJUMP: {
+        lisp_object_t top = pair_car(stack);
+        pop(stack);
+        if (is_true(top)) {
+          pc = fixnum_value(code_arg0(code));
+        } else
+          pc++;
+      }
         break;
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");

@@ -237,14 +237,14 @@ typedef struct hash_table_t {
 /* PAIR */
 #define pair_cddr(x) pair_cdr(pair_cdr(x))
 #define pair_cdddr(x) pair_cdr(pair_cddr(x))
-/*
- * pair_cadr: second element
- * pair_caddr: third element
- * pair_cadddr: fourth element
- */
 #define pair_cadr(x) pair_car(pair_cdr(x))
 #define pair_caddr(x) pair_car(pair_cddr(x))
 #define pair_cadddr(x) pair_car(pair_cdddr(x))
+
+#define first(x) pair_car(x)
+#define second(x) pair_cadr(x)
+#define third(x) pair_caddr(x)
+#define fourth(x) pair_cadddr(x)
 
 #define pair_caar(x) pair_car(pair_car(x))
 #define pair_cdar(x) pair_cdr(pair_car(x))
@@ -262,10 +262,5 @@ typedef struct hash_table_t {
 /*     var = value;                                \ */
 /*     inc_ref_count(value);                       \ */
 /*   } while(0) */
-
-/* Declare, initialize and increase the references count */
-/* #define DECL(var, expr)                         \ */
-/*   sexp var = expr;                              \ */
-/*   inc_ref_count(var); */
 
 #endif

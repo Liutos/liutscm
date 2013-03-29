@@ -43,6 +43,7 @@ extern sexp make_primitive_proc(C_proc_t);
 extern sexp make_lambda_procedure(sexp, sexp, sexp);
 extern sexp make_compiled_proc(sexp, sexp, sexp);
 extern sexp make_vector(unsigned int);
+extern sexp make_return_info(sexp, int, sexp);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
 
 extern sexp make_list(sexp e, ...);
