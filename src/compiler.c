@@ -186,6 +186,10 @@ sexp compile_if(sexp object, sexp env, int is_val, int is_more) {
   /*            make_list1(l1), */
   /*            compile_object(if_else_part(object), env, is_val, is_more), */
   /*            make_list1(l2)); */
+  /* optimize: (if #f x y) => y */
+  if (is_false(if_test_part(object)))
+    return compile_object(if_else_part(object), env, is_val, is_more);
+
   sexp pcode = compile_object(if_test_part(object), env, is_val, is_more);
   sexp tcode = compile_object(if_then_part(object), env, is_val, is_more);
   sexp ecode = compile_object(if_else_part(object), env, is_val, is_more);
