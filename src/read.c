@@ -15,33 +15,24 @@
 
 #define BUFFER_SIZE 100
 
-lisp_object_t read_object(lisp_object_t);
-
-hash_table_t make_hash_table(unsigned int (*hash_function)(char *), int (*comparator)(char *, char *), unsigned int size) {
-  hash_table_t table = malloc(sizeof(struct hash_table_t));
-  table->hash_function = hash_function;
-  table->comparator = comparator;
-  table->size = size;
-  table->datum = malloc(size * sizeof(struct lisp_object_t));
-  memset(table->datum, '\0', size);
-  return table;
-}
+sexp read_object(sexp);
 
 int is_separator(int c) {
   return EOF == c || isspace(c) || '(' == c || ')' == c || '"' == c;
 }
 
-char port_read_char(lisp_object_t port) {
+char port_read_char(sexp port) {
   FILE *stream = in_port_stream(port);
   return fgetc(stream);
 }
 
-void port_ungetc(char c, lisp_object_t port) {
+void port_ungetc(char c, sexp port) {
   FILE *stream = in_port_stream(port);
   ungetc(c, stream);
 }
 
-lisp_object_t read_float(int integer, lisp_object_t port) {
+/* object readers */
+sexp read_float(int integer, sexp port) {
   int number = 0;
   int digit, i = 1;
   while (isdigit(digit = port_read_char(port))) {
@@ -64,13 +55,13 @@ sexp read_number(char c, int sign, sexp port) {
   return make_fixnum(number * sign);
 }
 
-void read_comment(lisp_object_t port) {
+void read_comment(sexp port) {
   int c = port_read_char(port);
   while (c != '\n' && c != EOF)
     c = port_read_char(port);
 }
 
-lisp_object_t read_character(lisp_object_t port) {
+sexp read_character(sexp port) {
   int c = port_read_char(port);
   switch (c) {
     case '\\': {
@@ -84,7 +75,8 @@ lisp_object_t read_character(lisp_object_t port) {
         case 'v': return make_character('\v');
         case 'a': return make_character('\a');
         default :
-          fprintf(stderr, "unexpected token '%c' at line %d\n", c, in_port_linum(port));
+          fprintf(stderr, "unexpected token '%c' at line %d\n",
+                  c, in_port_linum(port));
           exit(1);
       }
     }

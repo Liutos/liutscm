@@ -1,185 +1,213 @@
 /*
  * object.c
  *
- * Constructors for data types
+ * Constructors and operations for the data types
  *
  * Copyright (C) 2013-03-17 liutos <mat.liutos@gmail.com>
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "types.h"
 #include "object.h"
-
-extern void init_environment(lisp_object_t);
-extern void write_object(lisp_object_t, lisp_object_t);
-
-/*
- * repl_environment: Environment used by REPL
- * null_environment: Environment with no bindings
- * startup_environment: Environment with default bindings
- */
-lisp_object_t repl_environment;
-lisp_object_t null_environment;
-lisp_object_t startup_environment;
-
-hash_table_t symbol_table;
-
-/* Heap for allocating memory of Lisp objects */
-struct lisp_object_t *objects_heap;
-int free_index;
-struct lisp_object_t *free_objects;
-struct lisp_object_t *used_objects;
+#include "types.h"
+#include "write.h"
 
 #define HEAP_SIZE 1000
 
-struct lisp_object_t *init_heap(void) {
-  struct lisp_object_t *heap = malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
-  for (int i = 0; i < HEAP_SIZE; i++) {
-    heap[i].next = &(heap[i + 1]);
-  }
-  heap[HEAP_SIZE - 1].next = NULL;
-  for (int i = HEAP_SIZE - 1; i >= 0; i--)
-    heap[i].prev = &(heap[i - 1]);
-  heap[0].prev = NULL;
-  free_objects = heap;
-  used_objects = NULL;
-  free_index = 0;
-  return heap;
-}
+/* #define unlink(x)                               \ */
+/*   do {                                          \ */
+/*     if ((x)->prev != NULL)                      \ */
+/*       (x)->prev->next = (x)->next;              \ */
+/*     (x)->next = free_objects;                   \ */
+/*     free_objects = (x);                         \ */
+/*   } while (0) */
 
-lisp_object_t alloc_object(void) {
-  /* lisp_object_t object = malloc(sizeof(struct lisp_object_t)); */
-  /* object->ref_count = 0; */
-  /* return object; */
-  /* if (free_index >= HEAP_SIZE) { */
+hash_table_t symbol_table;
+/*
+ * null_environment: Environment with no bindings
+ * startup_environment: Environment with default bindings
+ * repl_environment: Environment used by REPL
+ */
+sexp null_environment = EOL;
+sexp repl_environment;
+sexp startup_environment;
+
+sexp scm_in_port;
+sexp scm_out_port;
+
+/*
+ * objects_heap: A large consecutive memory for allocating Lisp objects
+ * free_objects: A linked list contains all unused memory cell
+ * used_objects: A linked list contains all allocated objects
+ */
+struct lisp_object_t *objects_heap;
+struct lisp_object_t *free_objects;
+struct lisp_object_t *used_objects;
+
+/* memory management */
+sexp alloc_object(enum object_type type) {
   if (NULL == free_objects) {
     fprintf(stderr, "Memory exhausted\n");
     exit(1);
   }
-  /* lisp_object_t object = &objects_heap[free_index]; */
-  /* free_index++; */
-  lisp_object_t object = free_objects;
+  sexp object = free_objects;
   free_objects = free_objects->next;
-  /* Concatenate the new allocated object into list `used_objects' */
+
   object->next = used_objects;
   used_objects = object;
+
+  object->type = type;
   return object;
 }
 
-lisp_object_t make_fixnum(int value) {
-  return (lisp_object_t)((value << FIXNUM_BITS) | FIXNUM_TAG);
+void reclaim(sexp object) {
+  /* unlink(object); */
+  /* Unlink from `used_objects' */
+  if (object->prev != NULL)
+    object->prev->next = object->next;
+  if (object->next != NULL)
+    object->next->prev = object->prev;
+  /* Concatenate into `free_objects' as header */
+  object->prev = NULL;
+  object->next = free_objects;
+  free_objects = object;
+
+  port_format(scm_out_port, "Releasing %*\n", object);
+  if (is_pair(object)) {
+    dec_ref_count(pair_car(object));
+    dec_ref_count(pair_cdr(object));
+  }
+  if (is_in_port(object))
+    fclose(in_port_stream(object));
+  if (is_out_port(object))
+    fclose(out_port_stream(object));
 }
 
-lisp_object_t make_flonum(float value) {
-  lisp_object_t object = alloc_object();
-  object->type = FLONUM;
-  float_value(object) = value;
-  return object;
+void dec_ref_count(sexp object) {
+  if (!object || !is_pointer(object)) return;
+  object->ref_count--;
+  if (object->ref_count == 0)
+    reclaim(object);
 }
 
-lisp_object_t make_eof_object(void) {
-  return eof_object;
+void inc_ref_count(lisp_object_t object) {
+  if (object && is_pointer(object))
+    object->ref_count++;
 }
 
-lisp_object_t make_boolean(int value) {
-  return (lisp_object_t)((value << BOOL_BITS) | BOOL_TAG);
+struct lisp_object_t *init_heap(void) {
+  struct lisp_object_t *heap = malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
+  memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t));
+  for (int i = 0; i < HEAP_SIZE; i++)
+    heap[i].next = &(heap[i + 1]);
+  heap[HEAP_SIZE - 1].next = NULL;
+  for (int i = HEAP_SIZE - 1; i > 0; i--)
+    heap[i].prev = &(heap[i - 1]);
+  heap[0].prev = NULL;
+  free_objects = heap;
+  used_objects = NULL;
+  return heap;
 }
 
-lisp_object_t make_true(void) {
-  return true_object;
-}
+/* constructors */
+/* tagged pointer constants */
+sexp make_close_object(void) { return close_object; }
+sexp make_dot_object(void) { return dot_object; }
+sexp make_empty_list(void) { return EOL; }
+sexp make_eof_object(void) { return eof_object; }
+sexp make_false(void) { return false_object; }
+sexp make_true(void) { return true_object; }
+sexp make_undefined(void) { return undefined_object; }
 
-lisp_object_t make_false(void) {
-  return false_object;
-}
+/* tagged pointer data types with rule */
+sexp make_fixnum(int value) { return to_fixnum(value); }
+sexp make_character(char c) { return to_char(c); }
 
-lisp_object_t make_character(char c) {
-  return (lisp_object_t)((c << CHAR_BITS) | CHAR_TAG);
-}
-
-lisp_object_t make_string(char *str) {
-  /* lisp_object_t string = malloc(sizeof(struct lisp_object_t)); */
-  lisp_object_t string = alloc_object();
-  string->type = STRING;
+/* tagged union data type */
+sexp make_string(char *str) {
+  sexp string = alloc_object(STRING);
   string->values.string.value = str;
   return string;
 }
 
-lisp_object_t make_empty_list(void) {
-  return empty_list_object;
-}
-
-lisp_object_t make_close_object(void) {
-  return close_object;
-}
-
-lisp_object_t make_dot_object(void) {
-  return dot_object;
-}
-
-void inc_ref_count(lisp_object_t object) {
-  if (object && is_pointer(object)) {
-    object->ref_count++;
-    /* printf("Increasing ref_count of "); */
-    /* write_object(object, make_file_out_port(stdout)); */
-    /* putchar('\n'); */
-  }
-}
-
-#define unlink(x)                               \
-  do {                                          \
-    if ((x)->prev != NULL)                      \
-      (x)->prev->next = (x)->next;              \
-    (x)->next = free_objects;                   \
-    free_objects = (x);                         \
-  } while (0)
-
-void dec_ref_count(lisp_object_t object) {
-  if (object && is_pointer(object)) {
-    object->ref_count--;
-    /* printf("Decreasing ref_count of "); */
-    /* write_object(object, make_file_out_port(stdout)); */
-    /* putchar('\n'); */
-    if (0 == object->ref_count) {
-      printf("Releasing ");
-      write_object(object, make_file_out_port(stdout));
-      putchar('\n');
-      /* Unlink this object within the `used_objects' list */
-      unlink(object);
-      /* if (object->prev != NULL) */
-      /*   object->prev->next = object->next; */
-      /* object->next = free_objects; */
-      /* free_objects = object; */
-    }
-  }
-}
-
-/* PAIR */
-
-lisp_object_t make_pair(lisp_object_t car, lisp_object_t cdr) {
-  /* lisp_object_t pair = malloc(sizeof(struct lisp_object_t)); */
-  lisp_object_t pair = alloc_object();
-  pair->type = PAIR;
-  /* Increase the reference count of the objects in car and cdr parts */
-  inc_ref_count(car);
-  inc_ref_count(cdr);
-  pair->values.pair.car = car;
-  pair->values.pair.cdr = cdr;
+sexp make_pair(sexp car, sexp cdr) {
+  lisp_object_t pair = alloc_object(PAIR);
+  ASIG(pair_car(pair), car);
+  ASIG(pair_cdr(pair), cdr);
   return pair;
 }
 
-int pair_length(lisp_object_t pair) {
-  if (is_null(pair))
-    return 0;
-  else
-    return 1 + pair_length(pair_cdr(pair));
+sexp make_symbol(char *name) {
+  sexp symbol = alloc_object(SYMBOL);
+  symbol->values.symbol.name = name;
+  return symbol;
 }
 
-lisp_object_t make_list_aux(va_list ap) {
-  lisp_object_t car = va_arg(ap, lisp_object_t);
+sexp make_file_in_port(FILE *stream) {
+  sexp port = alloc_object(FILE_IN_PORT);
+  in_port_stream(port) = stream;
+  in_port_linum(port) = 1;
+  return port;
+}
+
+sexp make_file_out_port(FILE *stream) {
+  sexp port = alloc_object(FILE_OUT_PORT);
+  out_port_stream(port) = stream;
+  return port;
+}
+
+sexp make_flonum(float value) {
+  sexp object = alloc_object(FLONUM);
+  float_value(object) = value;
+  return object;
+}
+
+sexp make_primitive_proc(C_proc_t C_proc) {
+  /* sexp proc = malloc(sizeof(struct sexp)); */
+  sexp proc = alloc_object(PRIMITIVE_PROC);
+  /* proc->type = ; */
+  /* proc->values.primitive_proc.C_proc = C_proc; */
+  primitive_C_proc(proc) = C_proc;
+  return proc;
+}
+
+sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
+  sexp proc = alloc_object(COMPOUND_PROC);
+  ASIG(compound_proc_parameters(proc), pars);
+  ASIG(compound_proc_body(proc), body);
+  ASIG(compound_proc_environment(proc), env);
+  return proc;
+}
+
+sexp make_compiled_proc(sexp args, sexp code, sexp env) {
+  sexp proc = alloc_object(COMPILED_PROC);
+  compiled_proc_args(proc) = args;
+  compiled_proc_env(proc) = env;
+  compiled_proc_code(proc) = code;
+  return proc;
+}
+
+sexp make_vector(unsigned int length) {
+  sexp vector = alloc_object(VECTOR);
+  vector_length(vector) = length;
+  vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
+  return vector;
+}
+
+sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
+  sexp macro = alloc_object(MACRO);
+  ASIG(macro_proc_pars(macro), pars);
+  ASIG(macro_proc_body(macro), body);
+  ASIG(macro_proc_env(macro), env);
+  return macro;
+}
+
+/* utilities */
+/* PAIR */
+sexp make_list_aux(va_list ap) {
+  sexp car = va_arg(ap, sexp);
   if (NULL == car) {
     va_end(ap);
     return make_empty_list();
@@ -187,50 +215,91 @@ lisp_object_t make_list_aux(va_list ap) {
     return make_pair(car, make_list_aux(ap));
 }
 
-lisp_object_t make_list(lisp_object_t e, ...) {
+sexp make_list(sexp e, ...) {
   va_list ap;
   va_start(ap, e);
   return make_pair(e, make_list_aux(ap));
 }
 
-lisp_object_t pair_nthcdr(lisp_object_t pair, int n) {
-  if (0 == n || is_null(pair))
-    return pair;
-  else
-    return pair_nthcdr(pair_cdr(pair), n - 1);
+/* Set the `pair2' as the last cdr of proper list `pair1' */
+sexp nconc_pair(sexp pair1, sexp pair2) {
+  if (is_null(pair1)) return pair2;
+  if (is_null(pair2)) return pair1;
+  sexp head = pair1;
+  while (!is_null(pair_cdr(pair1)))
+    pair1 = pair_cdr(pair1);
+  pair_cdr(pair1) = pair2;
+  return head;
 }
 
-lisp_object_t make_symbol(char *name) {
-  /* lisp_object_t symbol = malloc(sizeof(struct lisp_object_t)); */
-  lisp_object_t symbol = alloc_object();
-  symbol->type = SYMBOL;
-  symbol->values.symbol.name = name;
-  return symbol;
+/* Returns the number of elements in proper list */
+int pair_length(sexp pair) {
+  int len = 0;
+  for (; !is_null(pair); pair = pair_cdr(pair))
+    len++;
+  return len;
 }
 
-lisp_object_t make_undefined(void) {
-  return undefined_object;
+sexp pair_nthcdr(sexp pair, int n) {
+tail_loop:
+  if (0 == n || is_null(pair)) return pair;
+  pair = pair_cdr(pair);
+  n--;
+  goto tail_loop;
 }
 
-/* VECTOR */
-
-unsigned int va_list_length(va_list ap) {
-  if (NULL == va_arg(ap, lisp_object_t)) {
-    va_end(ap);
-    return 0;
-  } else
-    return 1 + va_list_length(ap);
+/* Others */
+int is_self_eval(sexp obj) {
+  /* return !is_pointer(obj) || obj->type == FIXNUM || obj->type == CHARACTER; */
+  return !is_pair(obj) && !is_symbol(obj);
 }
 
-lisp_object_t make_vector(unsigned int length/* , ... */) {
-  /* lisp_object_t vector = malloc(sizeof(struct lisp_object_t)); */
-  lisp_object_t vector = alloc_object();
-  vector->type = VECTOR;
-  vector_length(vector) = length;
-  vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
-  return vector;
+/* hash table manipulation */
+hash_table_t make_hash_table(hash_fn_t hash_function, comp_fn_t comparator, unsigned int size) {
+  hash_table_t table = malloc(sizeof(struct hash_table_t));
+  table->hash_function = hash_function;
+  table->comparator = comparator;
+  table->size = size;
+  table->datum = malloc(size * sizeof(struct lisp_object_t));
+  memset(table->datum, '\0', size);
+  return table;
 }
 
+unsigned int compute_index(char *key, hash_table_t table) {
+  hash_fn_t hash_function = table->hash_function;
+  unsigned int size = table->size;
+  return hash_function(key) % size;
+}
+
+table_entry_t make_entry(char *key, sexp value, table_entry_t next) {
+  table_entry_t entry = malloc(sizeof(struct table_entry_t));
+  entry->key = key;
+  entry->value = value;
+  entry->next = next;
+  return entry;
+}
+
+void store_into_hash_table(char *key, sexp value, hash_table_t table) {
+  unsigned int index = compute_index(key, table);
+  table_entry_t entry = table->datum[index];
+  table_entry_t new_entry = make_entry(key, value, entry);
+  table->datum[index] = new_entry;
+}
+
+sexp find_in_hash_table(char *target, hash_table_t table) {
+  unsigned int index = compute_index(target, table);
+  table_entry_t entry = table->datum[index];
+  comp_fn_t comparator = table->comparator;
+  while (entry != NULL) {
+    char *key = entry->key;
+    if (0 == comparator(key, target))
+      return entry->value;
+    entry = entry->next;
+  }
+  return NULL;
+}
+
+/* symbol table manipulation */
 unsigned int hash_symbol_name(char *name) {
   unsigned int val;
   for (val = 0; *name != '\0'; name++)
@@ -242,44 +311,8 @@ int symbol_name_comparator(char *n1, char *n2) {
   return strcmp(n1, n2);
 }
 
-unsigned int compute_index(char *key, hash_table_t table) {
-  unsigned int (*hash_function)(char *);
-  hash_function = table->hash_function;
-  unsigned int size = table->size;
-  return hash_function(key) % size;
-}
-
-lisp_object_t find_in_hash_table(char *target, hash_table_t table) {
-  unsigned int index = compute_index(target, table);
-  table_entry_t entry = table->datum[index];
-  int (*comparator)(char *, char *);
-  comparator = table->comparator;
-  while (entry != NULL) {
-    char *key = entry->key;
-    if (0 == comparator(key, target))
-      return entry->value;
-    entry = entry->next;
-  }
-  return NULL;
-}
-
-table_entry_t make_entry(char *key, lisp_object_t value, table_entry_t next) {
-  table_entry_t entry = malloc(sizeof(struct table_entry_t));
-  entry->key = key;
-  entry->value = value;
-  entry->next = next;
-  return entry;
-}
-
-void store_into_hash_table(char *key, lisp_object_t value, hash_table_t table) {
-  unsigned int index = compute_index(key, table);
-  table_entry_t entry = table->datum[index];
-  table_entry_t new_entry = make_entry(key, value, entry);
-  table->datum[index] = new_entry;
-}
-
-lisp_object_t find_symbol(char *name) {
-  return find_in_hash_table(name, symbol_table);
+hash_table_t make_symbol_table(void) {
+  return make_hash_table(hash_symbol_name, symbol_name_comparator, 11);
 }
 
 void store_symbol(lisp_object_t symbol) {
@@ -287,8 +320,12 @@ void store_symbol(lisp_object_t symbol) {
   store_into_hash_table(key, symbol, symbol_table);
 }
 
-lisp_object_t find_or_create_symbol(char *name) {
-  lisp_object_t symbol = find_symbol(name);
+sexp find_symbol(char *name) {
+  return find_in_hash_table(name, symbol_table);
+}
+
+sexp find_or_create_symbol(char *name) {
+  sexp symbol = find_symbol(name);
   if (NULL == symbol) {
     symbol = make_symbol(name);
     store_symbol(symbol);
@@ -297,38 +334,30 @@ lisp_object_t find_or_create_symbol(char *name) {
     return symbol;
 }
 
-lisp_object_t make_null_environment(void) {
-  null_environment = make_empty_list();
-  return null_environment;
+/* environment manipulation */
+sexp extend_environment(sexp vars, sexp vals, sexp env) {
+  return make_pair(make_pair(vars, vals), env);
 }
 
-lisp_object_t make_startup_environment(void) {
-  lisp_object_t vars = make_empty_list();
-  lisp_object_t vals = make_empty_list();
-  startup_environment = make_pair(make_pair(vars, vals), make_null_environment());
-  init_environment(startup_environment);
+sexp make_startup_environment(void) {
+  startup_environment = extend_environment(EOL, EOL, null_environment);
   return startup_environment;
 }
 
-lisp_object_t extend_environment(lisp_object_t vars, lisp_object_t vals, lisp_object_t environment) {
-  return make_pair(make_pair(vars, vals), environment);
+sexp make_repl_environment(void) {
+  return extend_environment(EOL, EOL, startup_environment);
 }
 
-lisp_object_t make_repl_environment(void) {
-  return extend_environment(make_empty_list(), make_empty_list(), startup_environment);
-}
-
-int is_empty_environment(lisp_object_t env) {
+int is_empty_environment(sexp env) {
   return is_null(env);
 }
 
-lisp_object_t search_binding(lisp_object_t var, lisp_object_t env) {
+sexp search_binding(sexp var, sexp env) {
   while (!is_empty_environment(env)) {
-    lisp_object_t vars = environment_vars(env);
-    lisp_object_t vals = environment_vals(env);
+    sexp vars = environment_vars(env);
+    sexp vals = environment_vals(env);
     while (is_pair(vars)) {
       if (pair_car(vars) == var)
-        /* return make_pair(pair_car(vars), pair_car(vals)); */
         return pair_car(vals);
       vars = pair_cdr(vars);
       vals = pair_cdr(vals);
@@ -339,19 +368,15 @@ lisp_object_t search_binding(lisp_object_t var, lisp_object_t env) {
 }
 
 int search_binding_index(sexp var, sexp env, int *x, int *y) {
-  int i = 0, j;
+  int i = 0;
   while (!is_empty_environment(env)) {
     sexp vars = environment_vars(env);
-    j = 0;
-    while (is_pair(vars)) {
+    for (int j = 0; is_pair(vars); vars = pair_cdr(vars), j++) {
       if (pair_car(vars) == var) {
         *x = i;
         *y = j;
-        /* return make_pair(make_fixnum(i), make_fixnum(j)); */
         return 1;
       }
-      vars = pair_cdr(vars);
-      j++;
     }
     env = enclosing_environment(env);
     i++;
@@ -359,31 +384,30 @@ int search_binding_index(sexp var, sexp env, int *x, int *y) {
   return 0;
 }
 
-void add_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment) {
-  lisp_object_t cell = search_binding(var, environment);
+/* Create a new binding if this `var' is not used yet */
+void add_binding(sexp var, sexp val, sexp environment) {
+  sexp cell = search_binding(var, environment);
   if (!cell) {
-    lisp_object_t vars = environment_vars(environment);
-    lisp_object_t vals = environment_vals(environment);
+    sexp vars = environment_vars(environment);
+    sexp vals = environment_vals(environment);
     vars = make_pair(var, vars);
     vals = make_pair(val, vals);
-    environment_vars(environment) = vars;
-    environment_vals(environment) = vals;
-    /* Increase the count because the environment references them */
-    inc_ref_count(vars);
-    inc_ref_count(vals);
+    ASIG(environment_vars(environment), vars);
+    ASIG(environment_vals(environment), vals);
   }
 }
 
-void set_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment) {
-  lisp_object_t tmp = environment;
+/* Change an existing binding or create a new binding */
+void set_binding(sexp var, sexp val, sexp environment) {
+  sexp tmp = environment;
   while (!is_empty_environment(environment)) {
-    lisp_object_t vars = environment_vars(environment);
-    lisp_object_t vals = environment_vals(environment);
+    sexp vars = environment_vars(environment);
+    sexp vals = environment_vals(environment);
     while (is_pair(vars)) {
       if (pair_car(vars) == var) {
-        dec_ref_count(pair_car(vals));  /* Decrease the reference count of previous variable value object */
+        /* dec_ref_count(pair_car(vals)); */
         pair_car(vals) = val;
-        inc_ref_count(val);             /* Increase the reference count of the new variable value object */
+        /* inc_ref_count(val); */
         break;
       }
       vars = pair_cdr(vars);
@@ -394,38 +418,10 @@ void set_binding(lisp_object_t var, lisp_object_t val, lisp_object_t environment
   add_binding(var, val, tmp);
 }
 
-lisp_object_t get_variable_value(lisp_object_t var, lisp_object_t environment) {
-  lisp_object_t cell = search_binding(var, environment);
+sexp get_variable_value(sexp var, sexp env) {
+  sexp cell = search_binding(var, env);
   if (cell)
-    /* return pair_cdr(cell); */
     return cell;
   else
     return make_undefined();
-}
-
-lisp_object_t make_file_in_port(FILE *stream) {
-  /* lisp_object_t port = malloc(sizeof(struct lisp_object_t)); */
-  lisp_object_t port = alloc_object();
-  port->type = FILE_IN_PORT;
-  in_port_stream(port) = stream;
-  in_port_linum(port) = 1;
-  return port;
-}
-
-lisp_object_t make_file_out_port(FILE *stream) {
-  /* lisp_object_t port = malloc(sizeof(struct lisp_object_t)); */
-  lisp_object_t port = alloc_object();
-  port->type = FILE_OUT_PORT;
-  out_port_stream(port) = stream;
-  return port;
-}
-
-void free_file_out_port(lisp_object_t port) {
-  /* free(port); */
-  port->ref_count = 0;
-  /* if (port->prev != NULL) */
-  /*   port->prev->next = port->next; */
-  /* port->next = free_objects; */
-  /* free_objects = port; */
-  unlink(port);
 }

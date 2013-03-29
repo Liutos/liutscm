@@ -8,45 +8,43 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "types.h"
 #include "object.h"
+#include "read.h"
+#include "types.h"
+#include "write.h"
 
-extern lisp_object_t repl_environment;
-extern lisp_object_t startup_environment;
-extern lisp_object_t null_environment;
-
-extern void write_object(lisp_object_t, lisp_object_t);
-extern lisp_object_t read_object(lisp_object_t);
-
+#define ADD(Lisp_name, C_proc)                          \
+  add_primitive_proc(Lisp_name, C_proc, environment)
+#define DEFPROC(Lisp_name, C_proc, is_se)                               \
+  {.type=PRIMITIVE_PROC, .values={.primitive_proc={C_proc, is_se, Lisp_name}}}
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
-/* ARITHMETIC */
-
+/* FIXNUM */
 /* Binary plus */
-lisp_object_t plus_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
+sexp plus_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) + fixnum_value(n2));
 }
 
 /* Binary minus */
-lisp_object_t minus_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
+sexp minus_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) - fixnum_value(n2));
 }
 
 /* Binary multiply */
-lisp_object_t multiply_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
+sexp multiply_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) * fixnum_value(n2));
 }
 
 /* Binary divide */
-lisp_object_t divide_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
+sexp divide_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) / fixnum_value(n2));
 }
 
@@ -57,7 +55,7 @@ lisp_object_t numeric_equal_proc(lisp_object_t args) {
   return fixnum_value(n1) == fixnum_value(n2) ? make_true(): make_false();
 }
 
-lisp_object_t mod_proc(lisp_object_t args) {
+lisp_object_t modulo_proc(lisp_object_t args) {
   lisp_object_t n1 = pair_car(args);
   lisp_object_t n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) % fixnum_value(n2));
@@ -69,63 +67,27 @@ lisp_object_t greater_than_proc(lisp_object_t args) {
   return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false();
 }
 
+/* Bitwise and */
 sexp bit_and_proc(sexp args) {
   sexp n1 = pair_car(args);
   sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) & fixnum_value(n2));
 }
 
+/* Bitwise or */
 sexp bit_or_proc(sexp args) {
   sexp n1 = pair_car(args);
   sexp n2 = pair_cadr(args);
   return make_fixnum(fixnum_value(n1) | fixnum_value(n2));
 }
 
+/* Bitwise not */
 sexp bit_not_proc(sexp args) {
   sexp n = pair_car(args);
   return make_fixnum(~fixnum_value(n));
 }
 
-/* Are the two arguments identical? */
-lisp_object_t is_identical_proc(lisp_object_t args) {
-  lisp_object_t o1 = pair_car(args);
-  lisp_object_t o2 = pair_cadr(args);
-  return o1 == o2 ? make_true(): make_false();
-}
-
-/* FLONUM */
-
-sexp flonum_plus_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
-  return make_flonum(float_value(n1) + float_value(n2));
-}
-
-sexp flonum_minus_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
-  return make_flonum(float_value(n1) - float_value(n2));
-}
-
-sexp flonum_multiply_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
-  return make_flonum(float_value(n1) * float_value(n2));
-}
-
-sexp flonum_divide_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
-  return make_flonum(float_value(n1) / float_value(n2));
-}
-
-sexp integer_to_float_proc(sexp args) {
-  sexp n = pair_car(args);
-  return make_flonum((float)(fixnum_value(n)));
-}
-
 /* CHAR */
-
 /* Get the encode of a character */
 lisp_object_t char2code_proc(lisp_object_t args) {
   lisp_object_t c = pair_car(args);
@@ -139,11 +101,10 @@ lisp_object_t code2char_proc(lisp_object_t args) {
 }
 
 /* STRING */
-
 /* Get the specific character in a string */
 lisp_object_t char_at_proc(lisp_object_t args) {
-  lisp_object_t n = pair_car(args);
-  lisp_object_t str = pair_cadr(args);
+  lisp_object_t n = pair_cadr(args);
+  lisp_object_t str = pair_car(args);
   return make_character(string_value(str)[fixnum_value(n)]);
 }
 
@@ -160,7 +121,6 @@ PHEAD(string_equal_proc) {
 }
 
 /* PAIR */
-
 lisp_object_t pair_car_proc(lisp_object_t args) {
   lisp_object_t list = pair_car(args);
   return pair_car(list);
@@ -174,18 +134,18 @@ lisp_object_t pair_cdr_proc(lisp_object_t args) {
 lisp_object_t pair_set_car_proc(lisp_object_t args) {
   lisp_object_t pair = pair_car(args);
   lisp_object_t val = pair_cadr(args);
-  dec_ref_count(pair_car(pair));        /* Decrease the reference count of the previous object in car part */
+  /* dec_ref_count(pair_car(pair)); */
   pair_car(pair) = val;
-  inc_ref_count(val);                   /* Increase the reference count of the new object in car part */
+  /* inc_ref_count(val); */
   return make_undefined();
 }
 
 lisp_object_t pair_set_cdr_proc(lisp_object_t args) {
   lisp_object_t pair = pair_car(args);
   lisp_object_t val = pair_cadr(args);
-  dec_ref_count(pair_cdr(pair));        /* Decrease the reference count of the previous object in cdr part */
+  /* dec_ref_count(pair_cdr(pair)); */
   pair_cdr(pair) = val;
-  inc_ref_count(val);                   /* Increase the reference count of the new object in cdr part */
+  /* inc_ref_count(val); */
   return make_undefined();
 }
 
@@ -197,7 +157,6 @@ lisp_object_t pair_cons_proc(lisp_object_t args) {
 }
 
 /* SYMBOL */
-
 lisp_object_t symbol_name_proc(lisp_object_t args) {
   lisp_object_t sym = pair_car(args);
   return make_string(symbol_name(sym));
@@ -209,41 +168,22 @@ lisp_object_t string2symbol_proc(lisp_object_t args) {
   return find_or_create_symbol(string_value(str));
 }
 
-/* Return a symbol indicates the argument's type */
-lisp_object_t type_of_proc(lisp_object_t args) {
-  lisp_object_t o = pair_car(args);
-  switch (o->type) {
-    case FIXNUM: return find_or_create_symbol("fixnum");
-    case BOOLEAN: return find_or_create_symbol("boolean");
-    case CHARACTER: return find_or_create_symbol("character");
-    case STRING: return find_or_create_symbol("string");
-    case EMPTY_LIST: return find_or_create_symbol("empty_list");
-    case PAIR: return find_or_create_symbol("pair");
-    case SYMBOL: return find_or_create_symbol("symbol");
-    case PRIMITIVE_PROC: return find_or_create_symbol("function");
-    default :
-      fprintf(stderr, "Unknown data type: %d\n", o->type);
-      exit(1);
-  }
+/* VECTOR */
+sexp vector_ref_proc(sexp args) {
+  sexp vector = pair_car(args);
+  sexp n = pair_cadr(args);
+  return vector_data_at(vector, fixnum_value(n));
 }
 
-/* Return the environment used by the REPL */
-lisp_object_t get_repl_environment(lisp_object_t args) {
-  return repl_environment;
+sexp vector_set_proc(sexp args) {
+  sexp vector = pair_car(args);
+  sexp n = pair_cadr(args);
+  sexp value = pair_caddr(args);
+  vector_data_at(vector, fixnum_value(n)) = value;
+  return value;
 }
 
-/* Return the environment with default bindings */
-lisp_object_t get_startup_environment(lisp_object_t args) {
-  return startup_environment;
-}
-
-/* Return a environment with nothing */
-lisp_object_t get_null_environment(lisp_object_t args) {
-  return null_environment;
-}
-
-/* File port support */
-
+/* FILE_IN_PORT */
 lisp_object_t open_in_proc(lisp_object_t args) {
   lisp_object_t path = pair_car(args);
   FILE *fp = fopen(string_value(path), "r");
@@ -265,6 +205,13 @@ lisp_object_t close_in_proc(lisp_object_t args) {
   return make_undefined();
 }
 
+/* Read and parse an S-exp */
+lisp_object_t read_proc(lisp_object_t args) {
+  lisp_object_t in_port = make_file_in_port(stdin);
+  return read_object(in_port);
+}
+
+/* FILE_OUT_PORT */
 lisp_object_t open_out_proc(lisp_object_t args) {
   lisp_object_t path = pair_car(args);
   FILE *fp = fopen(string_value(path), "w");
@@ -296,83 +243,210 @@ lisp_object_t write_proc(lisp_object_t args) {
   return make_undefined();
 }
 
-/* Read and parse an S-exp */
-lisp_object_t read_proc(lisp_object_t args) {
-  lisp_object_t in_port = make_file_in_port(stdin);
-  return read_object(in_port);
-}
-
+/* FUNCTION */
 lisp_object_t apply_proc(lisp_object_t args) {
   fprintf(stderr, "Impossible - APPLY\n");
   exit(1);
 }
 
+/* FLONUM */
+sexp flonum_plus_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) + float_value(n2));
+}
+
+sexp flonum_minus_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) - float_value(n2));
+}
+
+sexp flonum_multiply_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) * float_value(n2));
+}
+
+sexp flonum_divide_proc(sexp args) {
+  sexp n1 = pair_car(args);
+  sexp n2 = pair_cadr(args);
+  return make_flonum(float_value(n1) / float_value(n2));
+}
+
+sexp integer_to_float_proc(sexp args) {
+  sexp n = pair_car(args);
+  return make_flonum((float)(fixnum_value(n)));
+}
+
+/* Others */
 lisp_object_t eval_proc(lisp_object_t args) {
   fprintf(stderr, "Impossible - EVAL\n");
   exit(1);
 }
 
-lisp_object_t make_primitive_proc(lisp_object_t (*C_proc)(lisp_object_t)) {
-  lisp_object_t proc = malloc(sizeof(struct lisp_object_t));
-  proc->type = PRIMITIVE_PROC;
-  proc->values.primitive_proc.C_proc = C_proc;
-  return proc;
+/* Are the two arguments identical? */
+lisp_object_t is_identical_proc(lisp_object_t args) {
+  lisp_object_t o1 = pair_car(args);
+  lisp_object_t o2 = pair_cadr(args);
+  return o1 == o2 ? make_true(): make_false();
 }
 
-void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) {
-  lisp_object_t proc = make_primitive_proc(C_proc);
-  lisp_object_t var = find_or_create_symbol(Lisp_name);
-  add_binding(var, proc, environment);
+/* Return a symbol indicates the argument's type */
+lisp_object_t type_of_proc(lisp_object_t args) {
+  lisp_object_t o = pair_car(args);
+  if (is_fixnum(o)) return S("fixnum");
+  else if (is_bool(o)) return S("boolean");
+  else if (is_char(o)) return S("character");
+  else if (is_null(o)) return S("empty-list");
+  else {
+    switch (o->type) {
+      case STRING: return S("string");
+      case PAIR: return S("pair");
+      case SYMBOL: return S("symbol");
+      case PRIMITIVE_PROC: return S("function");
+      case FILE_IN_PORT: return S("file-in-port");
+      default :
+        fprintf(stderr, "Unknown data type: %d\n", o->type);
+        exit(1);
+    }
+  }
 }
+
+/* Environment */
+/* Return the environment used by the REPL */
+lisp_object_t get_repl_environment(lisp_object_t args) {
+  return repl_environment;
+}
+
+/* Return the environment with default bindings */
+lisp_object_t get_startup_environment(lisp_object_t args) {
+  return startup_environment;
+}
+
+/* Return a environment with nothing */
+lisp_object_t get_null_environment(lisp_object_t args) {
+  return null_environment;
+}
+
+/* void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) { */
+/*   lisp_object_t proc = make_primitive_proc(C_proc); */
+/*   lisp_object_t var = find_or_create_symbol(Lisp_name); */
+/*   add_binding(var, proc, environment); */
+/* } */
+
+void add_primitive_proc(sexp proc, sexp env) {
+  sexp var = S(primitive_name(proc));
+  add_binding(var, proc, env);
+}
+
+struct lisp_object_t primitive_procs[] = {
+  DEFPROC("+", plus_proc, no),
+  DEFPROC("-", minus_proc, no),
+  DEFPROC("*", multiply_proc, no),
+  DEFPROC("quotient", divide_proc, no),
+  DEFPROC("remainder", modulo_proc, no),
+  DEFPROC("=", numeric_equal_proc, no),
+  DEFPROC(">", greater_than_proc, no),
+  DEFPROC("&", bit_and_proc, no),
+  DEFPROC("|", bit_or_proc, no),
+  DEFPROC("~", bit_not_proc, no),
+  DEFPROC("char->integer", char2code_proc, no),
+  DEFPROC("integer->char", code2char_proc, no),
+  DEFPROC("string-ref", char_at_proc, no),
+  DEFPROC("string-length", string_length_proc, no),
+  DEFPROC("string=?", string_equal_proc, no),
+  DEFPROC("car", pair_car_proc, no),
+  DEFPROC("cdr", pair_cdr_proc, no),
+  DEFPROC("cons", pair_cons_proc, no),
+  DEFPROC("set-car!", pair_set_car_proc, yes),
+  DEFPROC("set-cdr!", pair_set_cdr_proc, yes),
+  DEFPROC("symbol-name", symbol_name_proc, no),
+  DEFPROC("string->symbol", string2symbol_proc, no),
+  DEFPROC("apply", apply_proc, yes),
+  DEFPROC("open-in", open_in_proc, yes),
+  DEFPROC("read-char", read_char_proc, yes),
+  DEFPROC("close-in", close_in_proc, yes),
+  DEFPROC("read", read_proc, yes),
+  DEFPROC("open-out", open_out_proc, yes),
+  DEFPROC("write-char", write_char_proc, yes),
+  DEFPROC("close-out", close_out_proc, yes),
+  DEFPROC("write", write_proc, yes),
+  DEFPROC("vector-ref", vector_ref_proc, no),
+  DEFPROC("vector-set!", vector_set_proc, yes),
+  DEFPROC("+.", flonum_plus_proc, no),
+  DEFPROC("-.", flonum_minus_proc, no),
+  DEFPROC("*.", flonum_multiply_proc, no),
+  DEFPROC("/.", flonum_divide_proc, no),
+  DEFPROC("integer->float", integer_to_float_proc, no),
+  DEFPROC("repl-environment", get_repl_environment, no),
+  DEFPROC("type-of", type_of_proc, no),
+  DEFPROC("eq?", is_identical_proc, no),
+  DEFPROC("eval", eval_proc, yes),
+};
 
 void init_environment(lisp_object_t environment) {
-#define ADD(Lisp_name, C_proc) add_primitive_proc(Lisp_name, C_proc, environment);
-  /* ARITHMETIC */
-  add_primitive_proc("+", plus_proc, environment);
-  add_primitive_proc("-", minus_proc, environment);
-  add_primitive_proc("*", multiply_proc, environment);
-  add_primitive_proc("quotient", divide_proc, environment);
-  add_primitive_proc("=", numeric_equal_proc, environment);
-  add_primitive_proc("remainder", mod_proc, environment);
-  add_primitive_proc(">", greater_than_proc, environment);
-  ADD("&", bit_and_proc);
-  ADD("|", bit_or_proc);
-  ADD("~", bit_not_proc);
-  ADD("eq?", is_identical_proc);
-  /* FLONUM */
-  ADD("+.", flonum_plus_proc);
-  ADD("-.", flonum_minus_proc);
-  ADD("*.", flonum_multiply_proc);
-  ADD("/.", flonum_divide_proc);
-  ADD("integer->float", integer_to_float_proc);
+  int len = sizeof(primitive_procs) / sizeof(struct lisp_object_t);
+  for (int i = 0; i < len; i++) {
+    sexp pp = &primitive_procs[i];
+    /* char *name = primitive_name(pp); */
+    /* C_proc_t proc = primitive_C_proc(pp); */
+    add_primitive_proc(pp, environment);
+    /* ADD(name, proc); */
+  }
+  /* FIXNUM */
+  /* ADD("+", plus_proc); */
+  /* ADD("-", minus_proc); */
+  /* ADD("*", multiply_proc); */
+  /* ADD("quotient", divide_proc); */
+  /* ADD("=", numeric_equal_proc); */
+  /* ADD("remainder", modulo_proc); */
+  /* ADD(">", greater_than_proc); */
+  /* ADD("&", bit_and_proc); */
+  /* ADD("|", bit_or_proc); */
+  /* ADD("~", bit_not_proc); */
+
   /* CHAR */
-  add_primitive_proc("char->code", char2code_proc, environment);
-  add_primitive_proc("code->char", code2char_proc, environment);
+  /* ADD("char->integer", char2code_proc); */
+  /* ADD("integer->char", code2char_proc); */
   /* STRING */
-  add_primitive_proc("char-at", char_at_proc, environment);
-  ADD("string-length", string_length_proc);
-  ADD("string=?", string_equal_proc);
+  /* ADD("string-ref", char_at_proc); */
+  /* ADD("string-length", string_length_proc); */
+  /* ADD("string=?", string_equal_proc); */
   /* PAIR */
-  ADD("car", pair_car_proc);
-  ADD("cdr", pair_cdr_proc);
-  ADD("cons", pair_cons_proc);
-  ADD("set-car!", pair_set_car_proc);
-  ADD("set-cdr!", pair_set_cdr_proc);
+  /* ADD("car", pair_car_proc); */
+  /* ADD("cdr", pair_cdr_proc); */
+  /* ADD("cons", pair_cons_proc); */
+  /* ADD("set-car!", pair_set_car_proc); */
+  /* ADD("set-cdr!", pair_set_cdr_proc); */
   /* SYMBOL */
-  ADD("symbol-name", symbol_name_proc);
-  ADD("string->symbol", string2symbol_proc);
-  add_primitive_proc("type-of", type_of_proc, environment);
-  add_primitive_proc("apply", apply_proc, environment);
-  add_primitive_proc("eval", eval_proc, environment);
-  add_primitive_proc("repl-environment", get_repl_environment, environment);
-  /* IN PORT */
-  add_primitive_proc("open-in", open_in_proc, environment);
-  add_primitive_proc("read-char", read_char_proc, environment);
-  add_primitive_proc("close-in", close_in_proc, environment);
-  add_primitive_proc("read", read_proc, environment);
-  /* OUT PORT */
-  add_primitive_proc("open-out", open_out_proc, environment);
-  add_primitive_proc("write-char", write_char_proc, environment);
-  add_primitive_proc("close-out", close_out_proc, environment);
-  add_primitive_proc("write", write_proc, environment);
+  /* ADD("symbol-name", symbol_name_proc); */
+  /* ADD("string->symbol", string2symbol_proc); */
+  /* FUNCTION */
+  /* ADD("apply", apply_proc); */
+  /* FILE_IN_PORT */
+  /* ADD("open-in", open_in_proc); */
+  /* ADD("read-char", read_char_proc); */
+  /* ADD("close-in", close_in_proc); */
+  /* ADD("read", read_proc); */
+  /* FILE_OUT_PORT */
+  /* ADD("open-out", open_out_proc); */
+  /* ADD("write-char", write_char_proc); */
+  /* ADD("close-out", close_out_proc); */
+  /* ADD("write", write_proc); */
+  /* VECTOR */
+  /* ADD("vector-ref", vector_ref_proc); */
+  /* ADD("vector-set!", vector_set_proc); */
+  /* FLONUM */
+  /* ADD("+.", flonum_plus_proc); */
+  /* ADD("-.", flonum_minus_proc); */
+  /* ADD("*.", flonum_multiply_proc); */
+  /* ADD("/.", flonum_divide_proc); */
+  /* ADD("integer->float", integer_to_float_proc); */
+  /* Environment */
+  /* ADD("repl-environment", get_repl_environment); */
+  /* Others */
+  /* ADD("type-of", type_of_proc); */
+  /* ADD("eq?", is_identical_proc); */
+  /* ADD("eval", eval_proc); */
 }
