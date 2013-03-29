@@ -246,6 +246,7 @@ typedef struct hash_table_t {
 #define LIST(...) make_list(__VA_ARGS__, NULL)
 /* SYMBOL */
 #define S(name) find_or_create_symbol(name)
+#define is_label(x) is_symbol(x)
 
 /* maintain reference count */
 /* Assign and increase the ref_count */

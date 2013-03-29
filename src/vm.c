@@ -119,9 +119,9 @@ lisp_object_t make_return_info(lisp_object_t code, int pc, lisp_object_t env) {
   return info;
 }
 
-int is_label(lisp_object_t code) {
-  return is_symbol(code);
-}
+/* int is_label(lisp_object_t code) { */
+/*   return is_symbol(code); */
+/* } */
 
 lisp_object_t extract_labels_aux(lisp_object_t compiled_code, int offset, int *length) {
   if (is_null(compiled_code)) {
