@@ -372,6 +372,7 @@ int search_binding_index(sexp var, sexp env, int *x, int *y) {
   return 0;
 }
 
+/* Create a new binding if this `var' is not used yet */
 void add_binding(sexp var, sexp val, sexp environment) {
   sexp cell = search_binding(var, environment);
   if (!cell) {
@@ -384,6 +385,7 @@ void add_binding(sexp var, sexp val, sexp environment) {
   }
 }
 
+/* Change an existing binding or create a new binding */
 void set_binding(sexp var, sexp val, sexp environment) {
   sexp tmp = environment;
   while (!is_empty_environment(environment)) {
