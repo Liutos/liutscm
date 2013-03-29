@@ -33,7 +33,7 @@ object.o: object.c include/types.h
 
 proc.o: proc.c include/types.h include/object.h
 
-compiler.o: compiler.c include/types.h include/object.h include/eval.h
+compiler.o: compiler.c include/types.h include/object.h include/eval.h include/compiler.h
 
 vm.o: vm.c include/types.h include/object.h
 

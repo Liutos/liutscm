@@ -64,6 +64,10 @@ sexp definition_value(sexp form) {
     return make_lambda_form(pair_cdr(pair_cadr(form)), pair_cddr(form));
 }
 
+sexp define2set(sexp form) {
+  return LIST(S("set!"), definition_variable(form), definition_value(form));
+}
+
 /* set! */
 
 DEFORM(is_assignment_form, "set!")
@@ -257,9 +261,10 @@ tail_loop:
   if (is_variable_form(object))
     return get_variable_value(object, environment);
   if (is_define_form(object)) {
-    sexp value = eval_object(definition_value(object), environment);
-    add_binding(definition_variable(object), value, environment);
-    return value;
+    /* sexp value = eval_object(definition_value(object), environment); */
+    /* add_binding(definition_variable(object), value, environment); */
+    /* return value; */
+    return eval_object(define2set(object), environment);
   }
   if (is_assignment_form(object)) {
     sexp value = eval_object(assignment_value(object), environment);

@@ -16,17 +16,19 @@ typedef unsigned int (*hash_fn_t)(char *);
 typedef int (*comp_fn_t)(char *, char *);
 
 enum object_type {
-  FIXNUM,
-  EOF_OBJECT,
-  BOOLEAN,
-  CHARACTER,
+  /* tagged pointer types */
+  /* FIXNUM, */
+  /* EOF_OBJECT, */
+  /* BOOLEAN, */
+  /* CHARACTER, */
+  /* EMPTY_LIST, */
+  /* CLOSE_OBJECT, */
+  /* DOT_OBJECT, */
+  /* UNDEFINED, */
+  /* compound structure types */
   STRING,
-  EMPTY_LIST,
-  CLOSE_OBJECT,
   PAIR,
   SYMBOL,
-  DOT_OBJECT,
-  UNDEFINED,
   PRIMITIVE_PROC,
   COMPOUND_PROC,
   FILE_IN_PORT,
@@ -56,6 +58,8 @@ typedef struct lisp_object_t {
     } symbol;
     struct {
       C_proc_t C_proc;
+      int is_side_effect;
+      char *Lisp_name;
     } primitive_proc;
     struct {
       sexp parameters;
@@ -102,6 +106,9 @@ typedef struct hash_table_t {
   table_entry_t *datum;
   unsigned int size;
 } *hash_table_t;
+
+#define yes 1
+#define no 0
 
 /* predicates and accessors */
 #define EXTENDED_BITS 4
@@ -202,6 +209,8 @@ typedef struct hash_table_t {
 /* PRIMITIVE_PROC */
 #define is_primitive(x) is_pointer_tag(x, PRIMITIVE_PROC)
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
+#define primitive_se(x) ((x)->values.primitive_proc.is_side_effect)
+#define primitive_name(x) ((x)->values.primitive_proc.Lisp_name)
 /* COMPOUND_PROC */
 #define is_compound(x) is_pointer_tag(x, COMPOUND_PROC)
 #define is_function(x) (is_primitive(x) || is_compound(x))
@@ -243,18 +252,20 @@ typedef struct hash_table_t {
 #define LIST(...) make_list(__VA_ARGS__, NULL)
 /* SYMBOL */
 #define S(name) find_or_create_symbol(name)
+#define is_label(x) is_symbol(x)
 
 /* maintain reference count */
 /* Assign and increase the ref_count */
-#define ASIG(var, value)                        \
-  do {                                          \
-    var = value;                                \
-    inc_ref_count(value);                       \
-  } while(0)
+#define ASIG(var, value) var = value
+/* #define ASIG(var, value)                        \ */
+/*   do {                                          \ */
+/*     var = value;                                \ */
+/*     inc_ref_count(value);                       \ */
+/*   } while(0) */
 
 /* Declare, initialize and increase the references count */
-#define DECL(var, expr)                         \
-  sexp var = expr;                              \
-  inc_ref_count(var);
+/* #define DECL(var, expr)                         \ */
+/*   sexp var = expr;                              \ */
+/*   inc_ref_count(var); */
 
 #endif

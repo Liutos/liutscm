@@ -13,8 +13,10 @@
 #include "types.h"
 #include "write.h"
 
-#define ADD(Lisp_name, C_proc)\
+#define ADD(Lisp_name, C_proc)                          \
   add_primitive_proc(Lisp_name, C_proc, environment)
+#define DEFPROC(Lisp_name, C_proc, is_se)                               \
+  {.type=PRIMITIVE_PROC, .values={.primitive_proc={C_proc, is_se, Lisp_name}}}
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
 /* FIXNUM */
@@ -132,18 +134,18 @@ lisp_object_t pair_cdr_proc(lisp_object_t args) {
 lisp_object_t pair_set_car_proc(lisp_object_t args) {
   lisp_object_t pair = pair_car(args);
   lisp_object_t val = pair_cadr(args);
-  dec_ref_count(pair_car(pair));
+  /* dec_ref_count(pair_car(pair)); */
   pair_car(pair) = val;
-  inc_ref_count(val);
+  /* inc_ref_count(val); */
   return make_undefined();
 }
 
 lisp_object_t pair_set_cdr_proc(lisp_object_t args) {
   lisp_object_t pair = pair_car(args);
   lisp_object_t val = pair_cadr(args);
-  dec_ref_count(pair_cdr(pair));
+  /* dec_ref_count(pair_cdr(pair)); */
   pair_cdr(pair) = val;
-  inc_ref_count(val);
+  /* inc_ref_count(val); */
   return make_undefined();
 }
 
@@ -327,65 +329,124 @@ lisp_object_t get_null_environment(lisp_object_t args) {
   return null_environment;
 }
 
-void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) {
-  lisp_object_t proc = make_primitive_proc(C_proc);
-  lisp_object_t var = find_or_create_symbol(Lisp_name);
-  add_binding(var, proc, environment);
+/* void add_primitive_proc(char *Lisp_name, lisp_object_t (*C_proc)(lisp_object_t), lisp_object_t environment) { */
+/*   lisp_object_t proc = make_primitive_proc(C_proc); */
+/*   lisp_object_t var = find_or_create_symbol(Lisp_name); */
+/*   add_binding(var, proc, environment); */
+/* } */
+
+void add_primitive_proc(sexp proc, sexp env) {
+  sexp var = S(primitive_name(proc));
+  add_binding(var, proc, env);
 }
 
+struct lisp_object_t primitive_procs[] = {
+  DEFPROC("+", plus_proc, no),
+  DEFPROC("-", minus_proc, no),
+  DEFPROC("*", multiply_proc, no),
+  DEFPROC("quotient", divide_proc, no),
+  DEFPROC("remainder", modulo_proc, no),
+  DEFPROC("=", numeric_equal_proc, no),
+  DEFPROC(">", greater_than_proc, no),
+  DEFPROC("&", bit_and_proc, no),
+  DEFPROC("|", bit_or_proc, no),
+  DEFPROC("~", bit_not_proc, no),
+  DEFPROC("char->integer", char2code_proc, no),
+  DEFPROC("integer->char", code2char_proc, no),
+  DEFPROC("string-ref", char_at_proc, no),
+  DEFPROC("string-length", string_length_proc, no),
+  DEFPROC("string=?", string_equal_proc, no),
+  DEFPROC("car", pair_car_proc, no),
+  DEFPROC("cdr", pair_cdr_proc, no),
+  DEFPROC("cons", pair_cons_proc, no),
+  DEFPROC("set-car!", pair_set_car_proc, yes),
+  DEFPROC("set-cdr!", pair_set_cdr_proc, yes),
+  DEFPROC("symbol-name", symbol_name_proc, no),
+  DEFPROC("string->symbol", string2symbol_proc, no),
+  DEFPROC("apply", apply_proc, yes),
+  DEFPROC("open-in", open_in_proc, yes),
+  DEFPROC("read-char", read_char_proc, yes),
+  DEFPROC("close-in", close_in_proc, yes),
+  DEFPROC("read", read_proc, yes),
+  DEFPROC("open-out", open_out_proc, yes),
+  DEFPROC("write-char", write_char_proc, yes),
+  DEFPROC("close-out", close_out_proc, yes),
+  DEFPROC("write", write_proc, yes),
+  DEFPROC("vector-ref", vector_ref_proc, no),
+  DEFPROC("vector-set!", vector_set_proc, yes),
+  DEFPROC("+.", flonum_plus_proc, no),
+  DEFPROC("-.", flonum_minus_proc, no),
+  DEFPROC("*.", flonum_multiply_proc, no),
+  DEFPROC("/.", flonum_divide_proc, no),
+  DEFPROC("integer->float", integer_to_float_proc, no),
+  DEFPROC("repl-environment", get_repl_environment, no),
+  DEFPROC("type-of", type_of_proc, no),
+  DEFPROC("eq?", is_identical_proc, no),
+  DEFPROC("eval", eval_proc, yes),
+};
+
 void init_environment(lisp_object_t environment) {
+  int len = sizeof(primitive_procs) / sizeof(struct lisp_object_t);
+  for (int i = 0; i < len; i++) {
+    sexp pp = &primitive_procs[i];
+    /* char *name = primitive_name(pp); */
+    /* C_proc_t proc = primitive_C_proc(pp); */
+    add_primitive_proc(pp, environment);
+    /* ADD(name, proc); */
+  }
   /* FIXNUM */
-  ADD("+", plus_proc);
-  ADD("-", minus_proc);
-  ADD("*", multiply_proc);
-  ADD("quotient", divide_proc);
-  ADD("=", numeric_equal_proc);
-  ADD("remainder", modulo_proc);
-  ADD(">", greater_than_proc);
-  ADD("&", bit_and_proc);
-  ADD("|", bit_or_proc);
-  ADD("~", bit_not_proc);
-  ADD("eq?", is_identical_proc);
+  /* ADD("+", plus_proc); */
+  /* ADD("-", minus_proc); */
+  /* ADD("*", multiply_proc); */
+  /* ADD("quotient", divide_proc); */
+  /* ADD("=", numeric_equal_proc); */
+  /* ADD("remainder", modulo_proc); */
+  /* ADD(">", greater_than_proc); */
+  /* ADD("&", bit_and_proc); */
+  /* ADD("|", bit_or_proc); */
+  /* ADD("~", bit_not_proc); */
+
   /* CHAR */
-  ADD("char->integer", char2code_proc);
-  ADD("integer->char", code2char_proc);
+  /* ADD("char->integer", char2code_proc); */
+  /* ADD("integer->char", code2char_proc); */
   /* STRING */
-  ADD("string-ref", char_at_proc);
-  ADD("string-length", string_length_proc);
-  ADD("string=?", string_equal_proc);
+  /* ADD("string-ref", char_at_proc); */
+  /* ADD("string-length", string_length_proc); */
+  /* ADD("string=?", string_equal_proc); */
   /* PAIR */
-  ADD("car", pair_car_proc);
-  ADD("cdr", pair_cdr_proc);
-  ADD("cons", pair_cons_proc);
-  ADD("set-car!", pair_set_car_proc);
-  ADD("set-cdr!", pair_set_cdr_proc);
+  /* ADD("car", pair_car_proc); */
+  /* ADD("cdr", pair_cdr_proc); */
+  /* ADD("cons", pair_cons_proc); */
+  /* ADD("set-car!", pair_set_car_proc); */
+  /* ADD("set-cdr!", pair_set_cdr_proc); */
   /* SYMBOL */
-  ADD("symbol-name", symbol_name_proc);
-  ADD("string->symbol", string2symbol_proc);
+  /* ADD("symbol-name", symbol_name_proc); */
+  /* ADD("string->symbol", string2symbol_proc); */
   /* FUNCTION */
-  ADD("apply", apply_proc);
+  /* ADD("apply", apply_proc); */
   /* FILE_IN_PORT */
-  ADD("open-in", open_in_proc);
-  ADD("read-char", read_char_proc);
-  ADD("close-in", close_in_proc);
-  ADD("read", read_proc);
+  /* ADD("open-in", open_in_proc); */
+  /* ADD("read-char", read_char_proc); */
+  /* ADD("close-in", close_in_proc); */
+  /* ADD("read", read_proc); */
   /* FILE_OUT_PORT */
-  ADD("open-out", open_out_proc);
-  ADD("write-char", write_char_proc);
-  ADD("close-out", close_out_proc);
-  ADD("write", write_proc);
+  /* ADD("open-out", open_out_proc); */
+  /* ADD("write-char", write_char_proc); */
+  /* ADD("close-out", close_out_proc); */
+  /* ADD("write", write_proc); */
   /* VECTOR */
-  ADD("vector-ref", vector_ref_proc);
-  ADD("vector-set!", vector_set_proc);
+  /* ADD("vector-ref", vector_ref_proc); */
+  /* ADD("vector-set!", vector_set_proc); */
   /* FLONUM */
-  ADD("+.", flonum_plus_proc);
-  ADD("-.", flonum_minus_proc);
-  ADD("*.", flonum_multiply_proc);
-  ADD("/.", flonum_divide_proc);
-  ADD("integer->float", integer_to_float_proc);
+  /* ADD("+.", flonum_plus_proc); */
+  /* ADD("-.", flonum_minus_proc); */
+  /* ADD("*.", flonum_multiply_proc); */
+  /* ADD("/.", flonum_divide_proc); */
+  /* ADD("integer->float", integer_to_float_proc); */
   /* Environment */
-  ADD("repl-environment", get_repl_environment);
+  /* ADD("repl-environment", get_repl_environment); */
   /* Others */
-  ADD("type-of", type_of_proc);
-  ADD("eval", eval_proc);
+  /* ADD("type-of", type_of_proc); */
+  /* ADD("eq?", is_identical_proc); */
+  /* ADD("eval", eval_proc); */
 }

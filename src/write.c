@@ -13,6 +13,8 @@
 #include "object.h"
 #include "types.h"
 
+/* extern int is_label(sexp); */
+
 void port_format(sexp, const char *, ...);
 
 void write_char(char c, lisp_object_t port) {
@@ -111,7 +113,17 @@ void write_object(sexp object, sexp port) {
       break;
     case COMPILED_PROC:
       write_string("#<compiled-procedure ", port);
-      write_object(compiled_proc_code(object), port);
+      /* write_object(compiled_proc_code(object), port); */
+      sexp code = compiled_proc_code(object);
+      write_char('\n', port);
+      while (!is_null(code)) {
+        sexp ins = pair_car(code);
+        if (is_label(ins))
+          port_format(port, "%s:", symbol_name(ins));
+        else
+          port_format(port, "\t%*\n", ins);
+        code = pair_cdr(code);
+      }
       write_char('>', port);
       break;
     case VECTOR:
