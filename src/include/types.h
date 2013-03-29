@@ -256,15 +256,16 @@ typedef struct hash_table_t {
 
 /* maintain reference count */
 /* Assign and increase the ref_count */
-#define ASIG(var, value)                        \
-  do {                                          \
-    var = value;                                \
-    inc_ref_count(value);                       \
-  } while(0)
+#define ASIG(var, value) var = value
+/* #define ASIG(var, value)                        \ */
+/*   do {                                          \ */
+/*     var = value;                                \ */
+/*     inc_ref_count(value);                       \ */
+/*   } while(0) */
 
 /* Declare, initialize and increase the references count */
-#define DECL(var, expr)                         \
-  sexp var = expr;                              \
-  inc_ref_count(var);
+/* #define DECL(var, expr)                         \ */
+/*   sexp var = expr;                              \ */
+/*   inc_ref_count(var); */
 
 #endif

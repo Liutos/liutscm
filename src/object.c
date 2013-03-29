@@ -16,13 +16,13 @@
 
 #define HEAP_SIZE 1000
 
-#define unlink(x)                               \
-  do {                                          \
-    if ((x)->prev != NULL)                      \
-      (x)->prev->next = (x)->next;              \
-    (x)->next = free_objects;                   \
-    free_objects = (x);                         \
-  } while (0)
+/* #define unlink(x)                               \ */
+/*   do {                                          \ */
+/*     if ((x)->prev != NULL)                      \ */
+/*       (x)->prev->next = (x)->next;              \ */
+/*     (x)->next = free_objects;                   \ */
+/*     free_objects = (x);                         \ */
+/*   } while (0) */
 
 hash_table_t symbol_table;
 /*
@@ -54,14 +54,26 @@ sexp alloc_object(enum object_type type) {
   }
   sexp object = free_objects;
   free_objects = free_objects->next;
+
   object->next = used_objects;
   used_objects = object;
+
   object->type = type;
   return object;
 }
 
 void reclaim(sexp object) {
-  unlink(object);
+  /* unlink(object); */
+  /* Unlink from `used_objects' */
+  if (object->prev != NULL)
+    object->prev->next = object->next;
+  if (object->next != NULL)
+    object->next->prev = object->prev;
+  /* Concatenate into `free_objects' as header */
+  object->prev = NULL;
+  object->next = free_objects;
+  free_objects = object;
+
   port_format(scm_out_port, "Releasing %*\n", object);
   if (is_pair(object)) {
     dec_ref_count(pair_car(object));
@@ -393,9 +405,9 @@ void set_binding(sexp var, sexp val, sexp environment) {
     sexp vals = environment_vals(environment);
     while (is_pair(vars)) {
       if (pair_car(vars) == var) {
-        dec_ref_count(pair_car(vals));
+        /* dec_ref_count(pair_car(vals)); */
         pair_car(vals) = val;
-        inc_ref_count(val);
+        /* inc_ref_count(val); */
         break;
       }
       vars = pair_cdr(vars);
