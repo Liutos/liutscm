@@ -278,7 +278,7 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       /*     pc++; */
       /*   }} */
       /*   break; */
-      /* case FN: push(arg1(code), stack); pc++; break; */
+      case FN: push(arg1(ins), stack); break;
       case PRIM: {
         pop_to(stack, op);
         sexp args = make_arguments(stack, fixnum_value(arg1(ins)));

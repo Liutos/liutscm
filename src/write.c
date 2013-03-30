@@ -141,8 +141,11 @@ void write_object(sexp object, sexp port) {
               return_pc(object),
               return_env(object));
       break;
-    case FLONUM:
-      write_flonum(float_value(object), port);
+    case FLONUM: write_flonum(float_value(object), port); break;
+    case ENVIRONMENT:
+      port_format(scm_out_port, "#<environment :bindings %* :outer_env %p>",
+                  environment_bindings(object),
+                  environment_outer(object));
       break;
     default :
       fprintf(stderr, "cannot write unknown type %d\n", object->type);
