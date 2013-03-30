@@ -310,6 +310,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         }
         /* pop(stack); */
         push(value, stack);
+        goto halt;
       } break;
       /* case RETURN: { */
       /*   sexp value = pair_car(stack); */
@@ -361,12 +362,10 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       case POP: pop(stack); break;
 
         /* Branching instructions */
-      /* case FJUMP: { */
-      /*   pop_to(stack, top); */
-      /*   if (is_false(top)) */
-      /*     pc = fixnum_value(arg1(code)); */
-      /*   else pc++; } */
-      /*   break; */
+      case FJUMP: {
+        pop_to(stack, e);
+        if (is_false(e)) pc = fixnum_value(arg1(ins)) - 1;
+      } break;
       /* case JUMP: pc = fixnum_value(arg1(code)); break; */
       /* case TJUMP: { */
       /*   pop_to(stack, top); */
@@ -383,6 +382,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
     port_format(scm_out_port, "stack: %*\n", stack);
     /* port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env); */
   }
+halt:
   /* return pair_car(stack); */
   return top(stack);
 }

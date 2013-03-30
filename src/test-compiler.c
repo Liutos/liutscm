@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     /* "(begin (if p (f x) (* x x)) z)", */
     /* "(+ 1 2)", */
     /* "(begin (+ (* 1 2) (read)))", */
-    "(begin (set! a 1) a)",
+    "((lambda (x) (if x 1 2)) 1)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
