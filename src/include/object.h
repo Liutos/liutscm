@@ -61,6 +61,7 @@ extern sexp find_or_create_symbol(char *);
 extern sexp extend_environment(sexp, sexp, sexp);
 extern sexp make_startup_environment(void);
 extern sexp make_repl_environment(void);
+extern int is_empty_environment(sexp);
 extern sexp make_empty_environment(void);
 extern int search_binding_index(sexp, sexp, int *, int *);
 extern void add_binding(sexp, sexp, sexp);
