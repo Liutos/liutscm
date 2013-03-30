@@ -26,49 +26,92 @@
   pop(stack);
 
 #define push(e, stack) stack = make_pair(e, stack)
+#define C(n) {.code=n, .name=#n}
 
 enum code_type {
+  ARGS,
+  CALL,
+  CALLJ,
   CONST,
-  LVAR,
   FJUMP,
+  FN,
+  GVAR,
   JUMP,
   LSET,
+  LVAR,
   POP,
-  GVAR,
-  CALL,
-  FN,
-  ARGS,
   RETURN,
+  SAVE,
   TJUMP,
 };
+
+struct code_t {
+  enum code_type code;
+  char *name;
+};
+
+static struct code_t opcodes[] = {
+  C(ARGS),
+  C(CALL),
+  C(CALLJ),
+  C(CONST),
+  C(FJUMP),
+  C(FN),
+  C(GVAR),
+  C(JUMP),
+  C(LSET),
+  C(LVAR),
+  C(POP),
+  C(RETURN),
+  C(SAVE),
+  C(TJUMP),
+};
+/* static char *opcodes[] = { */
+/*   "ARGS", */
+/*   "CALL", */
+/*   "CONST", */
+/*   "FJUMP", */
+/*   "FN", */
+/*   "GVAR", */
+/*   "JUMP", */
+/*   "LSET", */
+/*   "LVAR", */
+/*   "POP", */
+/*   "RETURN", */
+/*   "SAVE", */
+/*   "TJUMP", */
+/* }; */
 
 enum code_type code_name(lisp_object_t code) {
   assert(is_pair(code));
   lisp_object_t name = pair_car(code);
+  for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
+    if (name == S(opcodes[i].name))
+      return opcodes[i].code;
   /* if (S("CONST") == name) */
   /*   return CONST; */
-  SR(CONST);
-  /* if (S("LVAR") == name) */
-  /*   return LVAR; */
-  SR(LVAR);
-  /* if (S("FJUMP") == name) return FJUMP; */
-  SR(FJUMP);
-  /* if (S("JUMP") == name) return JUMP; */
-  SR(JUMP);
-  /* if (S("LSET") == name) return LSET; */
-  SR(LSET);
-  /* if (S("POP") == name) return POP; */
-  SR(POP);
-  /* if (S("GVAR") == name) return GVAR; */
-  SR(GVAR);
-  /* if (S("CALL") == name) return CALL; */
-  SR(CALL);
-  /* if (S("FN") == name) return FN; */
-  SR(FN);
-  /* if (S("ARGS") == name) return ARGS; */
-  SR(ARGS);
-  /* if (S("RETURN") == name) return RETURN; */
-  SR(RETURN);
+  /* SR(CONST); */
+  /* /\* if (S("LVAR") == name) *\/ */
+  /* /\*   return LVAR; *\/ */
+  /* SR(LVAR); */
+  /* /\* if (S("FJUMP") == name) return FJUMP; *\/ */
+  /* SR(FJUMP); */
+  /* /\* if (S("JUMP") == name) return JUMP; *\/ */
+  /* SR(JUMP); */
+  /* /\* if (S("LSET") == name) return LSET; *\/ */
+  /* SR(LSET); */
+  /* /\* if (S("POP") == name) return POP; *\/ */
+  /* SR(POP); */
+  /* /\* if (S("GVAR") == name) return GVAR; *\/ */
+  /* SR(GVAR); */
+  /* /\* if (S("CALL") == name) return CALL; *\/ */
+  /* SR(CALL); */
+  /* /\* if (S("FN") == name) return FN; *\/ */
+  /* SR(FN); */
+  /* /\* if (S("ARGS") == name) return ARGS; *\/ */
+  /* SR(ARGS); */
+  /* /\* if (S("RETURN") == name) return RETURN; *\/ */
+  /* SR(RETURN); */
   fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
   exit(1);
 }
@@ -270,6 +313,7 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       /*   push(value, stack); */
       /*   pc++; } */
       /*   break; */
+      case SAVE: push(make_return_info(code, pc, env), stack); break;
 
       /*   /\* Variable/Stack manipulation instructions *\/ */
       case CONST: push(arg1(ins), stack); break;
