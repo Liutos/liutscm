@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
     /* "(begin (if p (f x) (* x x)) z)", */
     /* "(+ 1 2)", */
     /* "(begin (+ (* 1 2) (read)))", */
-    "((lambda (x) (if x 1 2)) 1)",
+    /* "((lambda (x) (if x 1 2)) 1)", */
+    "(eval (read) (repl-environment))",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

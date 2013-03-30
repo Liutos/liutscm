@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-extern lisp_object_t eval_object(lisp_object_t, lisp_object_t);
-extern lisp_object_t eval_application(lisp_object_t, lisp_object_t);
+extern sexp eval_object(sexp, sexp);
+extern sexp eval_application(sexp, sexp);
 
 /* Parse utilities */
 /* begin */

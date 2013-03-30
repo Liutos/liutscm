@@ -114,11 +114,17 @@ void set_variable_by_index(int i, int j, sexp new_value, sexp env) {
 }
 
 lisp_object_t make_arguments(lisp_object_t stack, int n) {
-  if (0 == n)
-    return make_empty_list();
-  else
-    return make_pair(pair_car(stack),
-                     make_arguments(pair_cdr(stack), n - 1));
+  /* if (0 == n) */
+  /*   return make_empty_list(); */
+  /* else */
+  /*   return make_pair(pair_car(stack), */
+  /*                    make_arguments(pair_cdr(stack), n - 1)); */
+  sexp args = EOL;
+  for (; n > 0; n--) {
+    pop_to(stack, e);
+    push(e, args);
+  }
+  return args;
 }
 
 void push_value2env(lisp_object_t stack, int n, lisp_object_t environment) {
@@ -237,11 +243,11 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   /* assert(is_empty_environment(env)); */
   sexp code = compiled_proc_code(obj);
   code = assemble_code(code);
-  port_format(scm_out_port, "-- %*\n", code);
+  /* port_format(scm_out_port, "-- %*\n", code); */
   for (int pc = 0; pc < vector_length(code); pc++) {
     assert(is_vector(code));
     sexp ins = vector_data_at(code, pc);
-    port_format(scm_out_port, "Processing: %*\n", ins);
+    /* port_format(scm_out_port, "Processing: %*\n", ins); */
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
@@ -379,7 +385,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         port_format(scm_out_port, "%*\n", env);
         return stack;
     }
-    port_format(scm_out_port, "stack: %*\n", stack);
+    /* port_format(scm_out_port, "stack: %*\n", stack); */
     /* port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env); */
   }
 halt:

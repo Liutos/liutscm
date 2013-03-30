@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "eval.h"
 #include "object.h"
 #include "read.h"
 #include "types.h"
@@ -281,8 +282,11 @@ sexp integer_to_float_proc(sexp args) {
 
 /* Others */
 lisp_object_t eval_proc(lisp_object_t args) {
-  fprintf(stderr, "Impossible - EVAL\n");
-  exit(1);
+  /* fprintf(stderr, "Impossible - EVAL\n"); */
+  /* exit(1); */
+  sexp exp = pair_car(args);
+  sexp env = pair_cadr(args);
+  return eval_object(exp, env);
 }
 
 /* Are the two arguments identical? */
