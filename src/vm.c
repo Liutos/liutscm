@@ -190,6 +190,21 @@ void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
   pair_cdr(pair) = new_cdr;
 }
 
+/* Moves n elements from top of `stack' into `env' */
+void move_args(int n, sexp *stack, sexp *env) {
+  *env = extend_environment(EOL, EOL, *env);
+  sexp vals = environment_vals(*env);
+  for (; n > 0; n--) {
+    pop_to(*stack, arg);
+    push(arg, vals);
+  }
+  environment_vals(*env) = vals;
+}
+
+sexp top(sexp stack) {
+  return pair_car(stack);
+}
+
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
   assert(is_compiled_proc(proc));
@@ -203,13 +218,14 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
-        env = extend_environment(EOL, EOL, env);
-        sexp vals = environment_vals(env);
-        for (int i = fixnum_value(arg1(ins)); i > 0; i--) {
-          pop_to(stack, arg);
-          push(arg, vals);
-        }
-        environment_vals(env) = vals;
+        /* env = extend_environment(EOL, EOL, env); */
+        /* sexp vals = environment_vals(env); */
+        /* for (int i = fixnum_value(arg1(ins)); i > 0; i--) { */
+        /*   pop_to(stack, arg); */
+        /*   push(arg, vals); */
+        /* } */
+        /* environment_vals(env) = vals; */
+        move_args(fixnum_value(arg1(ins)), &stack, &env);
       } break;
       /* case ARGS: { */
       /*   sexp n = arg1(code); */
@@ -261,6 +277,11 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       /*   push(arg1(code), stack); */
       /*   pc++; */
       /*   break; */
+      case LSET: {
+        int i = fixnum_value(arg1(ins));
+        int j = fixnum_value(arg2(ins));
+        set_variable_by_index(i, j, top(stack), env);
+      } break;
       /* case LSET: { */
       /*   int i = fixnum_value(arg1(code)); */
       /*   int j = fixnum_value(arg2(code)); */
