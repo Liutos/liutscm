@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     /* "type-of", */
     /* "#\\a", */
     /* "(type-of #\\a)", */
+    "(define a 1)",
   };
   init_impl();
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
