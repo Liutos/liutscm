@@ -15,78 +15,102 @@
 #include "write.h"
 
 #define SR(x) if (S(#x) == name) return x
-#define code_arg0(x) pair_cadr(code)
-#define code_arg1(x) pair_caddr(code)
-#define code_arg2(x) pair_cadddr(code)
-#define push(e, stack) stack = make_pair(e, stack)
-#define pop(stack) stack = pair_cdr(stack)
+#define arg1(x) pair_cadr(x)
+#define arg2(x) pair_caddr(x)
+#define arg3(x) pair_cadddr(x)
 #define nth_pop(stack, n) stack = pair_nthcdr(stack, n)
+#define pop(stack) stack = pair_cdr(stack)
+
+#define pop_to(stack, var)                      \
+  sexp var = first(stack);                      \
+  pop(stack);
+
+#define push(e, stack) stack = make_pair(e, stack)
+#define C(n) {.code=n, .name=#n}
 
 enum code_type {
+  ARGS,
+  CALL,
+  CALLJ,
   CONST,
-  LVAR,
   FJUMP,
+  FN,
+  GSET,
+  GVAR,
   JUMP,
   LSET,
+  LVAR,
   POP,
-  GVAR,
-  CALL,
-  FN,
-  ARGS,
+  PRIM,
   RETURN,
+  SAVE,
   TJUMP,
 };
 
+struct code_t {
+  enum code_type code;
+  char *name;
+};
+
+static struct code_t opcodes[] = {
+  C(ARGS),
+  C(CALL),
+  C(CALLJ),
+  C(CONST),
+  C(FJUMP),
+  C(FN),
+  C(GSET),
+  C(GVAR),
+  C(JUMP),
+  C(LSET),
+  C(LVAR),
+  C(POP),
+  C(PRIM),
+  C(RETURN),
+  C(SAVE),
+  C(TJUMP),
+};
+
 enum code_type code_name(lisp_object_t code) {
+  assert(is_pair(code));
   lisp_object_t name = pair_car(code);
-  /* if (S("CONST") == name) */
-  /*   return CONST; */
-  SR(CONST);
-  /* if (S("LVAR") == name) */
-  /*   return LVAR; */
-  SR(LVAR);
-  /* if (S("FJUMP") == name) return FJUMP; */
-  SR(FJUMP);
-  /* if (S("JUMP") == name) return JUMP; */
-  SR(JUMP);
-  /* if (S("LSET") == name) return LSET; */
-  SR(LSET);
-  /* if (S("POP") == name) return POP; */
-  SR(POP);
-  /* if (S("GVAR") == name) return GVAR; */
-  SR(GVAR);
-  /* if (S("CALL") == name) return CALL; */
-  SR(CALL);
-  /* if (S("FN") == name) return FN; */
-  SR(FN);
-  /* if (S("ARGS") == name) return ARGS; */
-  SR(ARGS);
-  /* if (S("RETURN") == name) return RETURN; */
-  SR(RETURN);
-  fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
+  for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
+    if (name == S(opcodes[i].name))
+      return opcodes[i].code;
+  /* fprintf(stderr, "code_name - Unsupported code: %s\n", */
+  /*         symbol_name(pair_car(code))); */
+  port_format(scm_out_port, "code_name - Unsupported code: %*\n", pair_car(code));
   exit(1);
 }
 
-lisp_object_t get_variable_by_index(int i, int j, lisp_object_t environment) {
-  while (i != 0) {
-    environment = enclosing_environment(environment);
-    i--;
-  }
-  lisp_object_t vals = environment_vals(environment);
-  while (j != 0) {
-    vals = pair_cdr(vals);
-    j--;
-  }
-  return pair_car(vals);
+sexp get_variable_by_index(int i, int j, sexp env) {
+  /* while (i != 0) { */
+  /*   environment = enclosing_environment(environment); */
+  /*   i--; */
+  /* } */
+  /* lisp_object_t vals = environment_vals(environment); */
+  /* while (j != 0) { */
+  /*   vals = pair_cdr(vals); */
+  /*   j--; */
+  /* } */
+  /* return pair_car(vals); */
+  for (; i > 0; i--) env = environment_outer(env);
+  sexp bindings = environment_bindings(env);
+  for (; j > 0; j--) bindings = pair_cdr(bindings);
+  return pair_cdar(bindings);
 }
 
-void set_variable_by_index(int i, int j, lisp_object_t new_value, lisp_object_t environment) {
-  while (i-- != 0)
-    environment = enclosing_environment(environment);
-  lisp_object_t vals = environment_vals(environment);
-  while (j-- != 0)
-    vals = pair_cdr(vals);
-  pair_car(vals) = new_value;
+void set_variable_by_index(int i, int j, sexp new_value, sexp env) {
+  /* while (i-- != 0) */
+  /*   environment = enclosing_environment(environment); */
+  /* lisp_object_t vals = environment_vals(environment); */
+  /* while (j-- != 0) */
+  /*   vals = pair_cdr(vals); */
+  /* pair_car(vals) = new_value; */
+  for (; i > 0; i--) env = environment_outer(env);
+  sexp bindings = environment_bindings(env);
+  for (; j > 0; j--) bindings = pair_cdr(bindings);
+  pair_cdar(bindings) = new_value;
 }
 
 lisp_object_t make_arguments(lisp_object_t stack, int n) {
@@ -131,7 +155,8 @@ sexp extract_labels(sexp compiled_code, int *length) {
 int is_with_label(lisp_object_t code) {
   switch (code_name(code)) {
     case FJUMP:
-    case JUMP: return 1;
+    case JUMP:
+    case TJUMP: return 1;
     default : return 0;
   }
 }
@@ -156,7 +181,7 @@ lisp_object_t vectorize_code(lisp_object_t compiled_code, int length, lisp_objec
     lisp_object_t code = pair_car(compiled_code);
     if (!is_label(code)) {
       if (is_with_label(code)) {
-        code_arg0(code) = search_label_offset(code_arg0(code), label_table);
+        arg1(code) = search_label_offset(arg1(code), label_table);
         label_table = pair_cdr(label_table);
       }
       vector_data_at(code_vector, i) = code;
@@ -184,123 +209,180 @@ void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
   pair_cdr(pair) = new_cdr;
 }
 
+/* Moves n elements from top of `stack' into `env' */
+void move_args(int n, sexp *stack, sexp *env) {
+  *env = extend_environment(EOL, EOL, *env);
+  /* sexp vals = environment_vals(*env); */
+  /* for (; n > 0; n--) { */
+  /*   pop_to(*stack, arg); */
+  /*   push(arg, vals); */
+  /* } */
+  sexp bindings = environment_bindings(*env);
+  for (; n > 0; n--/* , bindings = pair_cdr(bindings) */) {
+    pop_to(*stack, arg);
+    push(make_pair(EOL, arg), bindings);
+    /* pair_cdar(bindings) = arg; */
+  }
+  environment_bindings(*env) = bindings;
+}
+
+sexp top(sexp stack) {
+  if (is_null(stack)) return EOL;
+  return pair_car(stack);
+}
+
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
-lisp_object_t run_compiled_code(lisp_object_t compiled_code, lisp_object_t environment, lisp_object_t stack) {
-  assert(is_vector(compiled_code));
-  int pc = 0;
-  while (pc < vector_length(compiled_code)) {
-    lisp_object_t code = vector_data_at(compiled_code, pc);
-    printf("++ ");
-    write_object(code, make_file_out_port(stdout));
-    switch (code_name(code)) {
+sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
+  assert(is_compiled_proc(obj));
+  /* assert(is_empty_environment(env)); */
+  sexp code = compiled_proc_code(obj);
+  code = assemble_code(code);
+  port_format(scm_out_port, "-- %*\n", code);
+  for (int pc = 0; pc < vector_length(code); pc++) {
+    assert(is_vector(code));
+    sexp ins = vector_data_at(code, pc);
+    port_format(scm_out_port, "Processing: %*\n", ins);
+    switch (code_name(ins)) {
+      /* Function call/return instructions */
       case ARGS: {
-        lisp_object_t n = code_arg0(code);
-        push_value2env(stack, fixnum_value(n), environment);
-        nth_pop(stack, fixnum_value(n));
-        pc++;
-      }
-        break;
-      case CALL: {
-        lisp_object_t n = code_arg0(code);
-        lisp_object_t op = pair_car(stack);
-        pop(stack);
-        if (is_compiled_proc(op)) {
-          /* Save the current context */
-          lisp_object_t info = make_return_info(compiled_code, pc, environment);
-          /* push(info, stack); */
-          if (fixnum_value(n) != 0)
-            nth_insert_pair(fixnum_value(n), info, stack);
-          else
-            push(info, stack);
-          /* Set the new context */
-          lisp_object_t code = compiled_proc_code(op);
-          lisp_object_t env = compiled_proc_env(op);
-          code = assemble_code(code);
-          /* stack = run_compiled_code(code, env, stack); */
-          /* pc++; */
-          compiled_code = code;
-          environment = env;
-          pc = 0;
-        } else {
-          lisp_object_t args = make_arguments(stack, fixnum_value(n));
-          nth_pop(stack, fixnum_value(n));
-          push(eval_application(op, args), stack);
-          pc++;
-        }
-      }
-        break;
-      case CONST:
-        push(code_arg0(code), stack);
-        pc++;
-        break;
-      case FJUMP: {
-        lisp_object_t top = pair_car(stack);
-        pop(stack);
-        if (is_false(top)) {
-          pc = fixnum_value(code_arg0(code));
-        } else
-          pc++;
-      }
-        break;
-      case FN:
-        push(code_arg0(code), stack);
-        pc++;
-        break;
-      case JUMP:
-        pc = fixnum_value(code_arg0(code));
-        break;
-      case LSET: {
-        int i = fixnum_value(code_arg0(code));
-        int j = fixnum_value(code_arg1(code));
-        lisp_object_t value = pair_car(stack);
-        pop(stack);
-        set_variable_by_index(i, j, value, environment);
-        push(make_undefined(), stack);
-      }
-        pc++;
-        break;
-      case LVAR: {
-        int i = fixnum_value(code_arg0(code));
-        int j = fixnum_value(code_arg1(code));
-        push(get_variable_by_index(i, j, environment), stack);
-      }
-        pc++;
-        break;
-      case POP:
-        pop(stack);
-        pc++;
-        break;
+        /* env = extend_environment(EOL, EOL, env); */
+        /* sexp vals = environment_vals(env); */
+        /* for (int i = fixnum_value(arg1(ins)); i > 0; i--) { */
+        /*   pop_to(stack, arg); */
+        /*   push(arg, vals); */
+        /* } */
+        /* environment_vals(env) = vals; */
+        move_args(fixnum_value(arg1(ins)), &stack, &env);
+      } break;
+      /* case ARGS: { */
+      /*   sexp n = arg1(code); */
+      /*   /\* push_value2env(stack, fixnum_value(n), environment); *\/ */
+      /*   /\* nth_pop(stack, fixnum_value(n)); *\/ */
+      /*   pc++; } break; */
+      /* case CALL: { */
+      /*   sexp n = arg1(code); */
+      /*   sexp op = pair_car(stack); */
+      /*   pop(stack); */
+      /*   if (is_compiled_proc(op)) { */
+      /*     /\* Save the current context *\/ */
+      /*     sexp info = make_return_info(compiled_code, pc, environment); */
+      /*     if (fixnum_value(n) != 0) */
+      /*       nth_insert_pair(fixnum_value(n), info, stack); */
+      /*     else */
+      /*       push(info, stack); */
+      /*     /\* Set the new context *\/ */
+      /*     sexp code = compiled_proc_code(op); */
+      /*     sexp env = compiled_proc_env(op); */
+      /*     code = assemble_code(code); */
+      /*     compiled_code = code; */
+      /*     environment = env; */
+      /*     pc = 0; */
+      /*   } else { */
+      /*     sexp args = make_arguments(stack, fixnum_value(n)); */
+      /*     nth_pop(stack, fixnum_value(n)); */
+      /*     push(eval_application(op, args), stack); */
+      /*     pc++; */
+      /*   }} */
+      /*   break; */
+      case CALLJ: {
+        pop_to(stack, proc);
+        code = assemble_code(compiled_proc_code(proc));
+        env = compiled_proc_env(proc);
+        pc = -1;
+      } break;
+      case FN: {
+/* push(arg1(ins), stack); break; */
+        sexp fn = arg1(ins);
+        sexp pars = compiled_proc_args(fn);
+        sexp code = compiled_proc_code(fn);
+        push(make_compiled_proc(pars, code, env), stack);
+      } break;
+      case PRIM: {
+        pop_to(stack, op);
+        sexp args = make_arguments(stack, fixnum_value(arg1(ins)));
+        nth_pop(stack, fixnum_value(arg1(ins)));
+        push(eval_application(op, args), stack);
+      } break;
       case RETURN: {
-        lisp_object_t value = pair_car(stack);
-        pop(stack);
-        lisp_object_t info = pair_car(stack);
-        pop(stack);
-        /* Restore the last context */
-        compiled_code = return_code(info);
-        environment = return_env(info);
-        pc = return_pc(info);
+        pop_to(stack, value);
+        if (is_return_info(top(stack))) {
+          port_format(scm_out_port, "WTF - I got a return info\n");
+          exit(1);
+        }
+        /* pop(stack); */
         push(value, stack);
-        pc++;
-      }
-        break;
+        goto halt;
+      } break;
+      /* case RETURN: { */
+      /*   sexp value = pair_car(stack); */
+      /*   pop(stack); */
+      /*   sexp info = pair_car(stack); */
+      /*   pop(stack); */
+      /*   /\* Restore the last context *\/ */
+      /*   compiled_code = return_code(info); */
+      /*   environment = return_env(info); */
+      /*   pc = return_pc(info); */
+      /*   push(value, stack); */
+      /*   pc++; } */
+      /*   break; */
+      case SAVE: push(make_return_info(code, pc, env), stack); break;
+
+        /* Variable/Stack manipulation instructions */
+      case CONST: push(arg1(ins), stack); break;
+      /* case CONST: */
+      /*   push(arg1(code), stack); */
+      /*   pc++; */
+      /*   break; */
+      case GSET: {
+        sexp value = top(stack);
+        sexp var = arg1(ins);
+        set_binding(var, value, env);
+      } break;
+      case GVAR: {
+        sexp var = arg1(ins);
+        push(get_variable_value(var, env), stack);
+      } break;
+      case LSET: {
+        int i = fixnum_value(arg1(ins));
+        int j = fixnum_value(arg2(ins));
+        set_variable_by_index(i, j, top(stack), env);
+      } break;
+      /* case LSET: { */
+      /*   int i = fixnum_value(arg1(code)); */
+      /*   int j = fixnum_value(arg2(code)); */
+      /*   pop_to(stack, value); */
+      /*   set_variable_by_index(i, j, value, environment); */
+      /*   push(make_undefined(), stack); } */
+      /*   pc++; */
+      /*   break; */
+      case LVAR: {
+        int i = fixnum_value(arg1(ins));
+        int j = fixnum_value(arg2(ins));
+        push(get_variable_by_index(i, j, env), stack);
+      } break;
+      case POP: pop(stack); break;
+
+        /* Branching instructions */
+      case FJUMP: {
+        pop_to(stack, e);
+        if (is_false(e)) pc = fixnum_value(arg1(ins)) - 1;
+      } break;
+      case JUMP: pc = fixnum_value(arg1(ins)) - 1; break;
       case TJUMP: {
-        lisp_object_t top = pair_car(stack);
-        pop(stack);
-        if (is_true(top)) {
-          pc = fixnum_value(code_arg0(code));
-        } else
-          pc++;
-      }
-        break;
+        pop_to(stack, e);
+        if (is_true(e)) pc = fixnum_value(arg1(ins)) - 1;
+      } break;
+
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");
-        write_object(pair_car(code), make_file_out_port(stdout));
-        /* exit(1); */
+        write_object(pair_car(ins), make_file_out_port(stdout));
+        port_format(scm_out_port, "%*\n", env);
         return stack;
     }
-    printf(" <> ");
-    write_object(stack, make_file_out_port(stdout));
-    putchar('\n');
+    port_format(scm_out_port, "stack: %*\n", stack);
+    /* port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env); */
   }
-  return pair_car(stack);
+halt:
+  /* return pair_car(stack); */
+  return top(stack);
 }
