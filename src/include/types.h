@@ -38,6 +38,7 @@ enum object_type {
   RETURN_INFO,
   FLONUM,
   MACRO,
+  ENVIRONMENT,
 };
 
 /* Lisp object */
@@ -90,6 +91,10 @@ typedef struct lisp_object_t {
     struct {
       float value;
     } flonum;
+    struct {
+      sexp bindings;
+      sexp outer_env;
+    } environment;
   } values;
 } *lisp_object_t;
 
@@ -232,6 +237,10 @@ typedef struct hash_table_t {
 #define return_code(x) ((x)->values.return_info.code)
 #define return_pc(x) ((x)->values.return_info.pc)
 #define return_env(x) ((x)->values.return_info.env)
+/* ENVIRONMENT */
+#define is_environment(x) is_pointer_tag(x, ENVIRONMENT)
+#define environment_bindings(x) ((x)->values.environment.bindings)
+#define environment_outer(x) ((x)->values.environment.outer_env)
 
 /* utilities */
 /* PAIR */

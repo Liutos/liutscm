@@ -214,6 +214,13 @@ sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
   return macro;
 }
 
+sexp make_environment(sexp bindings, sexp outer_env) {
+  sexp env = alloc_object(ENVIRONMENT);
+  environment_bindings(env) = bindings;
+  environment_outer(env) = outer_env;
+  return env;
+}
+
 /* utilities */
 /* PAIR */
 sexp make_list_aux(va_list ap) {
@@ -256,6 +263,19 @@ tail_loop:
   pair = pair_cdr(pair);
   n--;
   goto tail_loop;
+}
+
+/* (a b) + (c d) => ((a . c) (b . d)) */
+/* (a b) + (c) => ((a . c) (b . ())) */
+sexp merge_alist(sexp l1, sexp l2) {
+  /* if (!is_pair(l1) || !is_pair(l2)) return EOL; */
+  /* return make_pair(make_pair(pair_car(l1), pair_car(l2)), */
+  /*                  merge_alist(pair_cdr(l1), pair_cdr(l2))); */
+  if (!is_pair(l1)) return EOL;
+  sexp val = is_pair(l2) ? pair_car(l2): EOL;
+  sexp rest = is_pair(l2) ? pair_cdr(l2): EOL;
+  return make_pair(make_pair(pair_car(l1), val),
+                   merge_alist(pair_cdr(l1), rest));
 }
 
 /* Others */
@@ -344,13 +364,16 @@ sexp find_or_create_symbol(char *name) {
     return symbol;
 }
 
-/* environment manipulation */
+/* Environment manipulation */
 sexp extend_environment(sexp vars, sexp vals, sexp env) {
-  return make_pair(make_pair(vars, vals), env);
+  /* return make_pair(make_pair(vars, vals), env); */
+  sexp bindings = merge_alist(vars, vals);
+  return make_environment(bindings, env);
 }
 
 sexp make_startup_environment(void) {
-  startup_environment = extend_environment(EOL, EOL, null_environment);
+  if (startup_environment == NULL)
+    startup_environment = extend_environment(EOL, EOL, null_environment);
   return startup_environment;
 }
 
@@ -359,7 +382,7 @@ sexp make_repl_environment(void) {
 }
 
 int is_empty_environment(sexp env) {
-  return is_null(env);
+  return null_environment == env;
 }
 
 sexp search_binding(sexp var, sexp env) {
