@@ -32,6 +32,7 @@
 #define gen_lset(i, j) gen("LSET", i, j)
 #define gen_lvar(i, j) gen("LVAR", i, j)
 #define gen_pop() gen("POP")
+#define gen_prim(x) gen("PRIM", x)
 #define gen_return() gen("RETURN")
 #define gen_save(k) gen("SAVE", k)
 
@@ -63,12 +64,12 @@ lisp_object_t make_label(void) {
 }
 
 /* Returns true when the symbol is the name of a primitive function */
-int is_primitive_name(sexp sym, sexp env) {
-  if (!is_symbol(sym)) return no;
-  sexp obj = get_variable_value(sym, env);
-  if (is_primitive(obj)) return yes;
-  else return no;
-}
+/* int is_primitive_name(sexp sym, sexp env) { */
+/*   if (!is_symbol(sym)) return no; */
+/*   sexp obj = get_variable_value(sym, env); */
+/*   if (is_primitive(obj)) return yes; */
+/*   else return no; */
+/* } */
 
 /* Code Generation */
 /* Generate a list contains one instruction */
@@ -234,8 +235,24 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
   /* optimize: side-effect free primitive */
   if (is_symbol(operator)) {
     sexp op = get_variable_value(operator, env);
-    if (is_primitive(op) && primitive_se(op) == no)
-      return compile_begin(operands, env, no, is_more);
+    if (is_primitive(op)) {
+      if (!is_val && primitive_se(op) == no)
+        return compile_begin(operands, env, no, is_more);
+      else
+        return seq(compile_arguments(operands, env),
+                   compile_object(operator, env, yes, yes),
+                   gen_prim(make_fixnum(len)),
+                   (is_val ? EOL: gen_pop()),
+                   (is_more ? EOL: gen_return()));
+    }
+    /* if (is_primitive(op) && ) */
+    /*   return compile_begin(operands, env, no, is_more); */
+    /* if (is_primitive(op) && primitive_se(op) == yes) */
+      /* return seq(compile_arguments(operands, env), */
+      /*            compile_object(operator, env, yes, yes), */
+      /*            gen_prim(make_fixnum(len)), */
+      /*            (is_val ? EOL: gen_pop()), */
+      /*            (is_more ? EOL: gen_return())); */
   }
 
   if (is_more) {
