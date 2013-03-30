@@ -208,22 +208,23 @@ void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
 
 /* Moves n elements from top of `stack' into `env' */
 void move_args(int n, sexp *stack, sexp *env) {
-  /* *env = extend_environment(EOL, EOL, *env); */
+  *env = extend_environment(EOL, EOL, *env);
   /* sexp vals = environment_vals(*env); */
   /* for (; n > 0; n--) { */
   /*   pop_to(*stack, arg); */
   /*   push(arg, vals); */
   /* } */
   sexp bindings = environment_bindings(*env);
-  for (; n > 0; n--, bindings = pair_cdr(bindings)) {
+  for (; n > 0; n--/* , bindings = pair_cdr(bindings) */) {
     pop_to(*stack, arg);
-    /* push(make_pair(EOL, arg), bindings); */
-    pair_cdar(bindings) = arg;
+    push(make_pair(EOL, arg), bindings);
+    /* pair_cdar(bindings) = arg; */
   }
-  /* environment_bindings(*env) = bindings; */
+  environment_bindings(*env) = bindings;
 }
 
 sexp top(sexp stack) {
+  if (is_null(stack)) return EOL;
   return pair_car(stack);
 }
 
@@ -286,12 +287,27 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         env = compiled_proc_env(proc);
         pc = -1;
       } break;
-      case FN: push(arg1(ins), stack); break;
+      case FN: {
+/* push(arg1(ins), stack); break; */
+        sexp fn = arg1(ins);
+        sexp pars = compiled_proc_args(fn);
+        sexp code = compiled_proc_code(fn);
+        push(make_compiled_proc(pars, code, env), stack);
+      } break;
       case PRIM: {
         pop_to(stack, op);
         sexp args = make_arguments(stack, fixnum_value(arg1(ins)));
         nth_pop(stack, fixnum_value(arg1(ins)));
         push(eval_application(op, args), stack);
+      } break;
+      case RETURN: {
+        pop_to(stack, value);
+        if (is_return_info(top(stack))) {
+          port_format(scm_out_port, "WTF - I got a return info\n");
+          exit(1);
+        }
+        /* pop(stack); */
+        push(value, stack);
       } break;
       /* case RETURN: { */
       /*   sexp value = pair_car(stack); */
@@ -353,7 +369,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         port_format(scm_out_port, "%*\n", env);
         return stack;
     }
-    port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env);
+    /* port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env); */
   }
   return pair_car(stack);
 }
