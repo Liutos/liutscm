@@ -27,12 +27,12 @@ int main(int argc, char *argv[])
     /* "'hello", */
     /* "(+ 1 2)", */
     /* "(if #t 1 2)", */
-    /* "(set! car car)", */
+    "(begin (set! a 1) a)",
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
     /* "(lambda (x) (+ x 1))", */
-    "(+ 1 1)",
-    "((lambda (x y) (+ x y)) 1 2)",
-    "(begin (+ (* 1 2) (read)))",
+    /* "(+ 1 1)", */
+    /* "((lambda (x y) (+ x y)) 1 2)", */
+    /* "(+ (* 1 2) (+ 3 (read)))", */
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

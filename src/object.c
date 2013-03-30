@@ -452,7 +452,7 @@ void add_binding(sexp var, sexp val, sexp env) {
 void set_binding(sexp var, sexp val, sexp environment) {
   sexp tmp = environment;
   while (!is_empty_environment(environment)) {
-    sexp bindings = environment_bindings(bindings);
+    sexp bindings = environment_bindings(environment);
     while (is_pair(bindings)) {
       if (pair_caar(bindings) == var) {
         pair_cdr(pair_car(bindings)) = val;

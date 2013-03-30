@@ -31,7 +31,8 @@ int main(int argc, char *argv[])
     /* "(f (g x))", */
     /* "(begin (if p (f x) (* x x)) z)", */
     /* "(+ 1 2)", */
-    "(begin (+ (* 1 2) (read)))",
+    /* "(begin (+ (* 1 2) (read)))", */
+    "(begin (set! a 1) a)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

@@ -35,6 +35,7 @@ enum code_type {
   CONST,
   FJUMP,
   FN,
+  GSET,
   GVAR,
   JUMP,
   LSET,
@@ -58,6 +59,7 @@ static struct code_t opcodes[] = {
   C(CONST),
   C(FJUMP),
   C(FN),
+  C(GSET),
   C(GVAR),
   C(JUMP),
   C(LSET),
@@ -329,6 +331,15 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       /*   push(arg1(code), stack); */
       /*   pc++; */
       /*   break; */
+      case GSET: {
+        sexp value = top(stack);
+        sexp var = arg1(ins);
+        set_binding(var, value, env);
+      } break;
+      case GVAR: {
+        sexp var = arg1(ins);
+        push(get_variable_value(var, env), stack);
+      } break;
       case LSET: {
         int i = fixnum_value(arg1(ins));
         int j = fixnum_value(arg2(ins));
@@ -369,7 +380,9 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         port_format(scm_out_port, "%*\n", env);
         return stack;
     }
+    port_format(scm_out_port, "stack: %*\n", stack);
     /* port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env); */
   }
-  return pair_car(stack);
+  /* return pair_car(stack); */
+  return top(stack);
 }
