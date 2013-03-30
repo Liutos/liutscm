@@ -53,7 +53,7 @@ liutscm: main.o $(OBJS)
 run-repl-test: test-repl.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-run-compiler-test: test-compiler.o $(OBJS) compiler.o
+run-compiler-test: test-compiler.o $(OBJS) compiler.o vm.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 run-vm-test: test-vm.o $(OBJS) vm.o compiler.o

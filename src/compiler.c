@@ -12,8 +12,9 @@
 
 #include "compiler.h"
 #include "eval.h"
-#include "types.h"
 #include "object.h"
+#include "types.h"
+#include "vm.h"
 
 #define BUFFER_SIZE 10
 
@@ -104,6 +105,29 @@ lisp_object_t sequenzie(lisp_object_t pair, ...) {
   return nconc_pair(pair, sequenzie_aux(ap));
 }
 
+sexp gen_args_ins(sexp pars, int n) {
+tail_loop:
+  if (is_null(pars)) return gen_args(make_fixnum(n));
+  if (is_symbol(pars)) return gen_argsdot(make_fixnum(n));
+  if (is_pair(pars) && is_symbol(pair_car(pars))) {
+    pars = pair_cdr(pars);
+    n++;
+    goto tail_loop;
+  }
+  fprintf(stderr, "Illegal argument list\n");
+  exit(1);
+}
+
+sexp make_proper_list(sexp dotable_list) {
+  if (is_null(dotable_list)) return EOL;
+  sexp head = dotable_list;
+  while (is_pair(pair_cdr(dotable_list)))
+    dotable_list = pair_cdr(dotable_list);
+  if (!is_null(pair_cdr(dotable_list)))
+    pair_cdr(dotable_list) = make_pair(pair_cdr(dotable_list), EOL);
+  return head;
+}
+
 /* Compiler */
 lisp_object_t compile_constant(lisp_object_t val, int is_val, int is_more) {
   /* return gen_const(val); */
@@ -128,29 +152,6 @@ sexp compile_begin(sexp actions, sexp env, int is_val, int is_more) {
     return seq(compile_object(pair_car(actions), env, no, yes),
                /* gen_pop(), */
                compile_begin(pair_cdr(actions), env, is_val, is_more));
-}
-
-sexp gen_args_ins(sexp pars, int n) {
-tail_loop:
-  if (is_null(pars)) return gen_args(make_fixnum(n));
-  if (is_symbol(pars)) return gen_argsdot(make_fixnum(n));
-  if (is_pair(pars) && is_symbol(pair_car(pars))) {
-    pars = pair_cdr(pars);
-    n++;
-    goto tail_loop;
-  }
-  fprintf(stderr, "Illegal argument list\n");
-  exit(1);
-}
-
-sexp make_proper_list(sexp dotable_list) {
-  if (is_null(dotable_list)) return EOL;
-  sexp head = dotable_list;
-  while (is_pair(pair_cdr(dotable_list)))
-    dotable_list = pair_cdr(dotable_list);
-  if (!is_null(pair_cdr(dotable_list)))
-    pair_cdr(dotable_list) = make_pair(pair_cdr(dotable_list), EOL);
-  return head;
 }
 
 sexp compile_lambda(sexp args, sexp body, sexp env) {

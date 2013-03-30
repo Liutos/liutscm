@@ -95,7 +95,7 @@ sexp get_variable_by_index(int i, int j, sexp env) {
   for (; i > 0; i--) env = environment_outer(env);
   sexp bindings = environment_bindings(env);
   for (; j > 0; j--) bindings = pair_cdr(bindings);
-  return pair_caar(bindings);
+  return pair_cdar(bindings);
 }
 
 void set_variable_by_index(int i, int j, sexp new_value, sexp env) {
@@ -208,18 +208,19 @@ void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
 
 /* Moves n elements from top of `stack' into `env' */
 void move_args(int n, sexp *stack, sexp *env) {
-  *env = extend_environment(EOL, EOL, *env);
+  /* *env = extend_environment(EOL, EOL, *env); */
   /* sexp vals = environment_vals(*env); */
   /* for (; n > 0; n--) { */
   /*   pop_to(*stack, arg); */
   /*   push(arg, vals); */
   /* } */
   sexp bindings = environment_bindings(*env);
-  for (; n > 0; n--) {
+  for (; n > 0; n--, bindings = pair_cdr(bindings)) {
     pop_to(*stack, arg);
-    push(make_pair(EOL, arg), bindings);
+    /* push(make_pair(EOL, arg), bindings); */
+    pair_cdar(bindings) = arg;
   }
-  environment_bindings(*env) = bindings;
+  /* environment_bindings(*env) = bindings; */
 }
 
 sexp top(sexp stack) {
@@ -227,15 +228,16 @@ sexp top(sexp stack) {
 }
 
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
-sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
-  assert(is_compiled_proc(proc));
+sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
+  assert(is_compiled_proc(obj));
   /* assert(is_empty_environment(env)); */
-  sexp code = compiled_proc_code(proc);
+  sexp code = compiled_proc_code(obj);
   code = assemble_code(code);
   port_format(scm_out_port, "-- %*\n", code);
   for (int pc = 0; pc < vector_length(code); pc++) {
     assert(is_vector(code));
     sexp ins = vector_data_at(code, pc);
+    port_format(scm_out_port, "Processing: %*\n", ins);
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
@@ -278,6 +280,12 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       /*     pc++; */
       /*   }} */
       /*   break; */
+      case CALLJ: {
+        pop_to(stack, proc);
+        code = assemble_code(compiled_proc_code(proc));
+        env = compiled_proc_env(proc);
+        pc = -1;
+      } break;
       case FN: push(arg1(ins), stack); break;
       case PRIM: {
         pop_to(stack, op);
@@ -299,7 +307,7 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       /*   break; */
       case SAVE: push(make_return_info(code, pc, env), stack); break;
 
-      /*   /\* Variable/Stack manipulation instructions *\/ */
+        /* Variable/Stack manipulation instructions */
       case CONST: push(arg1(ins), stack); break;
       /* case CONST: */
       /*   push(arg1(code), stack); */
@@ -325,7 +333,7 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       } break;
       case POP: pop(stack); break;
 
-      /*   /\* Branching instructions *\/ */
+        /* Branching instructions */
       /* case FJUMP: { */
       /*   pop_to(stack, top); */
       /*   if (is_false(top)) */
@@ -345,6 +353,7 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
         port_format(scm_out_port, "%*\n", env);
         return stack;
     }
+    port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env);
   }
   return pair_car(stack);
 }
