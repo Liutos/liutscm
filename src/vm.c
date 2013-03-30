@@ -81,26 +81,34 @@ enum code_type code_name(lisp_object_t code) {
   exit(1);
 }
 
-lisp_object_t get_variable_by_index(int i, int j, lisp_object_t environment) {
-  while (i != 0) {
-    environment = enclosing_environment(environment);
-    i--;
-  }
-  lisp_object_t vals = environment_vals(environment);
-  while (j != 0) {
-    vals = pair_cdr(vals);
-    j--;
-  }
-  return pair_car(vals);
+sexp get_variable_by_index(int i, int j, sexp env) {
+  /* while (i != 0) { */
+  /*   environment = enclosing_environment(environment); */
+  /*   i--; */
+  /* } */
+  /* lisp_object_t vals = environment_vals(environment); */
+  /* while (j != 0) { */
+  /*   vals = pair_cdr(vals); */
+  /*   j--; */
+  /* } */
+  /* return pair_car(vals); */
+  for (; i > 0; i--) env = environment_outer(env);
+  sexp bindings = environment_bindings(env);
+  for (; j > 0; j--) bindings = pair_cdr(bindings);
+  return pair_caar(bindings);
 }
 
-void set_variable_by_index(int i, int j, lisp_object_t new_value, lisp_object_t environment) {
-  while (i-- != 0)
-    environment = enclosing_environment(environment);
-  lisp_object_t vals = environment_vals(environment);
-  while (j-- != 0)
-    vals = pair_cdr(vals);
-  pair_car(vals) = new_value;
+void set_variable_by_index(int i, int j, sexp new_value, sexp env) {
+  /* while (i-- != 0) */
+  /*   environment = enclosing_environment(environment); */
+  /* lisp_object_t vals = environment_vals(environment); */
+  /* while (j-- != 0) */
+  /*   vals = pair_cdr(vals); */
+  /* pair_car(vals) = new_value; */
+  for (; i > 0; i--) env = environment_outer(env);
+  sexp bindings = environment_bindings(env);
+  for (; j > 0; j--) bindings = pair_cdr(bindings);
+  pair_cdar(bindings) = new_value;
 }
 
 lisp_object_t make_arguments(lisp_object_t stack, int n) {
@@ -201,12 +209,17 @@ void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
 /* Moves n elements from top of `stack' into `env' */
 void move_args(int n, sexp *stack, sexp *env) {
   *env = extend_environment(EOL, EOL, *env);
-  sexp vals = environment_vals(*env);
+  /* sexp vals = environment_vals(*env); */
+  /* for (; n > 0; n--) { */
+  /*   pop_to(*stack, arg); */
+  /*   push(arg, vals); */
+  /* } */
+  sexp bindings = environment_bindings(*env);
   for (; n > 0; n--) {
     pop_to(*stack, arg);
-    push(arg, vals);
+    push(make_pair(EOL, arg), bindings);
   }
-  environment_vals(*env) = vals;
+  environment_bindings(*env) = bindings;
 }
 
 sexp top(sexp stack) {
