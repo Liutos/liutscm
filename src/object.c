@@ -387,14 +387,21 @@ int is_empty_environment(sexp env) {
 
 sexp search_binding(sexp var, sexp env) {
   while (!is_empty_environment(env)) {
-    sexp vars = environment_vars(env);
-    sexp vals = environment_vals(env);
-    while (is_pair(vars)) {
-      if (pair_car(vars) == var)
-        return pair_car(vals);
-      vars = pair_cdr(vars);
-      vals = pair_cdr(vals);
+    sexp bindings = environment_bindings(env);
+    while (is_pair(bindings)) {
+      sexp b = pair_car(bindings);
+      if (pair_car(b) == var)
+        return pair_cdr(b);
+      bindings = pair_cdr(bindings);
     }
+    /* sexp vars = environment_vars(env); */
+    /* sexp vals = environment_vals(env); */
+    /* while (is_pair(vars)) { */
+    /*   if (pair_car(vars) == var) */
+    /*     return pair_car(vals); */
+    /*   vars = pair_cdr(vars); */
+    /*   vals = pair_cdr(vals); */
+    /* } */
     env = enclosing_environment(env);
   }
   return NULL;
@@ -403,30 +410,41 @@ sexp search_binding(sexp var, sexp env) {
 int search_binding_index(sexp var, sexp env, int *x, int *y) {
   int i = 0;
   while (!is_empty_environment(env)) {
-    sexp vars = environment_vars(env);
-    for (int j = 0; is_pair(vars); vars = pair_cdr(vars), j++) {
-      if (pair_car(vars) == var) {
-        *x = i;
-        *y = j;
-        return 1;
-      }
+    sexp bindings = environment_bindings(env);
+    for (int j = 0; is_pair(bindings); bindings = pair_cdr(bindings), j++) {
+      sexp b = pair_car(bindings);
+      if (pair_car(b) != var) continue;
+      *x = i;
+      *y = j;
+      return yes;
     }
+    /* sexp vars = environment_vars(env); */
+    /* for (int j = 0; is_pair(vars); vars = pair_cdr(vars), j++) { */
+    /*   if (pair_car(vars) == var) { */
+    /*     *x = i; */
+    /*     *y = j; */
+    /*     return 1; */
+    /*   } */
+    /* } */
     env = enclosing_environment(env);
     i++;
   }
-  return 0;
+  return no;
 }
 
 /* Create a new binding if this `var' is not used yet */
-void add_binding(sexp var, sexp val, sexp environment) {
-  sexp cell = search_binding(var, environment);
+void add_binding(sexp var, sexp val, sexp env) {
+  sexp cell = search_binding(var, env);
   if (!cell) {
-    sexp vars = environment_vars(environment);
-    sexp vals = environment_vals(environment);
-    vars = make_pair(var, vars);
-    vals = make_pair(val, vals);
-    ASIG(environment_vars(environment), vars);
-    ASIG(environment_vals(environment), vals);
+    /* sexp vars = environment_vars(environment); */
+    /* sexp vals = environment_vals(environment); */
+    /* vars = make_pair(var, vars); */
+    /* vals = make_pair(val, vals); */
+    /* ASIG(environment_vars(environment), vars); */
+    /* ASIG(environment_vals(environment), vals); */
+    sexp bindings = environment_bindings(env);
+    bindings = make_pair(make_pair(var, val), bindings);
+    environment_bindings(env) = bindings;
   }
 }
 
@@ -434,18 +452,24 @@ void add_binding(sexp var, sexp val, sexp environment) {
 void set_binding(sexp var, sexp val, sexp environment) {
   sexp tmp = environment;
   while (!is_empty_environment(environment)) {
-    sexp vars = environment_vars(environment);
-    sexp vals = environment_vals(environment);
-    while (is_pair(vars)) {
-      if (pair_car(vars) == var) {
-        /* dec_ref_count(pair_car(vals)); */
-        pair_car(vals) = val;
-        /* inc_ref_count(val); */
+    sexp bindings = environment_bindings(bindings);
+    while (is_pair(bindings)) {
+      if (pair_caar(bindings) == var) {
+        pair_cdr(pair_car(bindings)) = val;
         break;
       }
-      vars = pair_cdr(vars);
-      vals = pair_cdr(vals);
+      bindings = pair_cdr(bindings);
     }
+    /* sexp vars = environment_vars(environment); */
+    /* sexp vals = environment_vals(environment); */
+    /* while (is_pair(vars)) { */
+    /*   if (pair_car(vars) == var) { */
+    /*     pair_car(vals) = val; */
+    /*     break; */
+    /*   } */
+    /*   vars = pair_cdr(vars); */
+    /*   vals = pair_cdr(vals); */
+    /* } */
     environment = enclosing_environment(environment);
   }
   add_binding(var, val, tmp);
