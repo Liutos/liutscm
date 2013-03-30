@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
     /* "(+ 1 2)", */
     /* "(if #t 1 2)", */
     /* "(set! car car)", */
-    "(begin \"doc\" (write \"Hello, world\") 2)",
-    /* "(lambda (x) (+ x 1))", */
+    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
+    "(lambda (x) (+ x 1))",
     /* "(+ 1 1)", */
     /* "((lambda (x y) (+ x y)) 1 2)", */
   };
