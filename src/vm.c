@@ -155,7 +155,8 @@ sexp extract_labels(sexp compiled_code, int *length) {
 int is_with_label(lisp_object_t code) {
   switch (code_name(code)) {
     case FJUMP:
-    case JUMP: return 1;
+    case JUMP:
+    case TJUMP: return 1;
     default : return 0;
   }
 }
@@ -366,12 +367,11 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pop_to(stack, e);
         if (is_false(e)) pc = fixnum_value(arg1(ins)) - 1;
       } break;
-      /* case JUMP: pc = fixnum_value(arg1(code)); break; */
-      /* case TJUMP: { */
-      /*   pop_to(stack, top); */
-      /*   if (is_true(top)) pc = fixnum_value(arg1(code)); */
-      /*   else pc++; } */
-      /*   break; */
+      case JUMP: pc = fixnum_value(arg1(ins)) - 1; break;
+      case TJUMP: {
+        pop_to(stack, e);
+        if (is_true(e)) pc = fixnum_value(arg1(ins)) - 1;
+      } break;
 
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");
