@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     /* "(if (+ 1 1) 1 1)", */
     /* "(f (g x))", */
     /* "(begin (if p (f x) (* x x)) z)", */
-    "(if #t (+ 1 2))",
+    "(+ 1 2)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

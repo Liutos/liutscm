@@ -40,6 +40,7 @@ enum code_type {
   LSET,
   LVAR,
   POP,
+  PRIM,
   RETURN,
   SAVE,
   TJUMP,
@@ -62,25 +63,11 @@ static struct code_t opcodes[] = {
   C(LSET),
   C(LVAR),
   C(POP),
+  C(PRIM),
   C(RETURN),
   C(SAVE),
   C(TJUMP),
 };
-/* static char *opcodes[] = { */
-/*   "ARGS", */
-/*   "CALL", */
-/*   "CONST", */
-/*   "FJUMP", */
-/*   "FN", */
-/*   "GVAR", */
-/*   "JUMP", */
-/*   "LSET", */
-/*   "LVAR", */
-/*   "POP", */
-/*   "RETURN", */
-/*   "SAVE", */
-/*   "TJUMP", */
-/* }; */
 
 enum code_type code_name(lisp_object_t code) {
   assert(is_pair(code));
@@ -88,31 +75,9 @@ enum code_type code_name(lisp_object_t code) {
   for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
     if (name == S(opcodes[i].name))
       return opcodes[i].code;
-  /* if (S("CONST") == name) */
-  /*   return CONST; */
-  /* SR(CONST); */
-  /* /\* if (S("LVAR") == name) *\/ */
-  /* /\*   return LVAR; *\/ */
-  /* SR(LVAR); */
-  /* /\* if (S("FJUMP") == name) return FJUMP; *\/ */
-  /* SR(FJUMP); */
-  /* /\* if (S("JUMP") == name) return JUMP; *\/ */
-  /* SR(JUMP); */
-  /* /\* if (S("LSET") == name) return LSET; *\/ */
-  /* SR(LSET); */
-  /* /\* if (S("POP") == name) return POP; *\/ */
-  /* SR(POP); */
-  /* /\* if (S("GVAR") == name) return GVAR; *\/ */
-  /* SR(GVAR); */
-  /* /\* if (S("CALL") == name) return CALL; *\/ */
-  /* SR(CALL); */
-  /* /\* if (S("FN") == name) return FN; *\/ */
-  /* SR(FN); */
-  /* /\* if (S("ARGS") == name) return ARGS; *\/ */
-  /* SR(ARGS); */
-  /* /\* if (S("RETURN") == name) return RETURN; *\/ */
-  /* SR(RETURN); */
-  fprintf(stderr, "code_name - Unsupported code: %s\n", symbol_name(pair_car(code)));
+  /* fprintf(stderr, "code_name - Unsupported code: %s\n", */
+  /*         symbol_name(pair_car(code))); */
+  port_format(scm_out_port, "code_name - Unsupported code: %*\n", pair_car(code));
   exit(1);
 }
 
@@ -301,6 +266,12 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
       /*   }} */
       /*   break; */
       /* case FN: push(arg1(code), stack); pc++; break; */
+      case PRIM: {
+        pop_to(stack, op);
+        sexp args = make_arguments(stack, fixnum_value(arg1(ins)));
+        nth_pop(stack, fixnum_value(arg1(ins)));
+        push(eval_application(op, args), stack);
+      } break;
       /* case RETURN: { */
       /*   sexp value = pair_car(stack); */
       /*   pop(stack); */
