@@ -310,7 +310,7 @@ sexp run_compiled_code(sexp proc, sexp env, sexp stack) {
         int j = fixnum_value(arg2(ins));
         push(get_variable_by_index(i, j, env), stack);
       } break;
-      /* case POP: pop(stack); pc++; break; */
+      case POP: pop(stack); break;
 
       /*   /\* Branching instructions *\/ */
       /* case FJUMP: { */
