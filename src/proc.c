@@ -360,7 +360,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("string-ref", char_at_proc, no, NULL),
   DEFPROC("string-length", string_length_proc, no, NULL),
   DEFPROC("string=?", string_equal_proc, no, NULL),
-  DEFPROC("car", pair_car_proc, no, NULL),
+  DEFPROC("car", pair_car_proc, no, "CAR"),
   DEFPROC("cdr", pair_cdr_proc, no, NULL),
   DEFPROC("cons", pair_cons_proc, no, NULL),
   DEFPROC("set-car!", pair_set_car_proc, yes, NULL),

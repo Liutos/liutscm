@@ -43,6 +43,10 @@ Scheme方言子集的解释器。开发流程和一些实现思路参考了[Sche
 
     make run-vm-test
 
+编译得到可执行的汇编函数测试程序，产生文件./run-asm-test：
+
+    make run-asm-test
+
 ## 作者
 
 Liutos(<mat.liutos@gmail.com>)

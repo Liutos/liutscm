@@ -36,6 +36,7 @@ enum code_type {
   ARGSD,
   CALL,
   CALLJ,
+  CAR,
   CONST,
   FJUMP,
   FN,
@@ -61,6 +62,7 @@ static struct code_t opcodes[] = {
   C(ARGSD),
   C(CALL),
   C(CALLJ),
+  C(CAR),
   C(CONST),
   C(FJUMP),
   C(FN),
@@ -77,7 +79,7 @@ static struct code_t opcodes[] = {
 };
 
 char *const_opcodes[] = {
-  "POP", "RETURN",
+  "CAR", "POP", "RETURN",
 };
 
 char *unary_opcodes[] = {
@@ -367,6 +369,11 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         env = compiled_proc_env(proc);
         /* pc = -1; */
         pc = 0;
+      } break;
+      case CAR: {
+        pop_to(stack, pair);
+        push(pair_car(pair), stack);
+        pc++;
       } break;
       case FN: {
         sexp fn = vector_data_at(code, ++pc);
