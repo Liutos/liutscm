@@ -89,8 +89,9 @@ void write_object(sexp object, sexp port) {
       break;
     case SYMBOL: write_string(symbol_name(object), port); break;
     case PRIMITIVE_PROC:
-      port_format(port, "#<procedure %p>",
-                  /* primitive_name(object),  */primitive_C_proc(object));
+      port_format(port, "#<procedure :name %s %p>",
+                  make_string(primitive_name(object)),
+                  primitive_C_proc(object));
       break;
     case COMPOUND_PROC:
       write_string("#<procedure ", port);
