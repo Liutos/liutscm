@@ -410,9 +410,10 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pc++;
       } break;
       case LSET: {
-        int i = fixnum_value(arg1(ins));
-        int j = fixnum_value(arg2(ins));
+        int i = fixnum_value(vector_data_at(code, ++pc));
+        int j = fixnum_value(vector_data_at(code, ++pc));
         set_variable_by_index(i, j, top(stack), env);
+        pc++;
       } break;
       case LVAR: {
         pc++;
@@ -428,12 +429,14 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /* Branching instructions */
       case FJUMP: {
         pop_to(stack, e);
-        if (is_false(e)) pc = fixnum_value(arg1(ins));
+        pc++;
+        if (is_false(e)) pc = fixnum_value(vector_data_at(code, pc));
       } break;
       case JUMP: pc = fixnum_value(arg1(ins)); break;
       case TJUMP: {
         pop_to(stack, e);
-        if (is_true(e)) pc = fixnum_value(arg1(ins));
+        pc++;
+        if (is_true(e)) pc = fixnum_value(vector_data_at(code, pc));
       } break;
 
       default :
