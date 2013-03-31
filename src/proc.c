@@ -361,7 +361,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("string-length", string_length_proc, no, NULL),
   DEFPROC("string=?", string_equal_proc, no, NULL),
   DEFPROC("car", pair_car_proc, no, "CAR"),
-  DEFPROC("cdr", pair_cdr_proc, no, NULL),
+  DEFPROC("cdr", pair_cdr_proc, no, "CDR"),
   DEFPROC("cons", pair_cons_proc, no, NULL),
   DEFPROC("set-car!", pair_set_car_proc, yes, NULL),
   DEFPROC("set-cdr!", pair_set_cdr_proc, yes, NULL),

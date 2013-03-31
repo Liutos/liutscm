@@ -37,6 +37,7 @@ enum code_type {
   CALL,
   CALLJ,
   CAR,
+  CDR,
   CONST,
   FJUMP,
   FN,
@@ -63,6 +64,7 @@ static struct code_t opcodes[] = {
   C(CALL),
   C(CALLJ),
   C(CAR),
+  C(CDR),
   C(CONST),
   C(FJUMP),
   C(FN),
@@ -79,7 +81,7 @@ static struct code_t opcodes[] = {
 };
 
 char *const_opcodes[] = {
-  "CAR", "POP", "RETURN",
+  "CAR", "CDR", "POP", "RETURN",
 };
 
 char *unary_opcodes[] = {
@@ -370,11 +372,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /* pc = -1; */
         pc = 0;
       } break;
-      case CAR: {
-        pop_to(stack, pair);
-        push(pair_car(pair), stack);
-        pc++;
-      } break;
       case FN: {
         sexp fn = vector_data_at(code, ++pc);
         sexp pars = compiled_proc_args(fn);
@@ -452,6 +449,18 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pop_to(stack, e);
         pc++;
         if (is_true(e)) pc = fixnum_value(next_arg(code, &pc)/* vector_data_at(code, pc) */);
+      } break;
+
+        /* Primitive functions */
+      case CAR: {
+        pop_to(stack, pair);
+        push(pair_car(pair), stack);
+        pc++;
+      } break;
+      case CDR: {
+        pop_to(stack, pair);
+        push(pair_cdr(pair), stack);
+        pc++;
       } break;
 
       default :

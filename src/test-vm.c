@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     /* "(lambda (x) (+ x 1))", */
     /* "(+ 1 1)", */
     /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
-    "(car '(1 2))",
+    "(cdr '(1 2))",
     /* "(+ (* 1 2) (+ 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
   };
