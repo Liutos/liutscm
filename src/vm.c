@@ -389,7 +389,14 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       case SAVE: push(make_return_info(code, pc, env), stack); pc++; break;
 
         /* Variable/Stack manipulation instructions */
-      case CONST: push(arg1(ins), stack); pc++; break;
+      case CONST: {
+        pc++;
+        sexp obj = vector_data_at(code, pc);
+        push(obj, stack);
+        pc++;
+        port_format(scm_out_port, "%*\n", stack);
+        exit(0);
+      } break;
       case GSET: {
         sexp value = top(stack);
         sexp var = arg1(ins);
