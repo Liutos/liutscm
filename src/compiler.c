@@ -155,15 +155,18 @@ sexp compile_begin(sexp actions, sexp env, int is_val, int is_more) {
 }
 
 sexp compile_lambda(sexp args, sexp body, sexp env) {
-  sexp pars = make_proper_list(args);
-  sexp new_env = extend_environment(pars, EOL, env);
   /* sexp code = */
   /*     seq(gen_args(make_fixnum(pair_length(args))), */
   /*         compile_begin(body, new_env, yes, no), */
   /*         gen_return()); */
-  sexp code =
-      seq(gen_args_ins(args, 0),
-          compile_begin(body, new_env, yes, no));
+
+  /* Parses the original lambda-list and converts it to proper-list
+   * after parsing */
+  sexp arg_ins = gen_args_ins(args, 0);
+  sexp pars = make_proper_list(args);
+
+  sexp new_env = extend_environment(pars, EOL, env);
+  sexp code = seq(arg_ins, compile_begin(body, new_env, yes, no));
   return make_compiled_proc(args, code, new_env);
 }
 
