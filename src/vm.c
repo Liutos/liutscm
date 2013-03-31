@@ -217,7 +217,9 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   int nargs = 0;
   code = assemble_code(code);
   /* port_format(scm_out_port, "-- %*\n", code); */
-  for (int pc = 0; pc < vector_length(code); pc++) {
+  /* for (int pc = 0; pc < vector_length(code); pc++) { */
+  int pc = 0;
+  while (pc < vector_length(code)) {
     assert(is_vector(code));
     sexp ins = vector_data_at(code, pc);
     /* port_format(scm_out_port, "Processing: %*\n", ins); */
@@ -231,6 +233,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
           exit(1);
         }
         move_args(fixnum_value(arg1(ins)), &stack, &env);
+        pc++;
       } break;
       case ARGSD: {
         int n = fixnum_value(arg1(ins));
@@ -251,6 +254,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /* port_format(scm_out_port, "Current bindings: %*\n", */
         /*             environment_bindings(env)); */
         /* exit(1); */
+        pc++;
       } break;
       case CALLJ: {
         nargs = fixnum_value(arg1(ins));
@@ -258,19 +262,22 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pop_to(stack, proc);
         code = assemble_code(compiled_proc_code(proc));
         env = compiled_proc_env(proc);
-        pc = -1;
+        /* pc = -1; */
+        pc = 0;
       } break;
       case FN: {
         sexp fn = arg1(ins);
         sexp pars = compiled_proc_args(fn);
         sexp code = compiled_proc_code(fn);
         push(make_compiled_proc(pars, code, env), stack);
+        pc++;
       } break;
       case PRIM: {
         pop_to(stack, op);
         sexp args = make_arguments(stack, fixnum_value(arg1(ins)));
         nth_pop(stack, fixnum_value(arg1(ins)));
         push(eval_application(op, args), stack);
+        pc++;
       } break;
       case RETURN: {
         pop_to(stack, value);
@@ -281,18 +288,20 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         push(value, stack);
         goto halt;
       } break;
-      case SAVE: push(make_return_info(code, pc, env), stack); break;
+      case SAVE: push(make_return_info(code, pc, env), stack); pc++; break;
 
         /* Variable/Stack manipulation instructions */
-      case CONST: push(arg1(ins), stack); break;
+      case CONST: push(arg1(ins), stack); pc++; break;
       case GSET: {
         sexp value = top(stack);
         sexp var = arg1(ins);
         set_binding(var, value, env);
+        pc++;
       } break;
       case GVAR: {
         sexp var = arg1(ins);
         push(get_variable_value(var, env), stack);
+        pc++;
       } break;
       case LSET: {
         int i = fixnum_value(arg1(ins));
@@ -303,18 +312,19 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         int i = fixnum_value(arg1(ins));
         int j = fixnum_value(arg2(ins));
         push(get_variable_by_index(i, j, env), stack);
+        pc++;
       } break;
-      case POP: pop(stack); break;
+      case POP: pop(stack); pc++; break;
 
         /* Branching instructions */
       case FJUMP: {
         pop_to(stack, e);
-        if (is_false(e)) pc = fixnum_value(arg1(ins)) - 1;
+        if (is_false(e)) pc = fixnum_value(arg1(ins));
       } break;
-      case JUMP: pc = fixnum_value(arg1(ins)) - 1; break;
+      case JUMP: pc = fixnum_value(arg1(ins)); break;
       case TJUMP: {
         pop_to(stack, e);
-        if (is_true(e)) pc = fixnum_value(arg1(ins)) - 1;
+        if (is_true(e)) pc = fixnum_value(arg1(ins));
       } break;
 
       default :
@@ -325,6 +335,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
     }
     /* port_format(scm_out_port, "stack: %*\n", stack); */
     /* port_format(scm_out_port, "env: %*\n", env); */
+    /* pc++; */
   }
 halt:
   return top(stack);

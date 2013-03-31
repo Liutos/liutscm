@@ -22,15 +22,15 @@ int main(int argc, char *argv[])
   init_impl();
   lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
-    /* "1", */
-    /* "+", */
-    /* "'hello", */
-    /* "(+ 1 2)", */
-    /* "(if #t 1 2)", */
-    /* "(begin (set! a 1) a)", */
-    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
-    /* "(lambda (x) (+ x 1))", */
-    /* "(+ 1 1)", */
+    "1",
+    "+",
+    "'hello",
+    "(+ 1 2)",
+    "(if #t 1 2)",
+    "(begin (set! a 1) a)",
+    "(begin \"doc\" (write \"Hello, world\") 2)",
+    "(lambda (x) (+ x 1))",
+    "(+ 1 1)",
     "((lambda (x . y) (cons x y)) 1 2 3 4)",
     /* "(+ (* 1 2) (+ 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
