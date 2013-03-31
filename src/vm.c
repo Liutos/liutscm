@@ -79,23 +79,11 @@ enum code_type code_name(lisp_object_t code) {
   for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
     if (name == S(opcodes[i].name))
       return opcodes[i].code;
-  /* fprintf(stderr, "code_name - Unsupported code: %s\n", */
-  /*         symbol_name(pair_car(code))); */
   port_format(scm_out_port, "code_name - Unsupported code: %*\n", pair_car(code));
   exit(1);
 }
 
 sexp get_variable_by_index(int i, int j, sexp env) {
-  /* while (i != 0) { */
-  /*   environment = enclosing_environment(environment); */
-  /*   i--; */
-  /* } */
-  /* lisp_object_t vals = environment_vals(environment); */
-  /* while (j != 0) { */
-  /*   vals = pair_cdr(vals); */
-  /*   j--; */
-  /* } */
-  /* return pair_car(vals); */
   for (; i > 0; i--) env = environment_outer(env);
   sexp bindings = environment_bindings(env);
   for (; j > 0; j--) bindings = pair_cdr(bindings);
@@ -103,12 +91,6 @@ sexp get_variable_by_index(int i, int j, sexp env) {
 }
 
 void set_variable_by_index(int i, int j, sexp new_value, sexp env) {
-  /* while (i-- != 0) */
-  /*   environment = enclosing_environment(environment); */
-  /* lisp_object_t vals = environment_vals(environment); */
-  /* while (j-- != 0) */
-  /*   vals = pair_cdr(vals); */
-  /* pair_car(vals) = new_value; */
   for (; i > 0; i--) env = environment_outer(env);
   sexp bindings = environment_bindings(env);
   for (; j > 0; j--) bindings = pair_cdr(bindings);
@@ -116,11 +98,6 @@ void set_variable_by_index(int i, int j, sexp new_value, sexp env) {
 }
 
 lisp_object_t make_arguments(lisp_object_t stack, int n) {
-  /* if (0 == n) */
-  /*   return make_empty_list(); */
-  /* else */
-  /*   return make_pair(pair_car(stack), */
-  /*                    make_arguments(pair_cdr(stack), n - 1)); */
   sexp args = EOL;
   for (; n > 0; n--) {
     pop_to(stack, e);
@@ -220,16 +197,10 @@ void nth_insert_pair(int n, lisp_object_t object, lisp_object_t pair) {
 /* Moves n elements from top of `stack' into `env' */
 void move_args(int n, sexp *stack, sexp *env) {
   *env = extend_environment(EOL, EOL, *env);
-  /* sexp vals = environment_vals(*env); */
-  /* for (; n > 0; n--) { */
-  /*   pop_to(*stack, arg); */
-  /*   push(arg, vals); */
-  /* } */
   sexp bindings = environment_bindings(*env);
-  for (; n > 0; n--/* , bindings = pair_cdr(bindings) */) {
+  for (; n > 0; n--) {
     pop_to(*stack, arg);
     push(make_pair(EOL, arg), bindings);
-    /* pair_cdar(bindings) = arg; */
   }
   environment_bindings(*env) = bindings;
 }
@@ -242,7 +213,6 @@ sexp top(sexp stack) {
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   assert(is_compiled_proc(obj));
-  /* assert(is_empty_environment(env)); */
   sexp code = compiled_proc_code(obj);
   int nargs = 0;
   code = assemble_code(code);
@@ -254,13 +224,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
-        /* env = extend_environment(EOL, EOL, env); */
-        /* sexp vals = environment_vals(env); */
-        /* for (int i = fixnum_value(arg1(ins)); i > 0; i--) { */
-        /*   pop_to(stack, arg); */
-        /*   push(arg, vals); */
-        /* } */
-        /* environment_vals(env) = vals; */
         if (nargs != fixnum_value(arg1(ins))) {
           port_format(scm_out_port,
                       "Wrong argument number: %d but expecting %d\n",
@@ -269,11 +232,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         }
         move_args(fixnum_value(arg1(ins)), &stack, &env);
       } break;
-      /* case ARGS: { */
-      /*   sexp n = arg1(code); */
-      /*   /\* push_value2env(stack, fixnum_value(n), environment); *\/ */
-      /*   /\* nth_pop(stack, fixnum_value(n)); *\/ */
-      /*   pc++; } break; */
       case ARGSD: {
         int n = fixnum_value(arg1(ins));
         if (nargs < n) {
@@ -294,31 +252,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /*             environment_bindings(env)); */
         /* exit(1); */
       } break;
-      /* case CALL: { */
-      /*   sexp n = arg1(code); */
-      /*   sexp op = pair_car(stack); */
-      /*   pop(stack); */
-      /*   if (is_compiled_proc(op)) { */
-      /*     /\* Save the current context *\/ */
-      /*     sexp info = make_return_info(compiled_code, pc, environment); */
-      /*     if (fixnum_value(n) != 0) */
-      /*       nth_insert_pair(fixnum_value(n), info, stack); */
-      /*     else */
-      /*       push(info, stack); */
-      /*     /\* Set the new context *\/ */
-      /*     sexp code = compiled_proc_code(op); */
-      /*     sexp env = compiled_proc_env(op); */
-      /*     code = assemble_code(code); */
-      /*     compiled_code = code; */
-      /*     environment = env; */
-      /*     pc = 0; */
-      /*   } else { */
-      /*     sexp args = make_arguments(stack, fixnum_value(n)); */
-      /*     nth_pop(stack, fixnum_value(n)); */
-      /*     push(eval_application(op, args), stack); */
-      /*     pc++; */
-      /*   }} */
-      /*   break; */
       case CALLJ: {
         nargs = fixnum_value(arg1(ins));
         /* port_format(scm_out_port, "nargs: %d\n", make_fixnum(nargs)); */
@@ -328,7 +261,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pc = -1;
       } break;
       case FN: {
-/* push(arg1(ins), stack); break; */
         sexp fn = arg1(ins);
         sexp pars = compiled_proc_args(fn);
         sexp code = compiled_proc_code(fn);
@@ -346,30 +278,13 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
           port_format(scm_out_port, "WTF - I got a return info\n");
           exit(1);
         }
-        /* pop(stack); */
         push(value, stack);
         goto halt;
       } break;
-      /* case RETURN: { */
-      /*   sexp value = pair_car(stack); */
-      /*   pop(stack); */
-      /*   sexp info = pair_car(stack); */
-      /*   pop(stack); */
-      /*   /\* Restore the last context *\/ */
-      /*   compiled_code = return_code(info); */
-      /*   environment = return_env(info); */
-      /*   pc = return_pc(info); */
-      /*   push(value, stack); */
-      /*   pc++; } */
-      /*   break; */
       case SAVE: push(make_return_info(code, pc, env), stack); break;
 
         /* Variable/Stack manipulation instructions */
       case CONST: push(arg1(ins), stack); break;
-      /* case CONST: */
-      /*   push(arg1(code), stack); */
-      /*   pc++; */
-      /*   break; */
       case GSET: {
         sexp value = top(stack);
         sexp var = arg1(ins);
@@ -384,14 +299,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         int j = fixnum_value(arg2(ins));
         set_variable_by_index(i, j, top(stack), env);
       } break;
-      /* case LSET: { */
-      /*   int i = fixnum_value(arg1(code)); */
-      /*   int j = fixnum_value(arg2(code)); */
-      /*   pop_to(stack, value); */
-      /*   set_variable_by_index(i, j, value, environment); */
-      /*   push(make_undefined(), stack); } */
-      /*   pc++; */
-      /*   break; */
       case LVAR: {
         int i = fixnum_value(arg1(ins));
         int j = fixnum_value(arg2(ins));
@@ -417,9 +324,8 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         return stack;
     }
     /* port_format(scm_out_port, "stack: %*\n", stack); */
-    /* port_format(scm_out_port, "stack: %*\nenv: %*\n", stack, env); */
+    /* port_format(scm_out_port, "env: %*\n", env); */
   }
 halt:
-  /* return pair_car(stack); */
   return top(stack);
 }
