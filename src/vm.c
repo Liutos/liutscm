@@ -305,6 +305,11 @@ sexp top(sexp stack) {
   return pair_car(stack);
 }
 
+sexp next_arg(sexp code_vector, int *index) {
+  (*index)++;
+  return vector_data_at(code_vector, *index);
+}
+
 /* Run the code generated from compiling an S-exp by function `assemble_code'. */
 sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   assert(is_compiled_proc(obj));
@@ -391,8 +396,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
 
         /* Variable/Stack manipulation instructions */
       case CONST: {
-        pc++;
-        sexp obj = vector_data_at(code, pc);
+        sexp obj = next_arg(code, &pc);
         push(obj, stack);
         pc++;
         /* port_format(scm_out_port, "%*\n", stack); */
@@ -400,25 +404,29 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       } break;
       case GSET: {
         sexp value = top(stack);
-        sexp var = vector_data_at(code, ++pc);
+        /* sexp var = vector_data_at(code, ++pc); */
+        sexp var = next_arg(code, &pc);
         set_binding(var, value, env);
         pc++;
       } break;
       case GVAR: {
-        sexp var = vector_data_at(code, ++pc);
+        /* sexp var = vector_data_at(code, ++pc); */
+        sexp var = next_arg(code, &pc);
         push(get_variable_value(var, env), stack);
         pc++;
       } break;
       case LSET: {
-        int i = fixnum_value(vector_data_at(code, ++pc));
-        int j = fixnum_value(vector_data_at(code, ++pc));
+        int i = fixnum_value(/* vector_data_at(code, ++pc) */next_arg(code, &pc));
+        int j = fixnum_value(/* vector_data_at(code, ++pc) */next_arg(code, &pc));
         set_variable_by_index(i, j, top(stack), env);
         pc++;
       } break;
       case LVAR: {
-        pc++;
-        sexp i = vector_data_at(code, pc);
-        sexp j = vector_data_at(code, ++pc);
+        /* pc++; */
+        /* sexp i = vector_data_at(code, pc); */
+        /* sexp j = vector_data_at(code, ++pc); */
+        sexp i = next_arg(code, &pc);
+        sexp j = next_arg(code, &pc);
         /* int i = fixnum_value(arg1(ins)); */
         /* int j = fixnum_value(arg2(ins)); */
         push(get_variable_by_index(fixnum_value(i), fixnum_value(j), env), stack);
@@ -430,13 +438,13 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       case FJUMP: {
         pop_to(stack, e);
         pc++;
-        if (is_false(e)) pc = fixnum_value(vector_data_at(code, pc));
+        if (is_false(e)) pc = fixnum_value(/* vector_data_at(code, pc) */next_arg(code, &pc));
       } break;
-      case JUMP: pc = fixnum_value(arg1(ins)); break;
+      case JUMP: pc = fixnum_value(next_arg(code, &pc)); break;
       case TJUMP: {
         pop_to(stack, e);
         pc++;
-        if (is_true(e)) pc = fixnum_value(vector_data_at(code, pc));
+        if (is_true(e)) pc = fixnum_value(next_arg(code, &pc)/* vector_data_at(code, pc) */);
       } break;
 
       default :

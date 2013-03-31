@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
     "(lambda (x) (+ x 1))",
     "(+ 1 1)",
     "((lambda (x . y) (set! x y)) 1 2 3 4)",
-    "(+ (* 1 2) (+ 3 (read)))",
-    "(eval (read) (repl-environment))",
+    /* "(+ (* 1 2) (+ 3 (read)))", */
+    /* "(eval (read) (repl-environment))", */
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
