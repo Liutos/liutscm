@@ -30,6 +30,7 @@
 
 enum code_type {
   ARGS,
+  ARGSD,
   CALL,
   CALLJ,
   CONST,
@@ -54,6 +55,7 @@ struct code_t {
 
 static struct code_t opcodes[] = {
   C(ARGS),
+  C(ARGSD),
   C(CALL),
   C(CALLJ),
   C(CONST),
@@ -242,6 +244,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   assert(is_compiled_proc(obj));
   /* assert(is_empty_environment(env)); */
   sexp code = compiled_proc_code(obj);
+  int nargs = 0;
   code = assemble_code(code);
   /* port_format(scm_out_port, "-- %*\n", code); */
   for (int pc = 0; pc < vector_length(code); pc++) {
@@ -258,6 +261,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /*   push(arg, vals); */
         /* } */
         /* environment_vals(env) = vals; */
+        if (nargs != fixnum_value(arg1(ins))) {
+          port_format(scm_out_port,
+                      "Wrong argument number: %d but expecting %d\n",
+                      arg1(ins), make_fixnum(nargs));
+          exit(1);
+        }
         move_args(fixnum_value(arg1(ins)), &stack, &env);
       } break;
       /* case ARGS: { */
@@ -265,6 +274,26 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       /*   /\* push_value2env(stack, fixnum_value(n), environment); *\/ */
       /*   /\* nth_pop(stack, fixnum_value(n)); *\/ */
       /*   pc++; } break; */
+      case ARGSD: {
+        int n = fixnum_value(arg1(ins));
+        if (nargs < n) {
+          port_format(scm_out_port, "Unscientific!\n");
+          exit(1);
+        }
+        sexp rest = make_arguments(stack, nargs - n);
+        nth_pop(stack, (nargs - n));
+        env = extend_environment(EOL, EOL, env);
+        sexp bindings = environment_bindings(env);
+        push(make_pair(EOL, rest), bindings);
+        for (; n > 0; n--) {
+          pop_to(stack, arg);
+          push(make_pair(EOL, arg), bindings);
+        }
+        environment_bindings(env) = bindings;
+        /* port_format(scm_out_port, "Current bindings: %*\n", */
+        /*             environment_bindings(env)); */
+        /* exit(1); */
+      } break;
       /* case CALL: { */
       /*   sexp n = arg1(code); */
       /*   sexp op = pair_car(stack); */
@@ -291,6 +320,8 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       /*   }} */
       /*   break; */
       case CALLJ: {
+        nargs = fixnum_value(arg1(ins));
+        /* port_format(scm_out_port, "nargs: %d\n", make_fixnum(nargs)); */
         pop_to(stack, proc);
         code = assemble_code(compiled_proc_code(proc));
         env = compiled_proc_env(proc);
