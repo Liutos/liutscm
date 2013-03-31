@@ -29,6 +29,8 @@
 #define push(e, stack) stack = make_pair(e, stack)
 #define C(n) {.code=n, .name=#n}
 
+extern int symbol_name_comparator(char *, char *);
+
 enum code_type {
   ARGS,
   ARGSD,
@@ -165,8 +167,8 @@ int is_binary_op(sexp opcode) {
 int instruction_length(sexp ins) {
   sexp opcode = opcode(ins);
   if (is_const_op(opcode)) return 1;
-  if (is_unary_op(opcode)) return 1 + sizeof(sexp);
-  if (is_binary_op(opcode)) return 1 + 2 * sizeof(sexp);
+  if (is_unary_op(opcode)) return /* 1 + sizeof(sexp) */1 + 1;
+  if (is_binary_op(opcode)) return /* 1 + 2 * sizeof(sexp) */1 + 2 * 1;
   else {
     port_format(scm_out_port, "Unexpected opcode %*\n", opcode);
     exit(1);
@@ -185,8 +187,8 @@ sexp extract_labels_aux(sexp compiled_code, int offset, int *length) {
       sexp lo = make_pair(first, make_fixnum(offset));
       return make_pair(lo, extract_labels_aux(rest, offset, length));
     } else {
-      /* offset = offset + instruction_length(first); */
-      offset++;
+      offset = offset + instruction_length(first);
+      /* offset++; */
       return extract_labels_aux(rest, offset, length);
     }
   }
@@ -202,6 +204,7 @@ int is_with_label(lisp_object_t code) {
   switch (code_name(code)) {
     case FJUMP:
     case JUMP:
+    case SAVE:
     case TJUMP: return 1;
     default : return 0;
   }
@@ -219,6 +222,33 @@ lisp_object_t search_label_offset(lisp_object_t label, lisp_object_t label_table
     return search_label_offset(label, pair_cdr(label_table));
 }
 
+sexp to_opbyte(sexp opcode) {
+  for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
+    if (!symbol_name_comparator(opcodes[i].name, symbol_name(opcode)))
+      return make_fixnum(opcodes[i].code);
+  port_format(scm_out_port, "Unexpected opcode: %*\n", opcode);
+  exit(1);
+}
+
+void write_arg_bytes(sexp code[], int *index, sexp ins) {
+  sexp opcode = opcode(ins);
+  if (is_const_op(opcode)) return;
+  if (is_unary_op(opcode)) {
+    code[*index] = arg1(ins);
+    (*index)++;
+    return;
+  }
+  if (is_binary_op(opcode)) {
+    code[*index] = arg1(ins);
+    (*index)++;
+    code[*index] = arg2(ins);
+    (*index)++;
+    return;
+  }
+  port_format(scm_out_port, "Unexpected ins: %*\n", ins);
+  exit(1);
+}
+
 /* Convert the byte code stored as a list in COMPILED_PROC into a vector filled of the same code, except the label in instructions with label will be replace by an integer offset. */
 sexp vectorize_code(sexp compiled_code, int length, sexp label_table) {
   sexp code_vector = make_vector(length);
@@ -230,8 +260,11 @@ sexp vectorize_code(sexp compiled_code, int length, sexp label_table) {
         arg1(code) = search_label_offset(arg1(code), label_table);
         label_table = pair_cdr(label_table);
       }
-      vector_data_at(code_vector, i) = code;
+      /* vector_data_at(code_vector, i) = code; */
+      /* i++; */
+      vector_data_at(code_vector, i) = to_opbyte(opcode(code));
       i++;
+      write_arg_bytes(vector_datum(code_vector), &i, code);
     }
     compiled_code = pair_cdr(compiled_code);
   }
@@ -277,7 +310,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   sexp code = compiled_proc_code(obj);
   int nargs = 0;
   code = assemble_code(code);
-  /* port_format(scm_out_port, "\n-> %*\n", code); */
+  port_format(scm_out_port, "\n-> %*\n", code);
   /* port_format(scm_out_port, "-- %*\n", code); */
   /* for (int pc = 0; pc < vector_length(code); pc++) { */
   int pc = 0;
