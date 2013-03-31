@@ -372,12 +372,13 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       } break;
       case PRIM: {
         pop_to(stack, op);
-        sexp args = make_arguments(stack, fixnum_value(arg1(ins)));
-        nth_pop(stack, fixnum_value(arg1(ins)));
+        sexp n = vector_data_at(code, ++pc);
+        sexp args = make_arguments(stack, fixnum_value(n));
+        nth_pop(stack, fixnum_value(n));
         push(eval_application(op, args), stack);
         pc++;
       } break;
-      case RETURN: {
+      case RETURN: {                    /* No vector operations */
         pop_to(stack, value);
         if (is_return_info(top(stack))) {
           port_format(scm_out_port, "WTF - I got a return info\n");
@@ -394,8 +395,8 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         sexp obj = vector_data_at(code, pc);
         push(obj, stack);
         pc++;
-        port_format(scm_out_port, "%*\n", stack);
-        exit(0);
+        /* port_format(scm_out_port, "%*\n", stack); */
+        /* exit(0); */
       } break;
       case GSET: {
         sexp value = top(stack);
@@ -414,9 +415,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         set_variable_by_index(i, j, top(stack), env);
       } break;
       case LVAR: {
-        int i = fixnum_value(arg1(ins));
-        int j = fixnum_value(arg2(ins));
-        push(get_variable_by_index(i, j, env), stack);
+        pc++;
+        sexp i = vector_data_at(code, pc);
+        sexp j = vector_data_at(code, ++pc);
+        /* int i = fixnum_value(arg1(ins)); */
+        /* int j = fixnum_value(arg2(ins)); */
+        push(get_variable_by_index(fixnum_value(i), fixnum_value(j), env), stack);
         pc++;
       } break;
       case POP: pop(stack); pc++; break;

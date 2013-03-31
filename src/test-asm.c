@@ -23,10 +23,10 @@ int main(int argc, char *argv[])
 {
   init_impl();
   char *cases[] = {
-    "1",
+    /* "1", */
     /* "+", */
     /* "'hello", */
-    /* "(+ 1 2)", */
+    "(+ 1 2)",
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
