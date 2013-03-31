@@ -355,7 +355,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pc++;
       } break;
       case CALLJ: {
-        nargs = fixnum_value(arg1(ins));
+        nargs = fixnum_value(vector_data_at(code, ++pc));
         /* port_format(scm_out_port, "nargs: %d\n", make_fixnum(nargs)); */
         pop_to(stack, proc);
         code = assemble_code(compiled_proc_code(proc));
@@ -400,12 +400,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       } break;
       case GSET: {
         sexp value = top(stack);
-        sexp var = arg1(ins);
+        sexp var = vector_data_at(code, ++pc);
         set_binding(var, value, env);
         pc++;
       } break;
       case GVAR: {
-        sexp var = arg1(ins);
+        sexp var = vector_data_at(code, ++pc);
         push(get_variable_value(var, env), stack);
         pc++;
       } break;
