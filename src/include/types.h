@@ -61,6 +61,7 @@ typedef struct lisp_object_t {
       C_proc_t C_proc;
       int is_side_effect;
       char *Lisp_name;
+      char *code_name;
     } primitive_proc;
     struct {
       sexp parameters;
