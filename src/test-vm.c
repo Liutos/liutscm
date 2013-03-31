@@ -17,6 +17,8 @@
 #include "vm.h"
 #include "init.h"
 
+extern sexp extract_labels(sexp, int *);
+
 int main(int argc, char *argv[])
 {
   init_impl();
@@ -42,7 +44,7 @@ int main(int argc, char *argv[])
     lisp_object_t compiled_code =
         compile_as_fn(read_object(in_port), repl_environment);
     /* printf("-- "); */
-    /* write_object(compiled_code, make_file_out_port(stdout)); */
+    /* write_object(compiled_code, scm_out_port); */
     /* compiled_code = assemble_code(compiled_code); */
     /* printf("\n-> "); */
     /* write_object(compiled_code, out_port); */
@@ -52,6 +54,9 @@ int main(int argc, char *argv[])
         run_compiled_code(compiled_code, repl_environment, stack);
     printf("=> ");
     write_object(value, out_port);
+    /* int length; */
+    /* extract_labels(compiled_proc_code(compiled_code), &length); */
+    /* printf("%d", length); */
     putchar('\n');
     fclose(fp);
   }

@@ -165,8 +165,8 @@ int is_binary_op(sexp opcode) {
 int instruction_length(sexp ins) {
   sexp opcode = opcode(ins);
   if (is_const_op(opcode)) return 1;
-  if (is_unary_op(opcode)) return 2;
-  if (is_binary_op(opcode)) return 3;
+  if (is_unary_op(opcode)) return 1 + sizeof(sexp);
+  if (is_binary_op(opcode)) return 1 + 2 * sizeof(sexp);
   else {
     port_format(scm_out_port, "Unexpected opcode %*\n", opcode);
     exit(1);
@@ -184,13 +184,17 @@ sexp extract_labels_aux(sexp compiled_code, int offset, int *length) {
     if (is_label(first)) {
       sexp lo = make_pair(first, make_fixnum(offset));
       return make_pair(lo, extract_labels_aux(rest, offset, length));
-    } else
-      return extract_labels_aux(rest, offset + 1, length);
+    } else {
+      /* offset = offset + instruction_length(first); */
+      offset++;
+      return extract_labels_aux(rest, offset, length);
+    }
   }
 }
 
 /* Returns an a-list contains label-offset pairs. Parameter `length' stores the length of compiled code. */
 sexp extract_labels(sexp compiled_code, int *length) {
+  assert(is_pair(compiled_code));
   return extract_labels_aux(compiled_code, 0, length);
 }
 
@@ -216,11 +220,11 @@ lisp_object_t search_label_offset(lisp_object_t label, lisp_object_t label_table
 }
 
 /* Convert the byte code stored as a list in COMPILED_PROC into a vector filled of the same code, except the label in instructions with label will be replace by an integer offset. */
-lisp_object_t vectorize_code(lisp_object_t compiled_code, int length, lisp_object_t label_table) {
-  lisp_object_t code_vector = make_vector(length);
+sexp vectorize_code(sexp compiled_code, int length, sexp label_table) {
+  sexp code_vector = make_vector(length);
   int i = 0;
   while (is_pair(compiled_code)) {
-    lisp_object_t code = pair_car(compiled_code);
+    sexp code = pair_car(compiled_code);
     if (!is_label(code)) {
       if (is_with_label(code)) {
         arg1(code) = search_label_offset(arg1(code), label_table);
@@ -273,6 +277,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   sexp code = compiled_proc_code(obj);
   int nargs = 0;
   code = assemble_code(code);
+  /* port_format(scm_out_port, "\n-> %*\n", code); */
   /* port_format(scm_out_port, "-- %*\n", code); */
   /* for (int pc = 0; pc < vector_length(code); pc++) { */
   int pc = 0;
