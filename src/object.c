@@ -196,12 +196,29 @@ sexp make_vector(unsigned int length) {
   return vector;
 }
 
+sexp make_return_info(sexp code, int pc, sexp env) {
+  /* sexp info = malloc(sizeof(struct sexp)); */
+  sexp info = alloc_object(RETURN_INFO);
+  /* info->type = ; */
+  return_code(info) = code;
+  return_pc(info) = pc;
+  return_env(info) = env;
+  return info;
+}
+
 sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
   sexp macro = alloc_object(MACRO);
   ASIG(macro_proc_pars(macro), pars);
   ASIG(macro_proc_body(macro), body);
   ASIG(macro_proc_env(macro), env);
   return macro;
+}
+
+sexp make_environment(sexp bindings, sexp outer_env) {
+  sexp env = alloc_object(ENVIRONMENT);
+  environment_bindings(env) = bindings;
+  environment_outer(env) = outer_env;
+  return env;
 }
 
 /* utilities */
@@ -246,6 +263,19 @@ tail_loop:
   pair = pair_cdr(pair);
   n--;
   goto tail_loop;
+}
+
+/* (a b) + (c d) => ((a . c) (b . d)) */
+/* (a b) + (c) => ((a . c) (b . ())) */
+sexp merge_alist(sexp l1, sexp l2) {
+  /* if (!is_pair(l1) || !is_pair(l2)) return EOL; */
+  /* return make_pair(make_pair(pair_car(l1), pair_car(l2)), */
+  /*                  merge_alist(pair_cdr(l1), pair_cdr(l2))); */
+  if (!is_pair(l1)) return EOL;
+  sexp val = is_pair(l2) ? pair_car(l2): EOL;
+  sexp rest = is_pair(l2) ? pair_cdr(l2): EOL;
+  return make_pair(make_pair(pair_car(l1), val),
+                   merge_alist(pair_cdr(l1), rest));
 }
 
 /* Others */
@@ -334,13 +364,16 @@ sexp find_or_create_symbol(char *name) {
     return symbol;
 }
 
-/* environment manipulation */
+/* Environment manipulation */
 sexp extend_environment(sexp vars, sexp vals, sexp env) {
-  return make_pair(make_pair(vars, vals), env);
+  /* return make_pair(make_pair(vars, vals), env); */
+  sexp bindings = merge_alist(vars, vals);
+  return make_environment(bindings, env);
 }
 
 sexp make_startup_environment(void) {
-  startup_environment = extend_environment(EOL, EOL, null_environment);
+  if (startup_environment == NULL)
+    startup_environment = extend_environment(EOL, EOL, null_environment);
   return startup_environment;
 }
 
@@ -349,19 +382,26 @@ sexp make_repl_environment(void) {
 }
 
 int is_empty_environment(sexp env) {
-  return is_null(env);
+  return null_environment == env;
 }
 
 sexp search_binding(sexp var, sexp env) {
   while (!is_empty_environment(env)) {
-    sexp vars = environment_vars(env);
-    sexp vals = environment_vals(env);
-    while (is_pair(vars)) {
-      if (pair_car(vars) == var)
-        return pair_car(vals);
-      vars = pair_cdr(vars);
-      vals = pair_cdr(vals);
+    sexp bindings = environment_bindings(env);
+    while (is_pair(bindings)) {
+      sexp b = pair_car(bindings);
+      if (pair_car(b) == var)
+        return pair_cdr(b);
+      bindings = pair_cdr(bindings);
     }
+    /* sexp vars = environment_vars(env); */
+    /* sexp vals = environment_vals(env); */
+    /* while (is_pair(vars)) { */
+    /*   if (pair_car(vars) == var) */
+    /*     return pair_car(vals); */
+    /*   vars = pair_cdr(vars); */
+    /*   vals = pair_cdr(vals); */
+    /* } */
     env = enclosing_environment(env);
   }
   return NULL;
@@ -370,30 +410,41 @@ sexp search_binding(sexp var, sexp env) {
 int search_binding_index(sexp var, sexp env, int *x, int *y) {
   int i = 0;
   while (!is_empty_environment(env)) {
-    sexp vars = environment_vars(env);
-    for (int j = 0; is_pair(vars); vars = pair_cdr(vars), j++) {
-      if (pair_car(vars) == var) {
-        *x = i;
-        *y = j;
-        return 1;
-      }
+    sexp bindings = environment_bindings(env);
+    for (int j = 0; is_pair(bindings); bindings = pair_cdr(bindings), j++) {
+      sexp b = pair_car(bindings);
+      if (pair_car(b) != var) continue;
+      *x = i;
+      *y = j;
+      return yes;
     }
+    /* sexp vars = environment_vars(env); */
+    /* for (int j = 0; is_pair(vars); vars = pair_cdr(vars), j++) { */
+    /*   if (pair_car(vars) == var) { */
+    /*     *x = i; */
+    /*     *y = j; */
+    /*     return 1; */
+    /*   } */
+    /* } */
     env = enclosing_environment(env);
     i++;
   }
-  return 0;
+  return no;
 }
 
 /* Create a new binding if this `var' is not used yet */
-void add_binding(sexp var, sexp val, sexp environment) {
-  sexp cell = search_binding(var, environment);
+void add_binding(sexp var, sexp val, sexp env) {
+  sexp cell = search_binding(var, env);
   if (!cell) {
-    sexp vars = environment_vars(environment);
-    sexp vals = environment_vals(environment);
-    vars = make_pair(var, vars);
-    vals = make_pair(val, vals);
-    ASIG(environment_vars(environment), vars);
-    ASIG(environment_vals(environment), vals);
+    /* sexp vars = environment_vars(environment); */
+    /* sexp vals = environment_vals(environment); */
+    /* vars = make_pair(var, vars); */
+    /* vals = make_pair(val, vals); */
+    /* ASIG(environment_vars(environment), vars); */
+    /* ASIG(environment_vals(environment), vals); */
+    sexp bindings = environment_bindings(env);
+    bindings = make_pair(make_pair(var, val), bindings);
+    environment_bindings(env) = bindings;
   }
 }
 
@@ -401,18 +452,24 @@ void add_binding(sexp var, sexp val, sexp environment) {
 void set_binding(sexp var, sexp val, sexp environment) {
   sexp tmp = environment;
   while (!is_empty_environment(environment)) {
-    sexp vars = environment_vars(environment);
-    sexp vals = environment_vals(environment);
-    while (is_pair(vars)) {
-      if (pair_car(vars) == var) {
-        /* dec_ref_count(pair_car(vals)); */
-        pair_car(vals) = val;
-        /* inc_ref_count(val); */
+    sexp bindings = environment_bindings(environment);
+    while (is_pair(bindings)) {
+      if (pair_caar(bindings) == var) {
+        pair_cdr(pair_car(bindings)) = val;
         break;
       }
-      vars = pair_cdr(vars);
-      vals = pair_cdr(vals);
+      bindings = pair_cdr(bindings);
     }
+    /* sexp vars = environment_vars(environment); */
+    /* sexp vals = environment_vals(environment); */
+    /* while (is_pair(vars)) { */
+    /*   if (pair_car(vars) == var) { */
+    /*     pair_car(vals) = val; */
+    /*     break; */
+    /*   } */
+    /*   vars = pair_cdr(vars); */
+    /*   vals = pair_cdr(vals); */
+    /* } */
     environment = enclosing_environment(environment);
   }
   add_binding(var, val, tmp);

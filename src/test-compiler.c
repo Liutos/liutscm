@@ -20,14 +20,22 @@ int main(int argc, char *argv[])
 {
   init_impl();
   char *cases[] = {
-    "1",
-    "+",
-    "'hello",
-    "(if #f 1 2)",
-    "(if 1 1 2)",
-    "(if (+ 1 1) 1 1)",
-    "(f (g x))",
-    "(begin (if p (f x) (* x x)) z)",
+    /* "1", */
+    /* "+", */
+    /* "'hello", */
+    /* "(if #f 1 2)", */
+    /* "(if 1 1 2)", */
+    /* "(if (+ 1 1) 1 1)", */
+    /* "(lambda (x . y) (cons x y))", */
+    /* "(define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l))))", */
+    "(car '(1 2))",
+    /* "((lambda (x y) (+ x y)) 1 2)", */
+    /* "(f (g x))", */
+    /* "(begin (if p (f x) (* x x)) z)", */
+    /* "(+ 1 2)", */
+    /* "(begin (+ (* 1 2) (read)))", */
+    /* "((lambda (x . y) (cons x y)) 1 2 3 4)", */
+    /* "(eval (read) (repl-environment))", */
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

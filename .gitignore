@@ -6,6 +6,7 @@ liutscm
 run-repl-test
 run-compiler-test
 run-vm-test
+run-asm-test
 
 # GNU Global index
 GPATH

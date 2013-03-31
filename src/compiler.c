@@ -12,15 +12,16 @@
 
 #include "compiler.h"
 #include "eval.h"
-#include "types.h"
 #include "object.h"
+#include "types.h"
+#include "vm.h"
 
 #define BUFFER_SIZE 10
 
 #define seq(...) sequenzie(__VA_ARGS__, NULL)
 #define gen(...) generate_code(__VA_ARGS__, NULL)
 #define gen_args(x) gen("ARGS", x)
-#define gen_argsdot(x) gen("ARGS.", x)
+#define gen_argsdot(x) gen("ARGSD", x)
 #define gen_call(x) gen("CALL", x)
 #define gen_callj(x) gen("CALLJ", x)
 #define gen_const(x) gen("CONST", x)
@@ -32,6 +33,7 @@
 #define gen_lset(i, j) gen("LSET", i, j)
 #define gen_lvar(i, j) gen("LVAR", i, j)
 #define gen_pop() gen("POP")
+#define gen_prim(x) gen("PRIM", x)
 #define gen_return() gen("RETURN")
 #define gen_save(k) gen("SAVE", k)
 
@@ -63,12 +65,12 @@ lisp_object_t make_label(void) {
 }
 
 /* Returns true when the symbol is the name of a primitive function */
-int is_primitive_name(sexp sym, sexp env) {
-  if (!is_symbol(sym)) return no;
-  sexp obj = get_variable_value(sym, env);
-  if (is_primitive(obj)) return yes;
-  else return no;
-}
+/* int is_primitive_name(sexp sym, sexp env) { */
+/*   if (!is_symbol(sym)) return no; */
+/*   sexp obj = get_variable_value(sym, env); */
+/*   if (is_primitive(obj)) return yes; */
+/*   else return no; */
+/* } */
 
 /* Code Generation */
 /* Generate a list contains one instruction */
@@ -103,6 +105,29 @@ lisp_object_t sequenzie(lisp_object_t pair, ...) {
   return nconc_pair(pair, sequenzie_aux(ap));
 }
 
+sexp gen_args_ins(sexp pars, int n) {
+tail_loop:
+  if (is_null(pars)) return gen_args(make_fixnum(n));
+  if (is_symbol(pars)) return gen_argsdot(make_fixnum(n));
+  if (is_pair(pars) && is_symbol(pair_car(pars))) {
+    pars = pair_cdr(pars);
+    n++;
+    goto tail_loop;
+  }
+  fprintf(stderr, "Illegal argument list\n");
+  exit(1);
+}
+
+sexp make_proper_list(sexp dotable_list) {
+  if (is_null(dotable_list)) return EOL;
+  sexp head = dotable_list;
+  while (is_pair(pair_cdr(dotable_list)))
+    dotable_list = pair_cdr(dotable_list);
+  if (!is_null(pair_cdr(dotable_list)))
+    pair_cdr(dotable_list) = make_pair(pair_cdr(dotable_list), EOL);
+  return head;
+}
+
 /* Compiler */
 lisp_object_t compile_constant(lisp_object_t val, int is_val, int is_more) {
   /* return gen_const(val); */
@@ -129,39 +154,19 @@ sexp compile_begin(sexp actions, sexp env, int is_val, int is_more) {
                compile_begin(pair_cdr(actions), env, is_val, is_more));
 }
 
-sexp gen_args_ins(sexp pars, int n) {
-tail_loop:
-  if (is_null(pars)) return gen_args(make_fixnum(n));
-  if (is_symbol(pars)) return gen_argsdot(make_fixnum(n));
-  if (is_pair(pars) && is_symbol(pair_car(pars))) {
-    pars = pair_cdr(pars);
-    n++;
-    goto tail_loop;
-  }
-  fprintf(stderr, "Illegal argument list\n");
-  exit(1);
-}
-
-sexp make_proper_list(sexp dotable_list) {
-  if (is_null(dotable_list)) return EOL;
-  sexp head = dotable_list;
-  while (is_pair(pair_cdr(dotable_list)))
-    dotable_list = pair_cdr(dotable_list);
-  if (!is_null(pair_cdr(dotable_list)))
-    pair_cdr(dotable_list) = make_pair(pair_cdr(dotable_list), EOL);
-  return head;
-}
-
 sexp compile_lambda(sexp args, sexp body, sexp env) {
-  sexp pars = make_proper_list(args);
-  sexp new_env = extend_environment(pars, EOL, env);
   /* sexp code = */
   /*     seq(gen_args(make_fixnum(pair_length(args))), */
   /*         compile_begin(body, new_env, yes, no), */
   /*         gen_return()); */
-  sexp code =
-      seq(gen_args_ins(args, 0),
-          compile_begin(body, new_env, yes, no));
+
+  /* Parses the original lambda-list and converts it to proper-list
+   * after parsing */
+  sexp arg_ins = gen_args_ins(args, 0);
+  sexp pars = make_proper_list(args);
+
+  sexp new_env = extend_environment(pars, EOL, env);
+  sexp code = seq(arg_ins, compile_begin(body, new_env, yes, no));
   return make_compiled_proc(args, code, new_env);
 }
 
@@ -234,8 +239,31 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
   /* optimize: side-effect free primitive */
   if (is_symbol(operator)) {
     sexp op = get_variable_value(operator, env);
-    if (is_primitive(op) && primitive_se(op) == no)
-      return compile_begin(operands, env, no, is_more);
+    if (is_primitive(op)) {
+      if (!is_val && primitive_se(op) == no)
+        return compile_begin(operands, env, no, is_more);
+      else if (is_code_exist(op))
+        return seq(compile_arguments(operands, env),
+                   /* compile_object(operator, env, yes, yes), */
+                   /* gen_prim(make_fixnum(len)), */
+                   gen(primitive_opcode(op)),
+                   (is_val ? EOL: gen_pop()),
+                   (is_more ? EOL: gen_return()));
+      else
+        return seq(compile_arguments(operands, env),
+                   compile_object(operator, env, yes, yes),
+                   gen_prim(make_fixnum(len)),
+                   (is_val ? EOL: gen_pop()),
+                   (is_more ? EOL: gen_return()));
+    }
+    /* if (is_primitive(op) && ) */
+    /*   return compile_begin(operands, env, no, is_more); */
+    /* if (is_primitive(op) && primitive_se(op) == yes) */
+      /* return seq(compile_arguments(operands, env), */
+      /*            compile_object(operator, env, yes, yes), */
+      /*            gen_prim(make_fixnum(len)), */
+      /*            (is_val ? EOL: gen_pop()), */
+      /*            (is_more ? EOL: gen_return())); */
   }
 
   if (is_more) {

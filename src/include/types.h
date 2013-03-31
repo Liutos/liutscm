@@ -38,6 +38,7 @@ enum object_type {
   RETURN_INFO,
   FLONUM,
   MACRO,
+  ENVIRONMENT,
 };
 
 /* Lisp object */
@@ -60,6 +61,7 @@ typedef struct lisp_object_t {
       C_proc_t C_proc;
       int is_side_effect;
       char *Lisp_name;
+      char *code_name;
     } primitive_proc;
     struct {
       sexp parameters;
@@ -90,6 +92,10 @@ typedef struct lisp_object_t {
     struct {
       float value;
     } flonum;
+    struct {
+      sexp bindings;
+      sexp outer_env;
+    } environment;
   } values;
 } *lisp_object_t;
 
@@ -211,6 +217,7 @@ typedef struct hash_table_t {
 #define primitive_C_proc(x) ((x)->values.primitive_proc.C_proc)
 #define primitive_se(x) ((x)->values.primitive_proc.is_side_effect)
 #define primitive_name(x) ((x)->values.primitive_proc.Lisp_name)
+#define primitive_opcode(x) ((x)->values.primitive_proc.code_name)
 /* COMPOUND_PROC */
 #define is_compound(x) is_pointer_tag(x, COMPOUND_PROC)
 #define is_function(x) (is_primitive(x) || is_compound(x))
@@ -232,19 +239,23 @@ typedef struct hash_table_t {
 #define return_code(x) ((x)->values.return_info.code)
 #define return_pc(x) ((x)->values.return_info.pc)
 #define return_env(x) ((x)->values.return_info.env)
+/* ENVIRONMENT */
+#define is_environment(x) is_pointer_tag(x, ENVIRONMENT)
+#define environment_bindings(x) ((x)->values.environment.bindings)
+#define environment_outer(x) ((x)->values.environment.outer_env)
 
 /* utilities */
 /* PAIR */
 #define pair_cddr(x) pair_cdr(pair_cdr(x))
 #define pair_cdddr(x) pair_cdr(pair_cddr(x))
-/*
- * pair_cadr: second element
- * pair_caddr: third element
- * pair_cadddr: fourth element
- */
 #define pair_cadr(x) pair_car(pair_cdr(x))
 #define pair_caddr(x) pair_car(pair_cddr(x))
 #define pair_cadddr(x) pair_car(pair_cdddr(x))
+
+#define first(x) pair_car(x)
+#define second(x) pair_cadr(x)
+#define third(x) pair_caddr(x)
+#define fourth(x) pair_cadddr(x)
 
 #define pair_caar(x) pair_car(pair_car(x))
 #define pair_cdar(x) pair_cdr(pair_car(x))
@@ -253,6 +264,8 @@ typedef struct hash_table_t {
 /* SYMBOL */
 #define S(name) find_or_create_symbol(name)
 #define is_label(x) is_symbol(x)
+/* PRIMITIVE_PROC */
+#define is_code_exist(x) (primitive_opcode(x) != NULL)
 
 /* maintain reference count */
 /* Assign and increase the ref_count */
@@ -262,10 +275,5 @@ typedef struct hash_table_t {
 /*     var = value;                                \ */
 /*     inc_ref_count(value);                       \ */
 /*   } while(0) */
-
-/* Declare, initialize and increase the references count */
-/* #define DECL(var, expr)                         \ */
-/*   sexp var = expr;                              \ */
-/*   inc_ref_count(var); */
 
 #endif
