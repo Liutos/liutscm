@@ -22,18 +22,17 @@ extern sexp extract_labels(sexp, int *);
 int main(int argc, char *argv[])
 {
   init_impl();
-  lisp_object_t out_port = make_file_out_port(stdout);
   char *cases[] = {
     "1",
-    "+",
-    "'hello",
-    "(+ 1 2)",
-    "(if #t 1 2)",
-    "(begin (set! a 1) a)",
-    "(begin \"doc\" (write \"Hello, world\") 2)",
-    "(lambda (x) (+ x 1))",
-    "(+ 1 1)",
-    "((lambda (x . y) (cons x y)) 1 2 3 4)",
+    /* "+", */
+    /* "'hello", */
+    /* "(+ 1 2)", */
+    /* "(if #t 1 2)", */
+    /* "(begin (set! a 1) a)", */
+    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
+    /* "(lambda (x) (+ x 1))", */
+    /* "(+ 1 1)", */
+    /* "((lambda (x . y) (cons x y)) 1 2 3 4)", */
     /* "(+ (* 1 2) (+ 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
   };
@@ -49,15 +48,12 @@ int main(int argc, char *argv[])
     /* printf("\n-> "); */
     /* write_object(compiled_code, out_port); */
     /* printf("\n"); */
-    lisp_object_t stack = make_empty_list();
     lisp_object_t value =
-        run_compiled_code(compiled_code, repl_environment, stack);
-    printf("=> ");
-    write_object(value, out_port);
-    /* int length; */
-    /* extract_labels(compiled_proc_code(compiled_code), &length); */
-    /* printf("%d", length); */
-    putchar('\n');
+        run_compiled_code(compiled_code, repl_environment, EOL);
+    /* printf("=> "); */
+    /* write_object(value, out_port); */
+    /* putchar('\n'); */
+    port_format(scm_out_port, "=> %*\n", value);
     fclose(fp);
   }
   return 0;

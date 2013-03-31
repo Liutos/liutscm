@@ -90,13 +90,14 @@ char *binary_opcodes[] = {
 };
 
 enum code_type code_name(lisp_object_t code) {
-  assert(is_pair(code));
-  lisp_object_t name = pair_car(code);
-  for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
-    if (name == S(opcodes[i].name))
-      return opcodes[i].code;
-  port_format(scm_out_port, "code_name - Unsupported code: %*\n", pair_car(code));
-  exit(1);
+  /* assert(is_pair(code)); */
+  /* lisp_object_t name = pair_car(code); */
+  /* for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++) */
+  /*   if (name == S(opcodes[i].name)) */
+  /*     return opcodes[i].code; */
+  /* port_format(scm_out_port, "code_name - Unsupported code: %*\n", pair_car(code)); */
+  /* exit(1); */
+  return fixnum_value(code);
 }
 
 sexp get_variable_by_index(int i, int j, sexp env) {
@@ -321,13 +322,15 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
-        if (nargs != fixnum_value(arg1(ins))) {
+        pc++;
+        sexp n = vector_data_at(code, pc);
+        if (nargs != fixnum_value(n)) {
           port_format(scm_out_port,
                       "Wrong argument number: %d but expecting %d\n",
-                      arg1(ins), make_fixnum(nargs));
+                      n, make_fixnum(nargs));
           exit(1);
         }
-        move_args(fixnum_value(arg1(ins)), &stack, &env);
+        move_args(fixnum_value(n), &stack, &env);
         pc++;
       } break;
       case ARGSD: {
