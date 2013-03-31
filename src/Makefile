@@ -45,6 +45,8 @@ test-compiler.o: test-compiler.c include/types.h include/object.h include/compil
 
 test-vm.o: test-vm.c include/types.h include/object.h include/compiler.h include/eval.h include/read.h include/init.h
 
+test-asm.o: test-asm.c include/types.h include/object.h include/compiler.h include/eval.h include/read.h include/init.h
+
 # Executables
 
 liutscm: main.o $(OBJS)
@@ -59,6 +61,9 @@ run-compiler-test: test-compiler.o $(OBJS) compiler.o vm.o
 run-vm-test: test-vm.o $(OBJS) vm.o compiler.o
 	$(CC) $(CFLAGS) $^ -o $@
 
+run-asm-test: test-asm.o $(OBJS) vm.o compiler.o
+	$(CC) $(CFLAGS) $^ -o $@
+
 .PHONY: clean
 
 clean:
@@ -67,5 +72,6 @@ clean:
 	if [ -f run-repl-test ]; then rm run-repl-test; fi
 	if [ -f run-compiler-test ]; then rm run-compiler-test; fi
 	if [ -f run-vm-test ]; then rm run-vm-test; fi
+	if [ -f run-asm-test ]; then rm run-asm-test; fi
 
 ### Makefile ends here

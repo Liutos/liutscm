@@ -26,7 +26,9 @@ int main(int argc, char *argv[])
     /* "(if #f 1 2)", */
     /* "(if 1 1 2)", */
     /* "(if (+ 1 1) 1 1)", */
-    "(lambda (x . y) (cons x y))",
+    /* "(lambda (x . y) (cons x y))", */
+    /* "(define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l))))", */
+    "(car '(1 2))",
     /* "((lambda (x y) (+ x y)) 1 2)", */
     /* "(f (g x))", */
     /* "(begin (if p (f x) (* x x)) z)", */

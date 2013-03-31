@@ -14,10 +14,10 @@
 #include "types.h"
 #include "write.h"
 
-#define ADD(Lisp_name, C_proc)                          \
-  add_primitive_proc(Lisp_name, C_proc, environment)
-#define DEFPROC(Lisp_name, C_proc, is_se)                               \
-  {.type=PRIMITIVE_PROC, .values={.primitive_proc={C_proc, is_se, Lisp_name}}}
+/* #define ADD(Lisp_name, C_proc)                          \ */
+/*   add_primitive_proc(Lisp_name, C_proc, environment) */
+#define DEFPROC(Lisp_name, C_proc, is_se, code_name) \
+  {.type=PRIMITIVE_PROC, .values={.primitive_proc={C_proc, is_se, Lisp_name, code_name}}}
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
 /* FIXNUM */
@@ -345,48 +345,48 @@ void add_primitive_proc(sexp proc, sexp env) {
 }
 
 struct lisp_object_t primitive_procs[] = {
-  DEFPROC("+", plus_proc, no),
-  DEFPROC("-", minus_proc, no),
-  DEFPROC("*", multiply_proc, no),
-  DEFPROC("quotient", divide_proc, no),
-  DEFPROC("remainder", modulo_proc, no),
-  DEFPROC("=", numeric_equal_proc, no),
-  DEFPROC(">", greater_than_proc, no),
-  DEFPROC("&", bit_and_proc, no),
-  DEFPROC("|", bit_or_proc, no),
-  DEFPROC("~", bit_not_proc, no),
-  DEFPROC("char->integer", char2code_proc, no),
-  DEFPROC("integer->char", code2char_proc, no),
-  DEFPROC("string-ref", char_at_proc, no),
-  DEFPROC("string-length", string_length_proc, no),
-  DEFPROC("string=?", string_equal_proc, no),
-  DEFPROC("car", pair_car_proc, no),
-  DEFPROC("cdr", pair_cdr_proc, no),
-  DEFPROC("cons", pair_cons_proc, no),
-  DEFPROC("set-car!", pair_set_car_proc, yes),
-  DEFPROC("set-cdr!", pair_set_cdr_proc, yes),
-  DEFPROC("symbol-name", symbol_name_proc, no),
-  DEFPROC("string->symbol", string2symbol_proc, no),
-  DEFPROC("apply", apply_proc, yes),
-  DEFPROC("open-in", open_in_proc, yes),
-  DEFPROC("read-char", read_char_proc, yes),
-  DEFPROC("close-in", close_in_proc, yes),
-  DEFPROC("read", read_proc, yes),
-  DEFPROC("open-out", open_out_proc, yes),
-  DEFPROC("write-char", write_char_proc, yes),
-  DEFPROC("close-out", close_out_proc, yes),
-  DEFPROC("write", write_proc, yes),
-  DEFPROC("vector-ref", vector_ref_proc, no),
-  DEFPROC("vector-set!", vector_set_proc, yes),
-  DEFPROC("+.", flonum_plus_proc, no),
-  DEFPROC("-.", flonum_minus_proc, no),
-  DEFPROC("*.", flonum_multiply_proc, no),
-  DEFPROC("/.", flonum_divide_proc, no),
-  DEFPROC("integer->float", integer_to_float_proc, no),
-  DEFPROC("repl-environment", get_repl_environment, no),
-  DEFPROC("type-of", type_of_proc, no),
-  DEFPROC("eq?", is_identical_proc, no),
-  DEFPROC("eval", eval_proc, yes),
+  DEFPROC("+", plus_proc, no, NULL),
+  DEFPROC("-", minus_proc, no, NULL),
+  DEFPROC("*", multiply_proc, no, NULL),
+  DEFPROC("quotient", divide_proc, no, NULL),
+  DEFPROC("remainder", modulo_proc, no, NULL),
+  DEFPROC("=", numeric_equal_proc, no, NULL),
+  DEFPROC(">", greater_than_proc, no, NULL),
+  DEFPROC("&", bit_and_proc, no, NULL),
+  DEFPROC("|", bit_or_proc, no, NULL),
+  DEFPROC("~", bit_not_proc, no, NULL),
+  DEFPROC("char->integer", char2code_proc, no, NULL),
+  DEFPROC("integer->char", code2char_proc, no, NULL),
+  DEFPROC("string-ref", char_at_proc, no, NULL),
+  DEFPROC("string-length", string_length_proc, no, NULL),
+  DEFPROC("string=?", string_equal_proc, no, NULL),
+  DEFPROC("car", pair_car_proc, no, "CAR"),
+  DEFPROC("cdr", pair_cdr_proc, no, "CDR"),
+  DEFPROC("cons", pair_cons_proc, no, NULL),
+  DEFPROC("set-car!", pair_set_car_proc, yes, NULL),
+  DEFPROC("set-cdr!", pair_set_cdr_proc, yes, NULL),
+  DEFPROC("symbol-name", symbol_name_proc, no, NULL),
+  DEFPROC("string->symbol", string2symbol_proc, no, NULL),
+  DEFPROC("apply", apply_proc, yes, NULL),
+  DEFPROC("open-in", open_in_proc, yes, NULL),
+  DEFPROC("read-char", read_char_proc, yes, NULL),
+  DEFPROC("close-in", close_in_proc, yes, NULL),
+  DEFPROC("read", read_proc, yes, NULL),
+  DEFPROC("open-out", open_out_proc, yes, NULL),
+  DEFPROC("write-char", write_char_proc, yes, NULL),
+  DEFPROC("close-out", close_out_proc, yes, NULL),
+  DEFPROC("write", write_proc, yes, NULL),
+  DEFPROC("vector-ref", vector_ref_proc, no, NULL),
+  DEFPROC("vector-set!", vector_set_proc, yes, NULL),
+  DEFPROC("+.", flonum_plus_proc, no, NULL),
+  DEFPROC("-.", flonum_minus_proc, no, NULL),
+  DEFPROC("*.", flonum_multiply_proc, no, NULL),
+  DEFPROC("/.", flonum_divide_proc, no, NULL),
+  DEFPROC("integer->float", integer_to_float_proc, no, NULL),
+  DEFPROC("repl-environment", get_repl_environment, no, NULL),
+  DEFPROC("type-of", type_of_proc, no, NULL),
+  DEFPROC("eq?", is_identical_proc, no, NULL),
+  DEFPROC("eval", eval_proc, yes, NULL),
 };
 
 void init_environment(lisp_object_t environment) {

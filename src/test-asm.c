@@ -1,7 +1,7 @@
 /*
- * test-vm.c
+ * test-asm.c
  *
- * Test samples for the virtual machine
+ * Test samples for the assembler
  *
  * Copyright (C) 2013-03-18 liutos <mat.liutos@gmail.com>
  */
@@ -30,10 +30,9 @@ int main(int argc, char *argv[])
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
-    /* "(lambda (x) (+ x 1))", */
+    /* "(lambda (x . y) (+ x 1))", */
     /* "(+ 1 1)", */
-    /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
-    "(cdr '(1 2))",
+    "((lambda (x . y) (set! x y)) 1 2 3 4)",
     /* "(+ (* 1 2) (+ 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
   };
@@ -41,19 +40,13 @@ int main(int argc, char *argv[])
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
     lisp_object_t in_port = make_file_in_port(fp);
     printf(">> %s\n", cases[i]);
-    lisp_object_t compiled_code =
-        compile_as_fn(read_object(in_port), repl_environment);
-    /* printf("-- "); */
-    /* write_object(compiled_code, scm_out_port); */
-    /* compiled_code = assemble_code(compiled_code); */
-    /* printf("\n-> "); */
-    /* write_object(compiled_code, out_port); */
-    /* printf("\n"); */
     lisp_object_t value =
-        run_compiled_code(compiled_code, repl_environment, EOL);
-    /* printf("=> "); */
-    /* write_object(value, out_port); */
-    /* putchar('\n'); */
+        compile_as_fn(read_object(in_port), repl_environment);
+    /* value = */
+    /*     run_compiled_code(value, repl_environment, EOL); */
+    value = compiled_proc_code(value);
+    port_format(scm_out_port, "-- %*\n", value);
+    value = assemble_code(value);
     port_format(scm_out_port, "=> %*\n", value);
     fclose(fp);
   }

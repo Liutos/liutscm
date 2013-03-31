@@ -242,6 +242,13 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
     if (is_primitive(op)) {
       if (!is_val && primitive_se(op) == no)
         return compile_begin(operands, env, no, is_more);
+      else if (is_code_exist(op))
+        return seq(compile_arguments(operands, env),
+                   /* compile_object(operator, env, yes, yes), */
+                   /* gen_prim(make_fixnum(len)), */
+                   gen(primitive_opcode(op)),
+                   (is_val ? EOL: gen_pop()),
+                   (is_more ? EOL: gen_return()));
       else
         return seq(compile_arguments(operands, env),
                    compile_object(operator, env, yes, yes),
