@@ -19,6 +19,7 @@
 #define arg2(x) pair_caddr(x)
 #define arg3(x) pair_cadddr(x)
 #define nth_pop(stack, n) stack = pair_nthcdr(stack, n)
+#define opcode(x) pair_car(x)
 #define pop(stack) stack = pair_cdr(stack)
 
 #define pop_to(stack, var)                      \
@@ -73,6 +74,19 @@ static struct code_t opcodes[] = {
   C(TJUMP),
 };
 
+char *const_opcodes[] = {
+  "POP", "RETURN",
+};
+
+char *unary_opcodes[] = {
+  "ARGS", "ARGSD", "CALL", "CALLJ", "CONST", "FJUMP", "FN", "GSET", "GVAR",
+  "JUMP", "PRIM", "SAVE", "TJUMP",
+};
+
+char *binary_opcodes[] = {
+  "LSET", "LVAR",
+};
+
 enum code_type code_name(lisp_object_t code) {
   assert(is_pair(code));
   lisp_object_t name = pair_car(code);
@@ -114,6 +128,49 @@ void push_value2env(lisp_object_t stack, int n, lisp_object_t environment) {
     push(top, vals);
   }
   environment_vals(environment) = vals;
+}
+
+/* Categorize the instruction */
+int is_in_set(sexp opcode, char *set[], int len) {
+  for (int i = 0; i < len; i++)
+    if (opcode == S(set[i])) return yes;
+  return no;
+}
+
+int is_const_op(sexp opcode) {
+  /* for (int i = 0; i < sizeof(const_opcodes) / sizeof(char *); i++) */
+  /*   if (opcode == S(const_opcodes[i])) */
+  /*     return yes; */
+  /* return no; */
+  return is_in_set(opcode, const_opcodes, sizeof(const_opcodes) / sizeof(char *));
+}
+
+int is_unary_op(sexp opcode) {
+  /* for (int i = 0; i < sizeof(unary_opcodes) / sizeof(char *); i++) */
+  /*   if (opcode == S(unary_opcodes[i])) */
+  /*     return yes; */
+  /* return no; */
+  return is_in_set(opcode, unary_opcodes, sizeof(unary_opcodes) / sizeof(char *));
+}
+
+int is_binary_op(sexp opcode) {
+  /* for (int i = 0; i < sizeof(binary_opcodes) / sizeof(char *); i++) */
+  /*   if (opcode == S(binary_opcodes[i])) */
+  /*     return yes; */
+  /* return no; */
+  return is_in_set(opcode, binary_opcodes, sizeof(binary_opcodes) / sizeof(char *));
+}
+
+/* How much bytes should the assemble code occupy? */
+int instruction_length(sexp ins) {
+  sexp opcode = opcode(ins);
+  if (is_const_op(opcode)) return 1;
+  if (is_unary_op(opcode)) return 2;
+  if (is_binary_op(opcode)) return 3;
+  else {
+    port_format(scm_out_port, "Unexpected opcode %*\n", opcode);
+    exit(1);
+  }
 }
 
 /* Assembler */
