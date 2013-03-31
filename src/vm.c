@@ -334,7 +334,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pc++;
       } break;
       case ARGSD: {
-        int n = fixnum_value(arg1(ins));
+        int n = fixnum_value(vector_data_at(code, ++pc));
         if (nargs < n) {
           port_format(scm_out_port, "Unscientific!\n");
           exit(1);
@@ -364,7 +364,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pc = 0;
       } break;
       case FN: {
-        sexp fn = arg1(ins);
+        sexp fn = vector_data_at(code, ++pc);
         sexp pars = compiled_proc_args(fn);
         sexp code = compiled_proc_code(fn);
         push(make_compiled_proc(pars, code, env), stack);
