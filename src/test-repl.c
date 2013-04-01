@@ -26,7 +26,13 @@ int main(int argc, char *argv[])
     /* "(integer->float 123)", */
     /* "(& 5 7)", */
     /* "'hello", */
-    "-",
+    /* "-", */
+    "(define (even? n) (if (= n 0) #t (odd? (- n 1))))",
+    "even?",
+    "(define (odd? n) (if (= n 0) #f (even? (- n 1))))",
+    "odd?",
+    "(even? 1)",
+    "(odd? 2)",
     /* "(+ 1 2)", */
     /* "(* 3 4)", */
     /* "(quotient 10 3)", */
