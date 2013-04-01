@@ -103,13 +103,6 @@ char *binary_opcodes[] = {
 };
 
 enum code_type code_name(lisp_object_t code) {
-  /* assert(is_pair(code)); */
-  /* lisp_object_t name = pair_car(code); */
-  /* for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++) */
-  /*   if (name == S(opcodes[i].name)) */
-  /*     return opcodes[i].code; */
-  /* port_format(scm_out_port, "code_name - Unsupported code: %*\n", pair_car(code)); */
-  /* exit(1); */
   return fixnum_value(code);
 }
 
@@ -154,26 +147,14 @@ int is_in_set(sexp opcode, char *set[], int len) {
 }
 
 int is_const_op(sexp opcode) {
-  /* for (int i = 0; i < sizeof(const_opcodes) / sizeof(char *); i++) */
-  /*   if (opcode == S(const_opcodes[i])) */
-  /*     return yes; */
-  /* return no; */
   return is_in_set(opcode, const_opcodes, sizeof(const_opcodes) / sizeof(char *));
 }
 
 int is_unary_op(sexp opcode) {
-  /* for (int i = 0; i < sizeof(unary_opcodes) / sizeof(char *); i++) */
-  /*   if (opcode == S(unary_opcodes[i])) */
-  /*     return yes; */
-  /* return no; */
   return is_in_set(opcode, unary_opcodes, sizeof(unary_opcodes) / sizeof(char *));
 }
 
 int is_binary_op(sexp opcode) {
-  /* for (int i = 0; i < sizeof(binary_opcodes) / sizeof(char *); i++) */
-  /*   if (opcode == S(binary_opcodes[i])) */
-  /*     return yes; */
-  /* return no; */
   return is_in_set(opcode, binary_opcodes, sizeof(binary_opcodes) / sizeof(char *));
 }
 
@@ -181,8 +162,8 @@ int is_binary_op(sexp opcode) {
 int instruction_length(sexp ins) {
   sexp opcode = opcode(ins);
   if (is_const_op(opcode)) return 1;
-  if (is_unary_op(opcode)) return /* 1 + sizeof(sexp) */1 + 1;
-  if (is_binary_op(opcode)) return /* 1 + 2 * sizeof(sexp) */1 + 2 * 1;
+  if (is_unary_op(opcode)) return 1 + 1;
+  if (is_binary_op(opcode)) return 1 + 2 * 1;
   else {
     port_format(scm_out_port, "Unexpected opcode %*\n", opcode);
     exit(1);
@@ -215,13 +196,6 @@ sexp extract_labels(sexp compiled_code, int *length) {
 }
 
 int is_with_label(lisp_object_t code) {
-  /* switch (code_name(code)) { */
-  /*   case FJUMP: */
-  /*   case JUMP: */
-  /*   case SAVE: */
-  /*   case TJUMP: return 1; */
-  /*   default : return 0; */
-  /* } */
   static char *label_ins[] = {
     "FJUMP", "JUMP", "SAVE", "TJUMP",
   };
@@ -281,8 +255,6 @@ sexp vectorize_code(sexp compiled_code, int length, sexp label_table) {
         arg1(code) = search_label_offset(arg1(code), label_table);
         label_table = pair_cdr(label_table);
       }
-      /* vector_data_at(code_vector, i) = code; */
-      /* i++; */
       vector_data_at(code_vector, i) = to_opbyte(opcode(code));
       i++;
       write_arg_bytes(vector_datum(code_vector), &i, code);
@@ -336,15 +308,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   sexp code = compiled_proc_code(obj);
   int nargs = 0;
   code = assemble_code(code);
-  /* port_format(scm_out_port, "-> %*\n", code); */
-  /* port_format(scm_out_port, "-- %*\n", code); */
-  /* for (int pc = 0; pc < vector_length(code); pc++) { */
   int pc = 0;
   while (pc < vector_length(code)) {
     assert(is_vector(code));
     sexp ins = vector_data_at(code, pc);
-    port_format(scm_out_port, "Processing: %s\n",
-                make_string(opcodes[code_name(ins)].name));
+    /* port_format(scm_out_port, "Processing: %s\n", */
+    /*             make_string(opcodes[code_name(ins)].name)); */
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
@@ -375,18 +344,13 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
           push(make_pair(EOL, arg), bindings);
         }
         environment_bindings(env) = bindings;
-        /* port_format(scm_out_port, "Current bindings: %*\n", */
-        /*             environment_bindings(env)); */
-        /* exit(1); */
         pc++;
       } break;
       case CALLJ: {
         nargs = fixnum_value(vector_data_at(code, ++pc));
-        /* port_format(scm_out_port, "nargs: %d\n", make_fixnum(nargs)); */
         pop_to(stack, proc);
         code = assemble_code(compiled_proc_code(proc));
         env = compiled_proc_env(proc);
-        /* pc = -1; */
         pc = 0;
       } break;
       case FN: {
@@ -407,8 +371,6 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       case RETURN: {                    /* No vector operations */
         pop_to(stack, value);
         if (is_return_info(top(stack))) {
-          /* port_format(scm_out_port, "WTF - I got a return info\n"); */
-          /* exit(1); */
           /* Restores the stack-based machine context */
           pop_to(stack, info);
           code = return_code(info);
@@ -432,36 +394,27 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         sexp obj = next_arg(code, &pc);
         push(obj, stack);
         pc++;
-        /* port_format(scm_out_port, "%*\n", stack); */
-        /* exit(0); */
       } break;
       case GSET: {
         sexp value = top(stack);
-        /* sexp var = vector_data_at(code, ++pc); */
         sexp var = next_arg(code, &pc);
         set_binding(var, value, env);
         pc++;
       } break;
       case GVAR: {
-        /* sexp var = vector_data_at(code, ++pc); */
         sexp var = next_arg(code, &pc);
         push(get_variable_value(var, env), stack);
         pc++;
       } break;
       case LSET: {
-        int i = fixnum_value(/* vector_data_at(code, ++pc) */next_arg(code, &pc));
-        int j = fixnum_value(/* vector_data_at(code, ++pc) */next_arg(code, &pc));
+        int i = fixnum_value(next_arg(code, &pc));
+        int j = fixnum_value(next_arg(code, &pc));
         set_variable_by_index(i, j, top(stack), env);
         pc++;
       } break;
       case LVAR: {
-        /* pc++; */
-        /* sexp i = vector_data_at(code, pc); */
-        /* sexp j = vector_data_at(code, ++pc); */
         sexp i = next_arg(code, &pc);
         sexp j = next_arg(code, &pc);
-        /* int i = fixnum_value(arg1(ins)); */
-        /* int j = fixnum_value(arg2(ins)); */
         push(get_variable_by_index(fixnum_value(i), fixnum_value(j), env), stack);
         pc++;
       } break;
@@ -470,9 +423,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /* Branching instructions */
       case FJUMP: {
         pop_to(stack, e);
-        /* pc++; */
         sexp l = next_arg(code, &pc);
-        port_format(scm_out_port, "The element on top of stack is %*\n", e);
         if (is_false(e)) pc = fixnum_value(l);
         else pc++;
       } break;
@@ -527,9 +478,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         port_format(scm_out_port, "%*\n", env);
         return stack;
     }
-    port_format(scm_out_port, "stack: %*\n", stack);
-    /* port_format(scm_out_port, "env: %*\n", env); */
-    /* pc++; */
+    /* port_format(scm_out_port, "stack: %*\n", stack); */
   }
 halt:
   return top(stack);
