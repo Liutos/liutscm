@@ -51,6 +51,11 @@ enum code_type {
   RETURN,
   SAVE,
   TJUMP,
+  /* Integer arithmetic operations */
+  IADD,
+  ISUB,
+  IMUL,
+  IDIV,
 };
 
 struct code_t {
@@ -78,10 +83,14 @@ static struct code_t opcodes[] = {
   C(RETURN),
   C(SAVE),
   C(TJUMP),
+  C(IADD),
+  C(ISUB),
+  C(IMUL),
+  C(IDIV),
 };
 
 char *const_opcodes[] = {
-  "CAR", "CDR", "POP", "RETURN",
+  "CAR", "CDR", "POP", "RETURN", "IADD", "ISUB", "IMUL", "IDIV",
 };
 
 char *unary_opcodes[] = {
@@ -320,7 +329,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   sexp code = compiled_proc_code(obj);
   int nargs = 0;
   code = assemble_code(code);
-  port_format(scm_out_port, "\n-> %*\n", code);
+  port_format(scm_out_port, "-> %*\n", code);
   /* port_format(scm_out_port, "-- %*\n", code); */
   /* for (int pc = 0; pc < vector_length(code); pc++) { */
   int pc = 0;
@@ -460,6 +469,31 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       case CDR: {
         pop_to(stack, pair);
         push(pair_cdr(pair), stack);
+        pc++;
+      } break;
+        /* Integer arithmetic operations */
+      case IADD: {
+        pop_to(stack, n2);
+        pop_to(stack, n1);
+        push(make_fixnum(fixnum_value(n1) + fixnum_value(n2)), stack);
+        pc++;
+      } break;
+      case ISUB: {
+        pop_to(stack, n2);
+        pop_to(stack, n1);
+        push(make_fixnum(fixnum_value(n1) - fixnum_value(n2)), stack);
+        pc++;
+      } break;
+      case IMUL: {
+        pop_to(stack, n2);
+        pop_to(stack, n1);
+        push(make_fixnum(fixnum_value(n1) * fixnum_value(n2)), stack);
+        pc++;
+      } break;
+      case IDIV: {
+        pop_to(stack, n2);
+        pop_to(stack, n1);
+        push(make_fixnum(fixnum_value(n1) / fixnum_value(n2)), stack);
         pc++;
       } break;
 
