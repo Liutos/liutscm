@@ -215,13 +215,20 @@ sexp extract_labels(sexp compiled_code, int *length) {
 }
 
 int is_with_label(lisp_object_t code) {
-  switch (code_name(code)) {
-    case FJUMP:
-    case JUMP:
-    case SAVE:
-    case TJUMP: return 1;
-    default : return 0;
-  }
+  /* switch (code_name(code)) { */
+  /*   case FJUMP: */
+  /*   case JUMP: */
+  /*   case SAVE: */
+  /*   case TJUMP: return 1; */
+  /*   default : return 0; */
+  /* } */
+  static char *label_ins[] = {
+    "FJUMP", "JUMP", "SAVE", "TJUMP",
+  };
+  for (int i = 0; i < sizeof(label_ins) / sizeof(char *); i++)
+    if (pair_car(code) == S(label_ins[i]))
+      return yes;
+  return no;
 }
 
 lisp_object_t search_label_offset(lisp_object_t label, lisp_object_t label_table) {
@@ -336,7 +343,8 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   while (pc < vector_length(code)) {
     assert(is_vector(code));
     sexp ins = vector_data_at(code, pc);
-    /* port_format(scm_out_port, "Processing: %*\n", ins); */
+    port_format(scm_out_port, "Processing: %s\n",
+                make_string(opcodes[code_name(ins)].name));
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
@@ -450,8 +458,10 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         /* Branching instructions */
       case FJUMP: {
         pop_to(stack, e);
-        pc++;
-        if (is_false(e)) pc = fixnum_value(/* vector_data_at(code, pc) */next_arg(code, &pc));
+        /* pc++; */
+        sexp l = next_arg(code, &pc);
+        port_format(scm_out_port, "The next pc is %d\n", l);
+        if (is_false(e)) pc = fixnum_value(l);
       } break;
       case JUMP: pc = fixnum_value(next_arg(code, &pc)); break;
       case TJUMP: {
@@ -503,7 +513,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         port_format(scm_out_port, "%*\n", env);
         return stack;
     }
-    /* port_format(scm_out_port, "stack: %*\n", stack); */
+    port_format(scm_out_port, "stack: %*\n", stack);
     /* port_format(scm_out_port, "env: %*\n", env); */
     /* pc++; */
   }
