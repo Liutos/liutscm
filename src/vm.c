@@ -407,11 +407,19 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       case RETURN: {                    /* No vector operations */
         pop_to(stack, value);
         if (is_return_info(top(stack))) {
-          port_format(scm_out_port, "WTF - I got a return info\n");
-          exit(1);
+          /* port_format(scm_out_port, "WTF - I got a return info\n"); */
+          /* exit(1); */
+          /* Restores the stack-based machine context */
+          pop_to(stack, info);
+          code = return_code(info);
+          env = return_env(info);
+          pc = return_pc(info);
+          push(value, stack);
+        } else {
+          push(value, stack);
+          goto halt;
         }
-        push(value, stack);
-        goto halt;
+        pc++;
       } break;
       case SAVE: push(make_return_info(code, pc, env), stack); pc++; break;
 
