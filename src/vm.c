@@ -336,7 +336,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
   sexp code = compiled_proc_code(obj);
   int nargs = 0;
   code = assemble_code(code);
-  port_format(scm_out_port, "-> %*\n", code);
+  /* port_format(scm_out_port, "-> %*\n", code); */
   /* port_format(scm_out_port, "-- %*\n", code); */
   /* for (int pc = 0; pc < vector_length(code); pc++) { */
   int pc = 0;
@@ -421,7 +421,11 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         }
         pc++;
       } break;
-      case SAVE: push(make_return_info(code, pc, env), stack); pc++; break;
+      case SAVE: {
+        sexp l = next_arg(code, &pc);
+        push(make_return_info(code, fixnum_value(l), env), stack);
+        pc++;
+      } break;
 
         /* Variable/Stack manipulation instructions */
       case CONST: {
@@ -468,14 +472,16 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         pop_to(stack, e);
         /* pc++; */
         sexp l = next_arg(code, &pc);
-        port_format(scm_out_port, "The next pc is %d\n", l);
+        port_format(scm_out_port, "The element on top of stack is %*\n", e);
         if (is_false(e)) pc = fixnum_value(l);
+        else pc++;
       } break;
       case JUMP: pc = fixnum_value(next_arg(code, &pc)); break;
       case TJUMP: {
         pop_to(stack, e);
         pc++;
-        if (is_true(e)) pc = fixnum_value(next_arg(code, &pc)/* vector_data_at(code, pc) */);
+        if (is_true(e)) pc = fixnum_value(next_arg(code, &pc));
+        else pc++;
       } break;
 
         /* Primitive functions */

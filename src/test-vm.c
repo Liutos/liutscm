@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
         compile_as_fn(read_object(in_port), repl_environment);
     /* printf("-- "); */
     /* write_object(compiled_code, scm_out_port); */
+    port_format(scm_out_port, "-- %*\n", compiled_code);
     /* compiled_code = assemble_code(compiled_code); */
     /* printf("\n-> "); */
     /* write_object(compiled_code, out_port); */
