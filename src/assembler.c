@@ -172,7 +172,7 @@ sexp vectorize_code(sexp compiled_code, int length, sexp label_table) {
     sexp code = pair_car(compiled_code);
     if (!is_label(code)) {
       if (is_with_label(code) && is_label(arg1(code))) {
-        port_format(scm_out_port, "Replacing the label of %*\n", code);
+        /* port_format(scm_out_port, "Replacing the label of %*\n", code); */
         arg1(code) = search_label_offset(arg1(code), label_table);
         label_table = pair_cdr(label_table);
       }

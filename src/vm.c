@@ -108,8 +108,7 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
     switch (code_name(ins)) {
       /* Function call/return instructions */
       case ARGS: {
-        pc++;
-        sexp n = vector_data_at(code, pc);
+        sexp n = next_arg(code, &pc);
         if (nargs != fixnum_value(n)) {
           port_format(scm_out_port,
                       "Wrong argument number: %d but expecting %d\n",
@@ -194,7 +193,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       } break;
       case GVAR: {
         sexp var = next_arg(code, &pc);
-        push(get_variable_value(var, env), stack);
+        sexp value = get_variable_value(var, env);
+        if (is_undefined(value)) {
+          port_format(scm_out_port, "Unbound variable: %*\n", var);
+          exit(1);
+        }
+        push(value, stack);
         pc++;
       } break;
       case LSET: {
