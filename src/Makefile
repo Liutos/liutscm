@@ -10,20 +10,25 @@ CFLAGS=-Wall -g -std=c99 -D_GNU_SOURCE
 CPPFLAGS=-Iinclude
 
 OBJS=\
+assembler.o\
+compiler.o\
 eval.o\
 init.o\
 object.o\
 proc.o\
 read.o\
+vm.o\
 write.o
 
 # Object files
 
+assembler.o: assembler.c include/assembler.h include/object.h include/types.h include/write.h
+
+eval.o: eval.c include/types.h include/object.h
+
 init.o: init.c include/object.h include/read.h
 
 read.o: read.c include/types.h include/object.h
-
-eval.o: eval.c include/types.h include/object.h
 
 write.o: write.c include/types.h
 
@@ -35,7 +40,7 @@ proc.o: proc.c include/types.h include/object.h
 
 compiler.o: compiler.c include/types.h include/object.h include/eval.h include/compiler.h
 
-vm.o: vm.c include/types.h include/object.h
+vm.o: vm.c include/assembler.h include/object.h include/types.h
 
 # Tests
 
@@ -55,13 +60,13 @@ liutscm: main.o $(OBJS)
 run-repl-test: test-repl.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-run-compiler-test: test-compiler.o $(OBJS) compiler.o vm.o
+run-compiler-test: test-compiler.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-run-vm-test: test-vm.o $(OBJS) vm.o compiler.o
+run-vm-test: test-vm.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-run-asm-test: test-asm.o $(OBJS) vm.o compiler.o
+run-asm-test: test-asm.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
 .PHONY: clean
