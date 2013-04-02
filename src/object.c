@@ -26,14 +26,17 @@
 
 hash_table_t symbol_table;
 /*
+ * global_env: Environment could be accessed anywhere
  * null_environment: Environment with no bindings
  * startup_environment: Environment with default bindings
  * repl_environment: Environment used by REPL
  */
+sexp global_env;
 sexp null_environment = EOL;
 sexp repl_environment;
 sexp startup_environment;
 
+sexp scm_err_port;
 sexp scm_in_port;
 sexp scm_out_port;
 
@@ -378,6 +381,12 @@ sexp extend_environment(sexp vars, sexp vals, sexp env) {
   return make_environment(bindings, env);
 }
 
+sexp make_global_env(void) {
+  if (global_env == NULL)
+    global_env = extend_environment(EOL, EOL, startup_environment);
+  return global_env;
+}
+
 sexp make_startup_environment(void) {
   if (startup_environment == NULL)
     startup_environment = extend_environment(EOL, EOL, null_environment);
@@ -385,7 +394,7 @@ sexp make_startup_environment(void) {
 }
 
 sexp make_repl_environment(void) {
-  return extend_environment(EOL, EOL, startup_environment);
+  return extend_environment(EOL, EOL, global_env);
 }
 
 int is_empty_environment(sexp env) {

@@ -11,10 +11,12 @@
 
 extern hash_table_t symbol_table;
 
+extern sexp global_env;
 extern sexp null_environment;
 extern sexp repl_environment;
 extern sexp startup_environment;
 
+extern sexp scm_err_port;
 extern sexp scm_in_port;
 extern sexp scm_out_port;
 
@@ -61,6 +63,7 @@ extern sexp find_or_create_symbol(char *);
 
 extern sexp extend_environment(sexp, sexp, sexp);
 extern sexp make_startup_environment(void);
+extern sexp make_global_env(void);
 extern sexp make_repl_environment(void);
 extern int is_empty_environment(sexp);
 extern sexp make_empty_environment(void);

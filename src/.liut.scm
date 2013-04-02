@@ -1,19 +1,26 @@
 ;;;; The initial file for liutscm
 ;;;; Contains definitions of library functions
 
+;;; boolean
+
+(define not
+  (lambda (x)
+    (if (eq? #f x)
+        #t
+        #f)))
+
 ;;; fixnum
 
-;;; less than
 (define <
   (lambda (n m)
     (if (or (> n m) (= n m))
         #f
         #t)))
-;;; greater than or equal
+
 (define >=
   (lambda (n m)
     (or (> n m) (= n m))))
-;;; less than or equal
+
 (define <=
   (lambda (n m)
     (not (> n m))))
@@ -86,35 +93,13 @@
           (= (char->integer #\t) n)
           (= (char->integer #\ ) n)))))
 
-;;; string
-
-(define string<?/aux
-  (lambda (s1 s2 l1 l2 p1 p2)
-    (cond ((and (>= p1 l1) (< p2 l2)) #f)
-          ((and (>= p1 l1) (>= p2 l2)) #f)
-          ((and (< p1 l1) (< p2 l2))
-           (let ((c1 (string-ref s1 p1))
-                 (c2 (string-ref s2 p2)))
-             (cond ((char>? c1 c2) #f)
-                   ((char=? c1 c2)
-                    (string<?/aux s1 s2 l1 l2 (+ p1 2) (+ p2 1)))
-                   (else #t))))
-          ((and (< p1 l1) (>= p2 l2)) #t)
-          (else 'error))))
-
-(define string<?
-  (lambda (s1 s2)
-    (string<?/aux s1 s2 (string-length s1) (string-length s2) 0 0)))
-
-(define not
-  (lambda (x)
-    (if (eq? #f x)
-        #t
-        #f)))
+;;; empty list
 
 (define null?
   (lambda (x)
     (eq? '() x)))
+
+;;; Others
 
 (define fixnum?
   (lambda (x)
@@ -128,6 +113,3 @@
 (define symbol? (lambda (x) (eq? 'symbol (type-of x))))
 
 (define char? (lambda (x) (eq? 'character (type-of x))))
-
-(define !=
-  (lambda (x y) (not (= x y))))
