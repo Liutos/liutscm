@@ -22,7 +22,7 @@
 
 extern int symbol_name_comparator(char *, char *);
 
-static struct code_t opcodes[] = {
+struct code_t opcodes[] = {
   C(ARGS, 1),
   C(ARGSD, 1),
   C(CALL, 1),
@@ -38,7 +38,7 @@ static struct code_t opcodes[] = {
   C(LSET, 2),
   C(LVAR, 2),
   C(POP, 0),
-  C(PRIM, 2),
+  C(PRIM, 1),
   C(RETURN, 0),
   C(SAVE, 1),
   C(TJUMP, 1),
@@ -48,18 +48,18 @@ static struct code_t opcodes[] = {
   C(IDIV, 0),
 };
 
-char *const_opcodes[] = {
-  "CAR", "CDR", "POP", "RETURN", "IADD", "ISUB", "IMUL", "IDIV",
-};
+/* char *const_opcodes[] = { */
+/*   "CAR", "CDR", "POP", "RETURN", "IADD", "ISUB", "IMUL", "IDIV", */
+/* }; */
 
-char *unary_opcodes[] = {
-  "ARGS", "ARGSD", "CALL", "CALLJ", "CONST", "FJUMP", "FN", "GSET", "GVAR",
-  "JUMP", "PRIM", "SAVE", "TJUMP",
-};
+/* char *unary_opcodes[] = { */
+/*   "ARGS", "ARGSD", "CALL", "CALLJ", "CONST", "FJUMP", "FN", "GSET", "GVAR", */
+/*   "JUMP", "PRIM", "SAVE", "TJUMP", */
+/* }; */
 
-char *binary_opcodes[] = {
-  "LSET", "LVAR",
-};
+/* char *binary_opcodes[] = { */
+/*   "LSET", "LVAR", */
+/* }; */
 
 /* Categorize the instruction */
 int is_in_set(sexp opcode, char *set[], int len) {
@@ -68,16 +68,28 @@ int is_in_set(sexp opcode, char *set[], int len) {
   return no;
 }
 
+int get_code_arity(sexp opcode) {
+  for (int i = 0; i < sizeof(opcodes) / sizeof(struct code_t); i++)
+    if (!symbol_name_comparator(opcodes[i].name, symbol_name(opcode)))
+      return opcodes[i].arity;
+  port_format(scm_out_port, "Unexpected opcode: %*\n", opcode);
+  exit(1);
+}
+
+/* The parameter type of the three following functions is a symbol */
 int is_const_op(sexp opcode) {
-  return is_in_set(opcode, const_opcodes, sizeof(const_opcodes) / sizeof(char *));
+  /* return is_in_set(opcode, const_opcodes, sizeof(const_opcodes) / sizeof(char *)); */
+  return get_code_arity(opcode) == 0;
 }
 
 int is_unary_op(sexp opcode) {
-  return is_in_set(opcode, unary_opcodes, sizeof(unary_opcodes) / sizeof(char *));
+  /* return is_in_set(opcode, unary_opcodes, sizeof(unary_opcodes) / sizeof(char *)); */
+  return get_code_arity(opcode) == 1;
 }
 
 int is_binary_op(sexp opcode) {
-  return is_in_set(opcode, binary_opcodes, sizeof(binary_opcodes) / sizeof(char *));
+  /* return is_in_set(opcode, binary_opcodes, sizeof(binary_opcodes) / sizeof(char *)); */
+  return get_code_arity(opcode) == 2;
 }
 
 /* How much bytes should the assemble code occupy? */

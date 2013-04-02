@@ -36,6 +36,8 @@ struct code_t {
   int arity;
 };
 
+extern struct code_t opcodes[];
+
 extern sexp assemble_code(sexp);
 
 #endif
