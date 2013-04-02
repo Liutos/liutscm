@@ -221,6 +221,13 @@ sexp make_environment(sexp bindings, sexp outer_env) {
   return env;
 }
 
+sexp make_string_in_port(char *string) {
+  sexp sp = alloc_object(STRING_IN_PORT);
+  in_sp_string(sp) = string;
+  in_sp_position(sp) = 0;
+  return sp;
+}
+
 /* utilities */
 /* PAIR */
 sexp make_list_aux(va_list ap) {

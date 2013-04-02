@@ -39,6 +39,7 @@ void write_addr(void *ptr, sexp port) {
 
 void write_object(sexp object, sexp port) {
   FILE *stream = out_port_stream(port);
+  if (is_pointer(object)) goto pointer;
   if (is_fixnum(object))
     write_fixnum(fixnum_value(object), port);
   else if (is_char(object)) {
@@ -66,6 +67,7 @@ void write_object(sexp object, sexp port) {
   else if (is_undefined(object))
     write_string("#<undefined>", port);
   if (!is_pointer(object)) return;
+pointer:
   /* objects on heap process starts */
   assert(is_pointer(object));
   switch (object->type) {
@@ -151,9 +153,11 @@ void write_object(sexp object, sexp port) {
       write_string("#<environment :bindings", port);
       for (sexp env = object; !is_empty_environment(env);
            env = environment_outer(env))
-        port_format(scm_out_port, " %*", environment_bindings(env));
-      port_format(scm_out_port, " %p>", object);
+        port_format(port, " %*", environment_bindings(env));
+      port_format(port, " %p>", object);
       break;
+    case STRING_IN_PORT:
+      port_format(port, "#<string-port :in %p>", object); break;
     default :
       fprintf(stderr, "cannot write unknown type %d\n", object->type);
       exit(1);
