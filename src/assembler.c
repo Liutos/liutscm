@@ -14,7 +14,7 @@
 #include "types.h"
 #include "write.h"
 
-#define C(n) {.code=n, .name=#n}
+#define C(nm, nargs) {.code=nm, .name=#nm, .arity=nargs}
 #define arg1(x) pair_cadr(x)
 #define arg2(x) pair_caddr(x)
 #define arg3(x) pair_cadddr(x)
@@ -23,29 +23,29 @@
 extern int symbol_name_comparator(char *, char *);
 
 static struct code_t opcodes[] = {
-  C(ARGS),
-  C(ARGSD),
-  C(CALL),
-  C(CALLJ),
-  C(CAR),
-  C(CDR),
-  C(CONST),
-  C(FJUMP),
-  C(FN),
-  C(GSET),
-  C(GVAR),
-  C(JUMP),
-  C(LSET),
-  C(LVAR),
-  C(POP),
-  C(PRIM),
-  C(RETURN),
-  C(SAVE),
-  C(TJUMP),
-  C(IADD),
-  C(ISUB),
-  C(IMUL),
-  C(IDIV),
+  C(ARGS, 1),
+  C(ARGSD, 1),
+  C(CALL, 1),
+  C(CALLJ, 1),
+  C(CAR, 0),
+  C(CDR, 0),
+  C(CONST, 1),
+  C(FJUMP, 1),
+  C(FN, 1),
+  C(GSET, 1),
+  C(GVAR, 1),
+  C(JUMP, 1),
+  C(LSET, 2),
+  C(LVAR, 2),
+  C(POP, 0),
+  C(PRIM, 2),
+  C(RETURN, 0),
+  C(SAVE, 1),
+  C(TJUMP, 1),
+  C(IADD, 0),
+  C(ISUB, 0),
+  C(IMUL, 0),
+  C(IDIV, 0),
 };
 
 char *const_opcodes[] = {

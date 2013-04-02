@@ -33,6 +33,7 @@ enum code_type {
 struct code_t {
   enum code_type code;
   char *name;
+  int arity;
 };
 
 extern sexp assemble_code(sexp);
