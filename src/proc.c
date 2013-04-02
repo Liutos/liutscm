@@ -280,6 +280,19 @@ sexp integer_to_float_proc(sexp args) {
   return make_flonum((float)(fixnum_value(n)));
 }
 
+/* STRING_IN_PORT */
+sexp string2in_port_proc(sexp args) {
+  sexp str = first(args);
+  return make_string_in_port(string_value(str));
+}
+
+sexp read_sp_char_proc(sexp args) {
+  sexp sp = first(args);
+  char c = in_sp_char(sp);
+  in_sp_position(sp)++;
+  return make_character(c);
+}
+
 /* Others */
 lisp_object_t eval_proc(lisp_object_t args) {
   /* fprintf(stderr, "Impossible - EVAL\n"); */
@@ -345,10 +358,10 @@ void add_primitive_proc(sexp proc, sexp env) {
 }
 
 struct lisp_object_t primitive_procs[] = {
-  DEFPROC("+", plus_proc, no, NULL),
-  DEFPROC("-", minus_proc, no, NULL),
-  DEFPROC("*", multiply_proc, no, NULL),
-  DEFPROC("quotient", divide_proc, no, NULL),
+  DEFPROC("+", plus_proc, no, "IADD"),
+  DEFPROC("-", minus_proc, no, "ISUB"),
+  DEFPROC("*", multiply_proc, no, "IMUL"),
+  DEFPROC("quotient", divide_proc, no, "IDIV"),
   DEFPROC("remainder", modulo_proc, no, NULL),
   DEFPROC("=", numeric_equal_proc, no, NULL),
   DEFPROC(">", greater_than_proc, no, NULL),
@@ -384,6 +397,10 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("/.", flonum_divide_proc, no, NULL),
   DEFPROC("integer->float", integer_to_float_proc, no, NULL),
   DEFPROC("repl-environment", get_repl_environment, no, NULL),
+  /* STRING_IN_PORT */
+  DEFPROC("string->in-port", string2in_port_proc, no, NULL),
+  DEFPROC("read-string-in-port-char", read_sp_char_proc, yes, NULL),
+  /* Others */
   DEFPROC("type-of", type_of_proc, no, NULL),
   DEFPROC("eq?", is_identical_proc, no, NULL),
   DEFPROC("eval", eval_proc, yes, NULL),

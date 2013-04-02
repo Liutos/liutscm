@@ -27,13 +27,18 @@ int main(int argc, char *argv[])
     /* "+", */
     /* "'hello", */
     /* "(+ 1 2)", */
+    /* "(- 1 2)", */
+    /* "(* 1 2)", */
+    /* "(quotient 1 2)", */
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
     /* "(lambda (x) (+ x 1))", */
     /* "(+ 1 1)", */
     /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
-    "(cdr '(1 2))",
+    /* "(cdr '(1 2))", */
+    /* "(begin (define (even? n) (if (= n 0) #t (odd? (- n 1)))) (define (odd? n) (if (= n 0) #f (even? (- n 1)))) (even? 3))", */
+    /* "(begin (define (last1 l) (if (eq? (cdr l) '()) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))", */
     /* "(+ (* 1 2) (+ 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
   };
@@ -43,17 +48,9 @@ int main(int argc, char *argv[])
     printf(">> %s\n", cases[i]);
     lisp_object_t compiled_code =
         compile_as_fn(read_object(in_port), repl_environment);
-    /* printf("-- "); */
-    /* write_object(compiled_code, scm_out_port); */
-    /* compiled_code = assemble_code(compiled_code); */
-    /* printf("\n-> "); */
-    /* write_object(compiled_code, out_port); */
-    /* printf("\n"); */
+    port_format(scm_out_port, "-- %*\n", compiled_code);
     lisp_object_t value =
         run_compiled_code(compiled_code, repl_environment, EOL);
-    /* printf("=> "); */
-    /* write_object(value, out_port); */
-    /* putchar('\n'); */
     port_format(scm_out_port, "=> %*\n", value);
     fclose(fp);
   }

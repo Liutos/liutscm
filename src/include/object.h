@@ -11,16 +11,20 @@
 
 extern hash_table_t symbol_table;
 
+extern sexp global_env;
 extern sexp null_environment;
 extern sexp repl_environment;
 extern sexp startup_environment;
 
+extern sexp scm_err_port;
 extern sexp scm_in_port;
 extern sexp scm_out_port;
 
 extern struct lisp_object_t *objects_heap;
+extern sexp root;
 
-extern void reclaim(sexp);
+/* extern void reclaim(sexp); */
+extern void trigger_gc(void);
 
 extern sexp make_close_object(void);
 extern sexp make_dot_object(void);
@@ -45,6 +49,7 @@ extern sexp make_compiled_proc(sexp, sexp, sexp);
 extern sexp make_vector(unsigned int);
 extern sexp make_return_info(sexp, int, sexp);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
+extern sexp make_string_in_port(char *);
 
 extern sexp make_list(sexp e, ...);
 extern sexp nconc_pair(sexp, sexp);
@@ -60,6 +65,7 @@ extern sexp find_or_create_symbol(char *);
 
 extern sexp extend_environment(sexp, sexp, sexp);
 extern sexp make_startup_environment(void);
+extern sexp make_global_env(void);
 extern sexp make_repl_environment(void);
 extern int is_empty_environment(sexp);
 extern sexp make_empty_environment(void);
