@@ -27,8 +27,6 @@ struct code_t opcodes[] = {
   C(ARGSD, 1),
   C(CALL, 1),
   C(CALLJ, 1),
-  C(CAR, 0),
-  C(CDR, 0),
   C(CONST, 1),
   C(FJUMP, 1),
   C(FN, 1),
@@ -46,6 +44,8 @@ struct code_t opcodes[] = {
   C(ISUB, 0),
   C(IMUL, 0),
   C(IDIV, 0),
+  C(CAR, 0),
+  C(CDR, 0),
 };
 
 /* Categorize the instruction */

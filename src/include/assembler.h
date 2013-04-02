@@ -8,8 +8,6 @@ enum code_type {
   ARGSD,
   CALL,
   CALLJ,
-  CAR,
-  CDR,
   CONST,
   FJUMP,
   FN,
@@ -28,6 +26,9 @@ enum code_type {
   ISUB,
   IMUL,
   IDIV,
+  /* Pair operations */
+  CAR,
+  CDR,
 };
 
 struct code_t {
