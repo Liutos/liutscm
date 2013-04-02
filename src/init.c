@@ -37,6 +37,8 @@ void init_impl(void) {
   init_environment(startup_environment);
   global_env = make_global_env();
   repl_environment = make_repl_environment();
+  root = repl_environment;
+
   /* input and output port */
   scm_in_port = make_file_in_port(stdin);
   scm_out_port = make_file_out_port(stdout);

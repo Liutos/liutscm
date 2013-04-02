@@ -21,6 +21,7 @@ extern sexp scm_in_port;
 extern sexp scm_out_port;
 
 extern struct lisp_object_t *objects_heap;
+extern sexp root;
 
 extern void reclaim(sexp);
 

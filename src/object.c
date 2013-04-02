@@ -16,6 +16,8 @@
 
 #define HEAP_SIZE 1000
 
+void mark(sexp);
+
 /* #define unlink(x)                               \ */
 /*   do {                                          \ */
 /*     if ((x)->prev != NULL)                      \ */
@@ -48,9 +50,49 @@ sexp scm_out_port;
 struct lisp_object_t *objects_heap;
 struct lisp_object_t *free_objects;
 /* struct lisp_object_t *used_objects; */
+sexp root;
 
 /* memory management */
+void mark_pair(sexp pair) {
+  mark(pair_car(pair));
+  mark(pair_cdr(pair));
+}
+
+void mark_env(sexp env) {
+  mark(environment_bindings(env));
+  mark(environment_outer(env));
+}
+
+/* Set an object's gc_mark as used. */
+void mark(sexp obj) {
+  if (obj->gc_mark == yes) return;
+  obj->gc_mark = yes;
+  if (is_environment(obj))
+    mark_env(obj);
+  if (is_pair(obj))
+    mark_pair(obj);
+}
+
+void scan_heap(void) {
+  for (int i = 0; i < HEAP_SIZE; i++) {
+    sexp obj = &objects_heap[i];
+    if (obj->gc_mark == no) {
+      obj->next = free_objects;
+      free_objects = obj;
+    } else
+      obj->gc_mark = no;
+  }
+}
+
+/* Mark and sweep */
+void trigger_gc(void) {
+  mark(root);
+  scan_heap();
+}
+
 sexp alloc_object(enum object_type type) {
+  if (free_objects == NULL)
+    trigger_gc();
   if (NULL == free_objects) {
     fprintf(stderr, "Memory exhausted\n");
     exit(1);
