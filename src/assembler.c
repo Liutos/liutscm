@@ -48,19 +48,6 @@ struct code_t opcodes[] = {
   C(IDIV, 0),
 };
 
-/* char *const_opcodes[] = { */
-/*   "CAR", "CDR", "POP", "RETURN", "IADD", "ISUB", "IMUL", "IDIV", */
-/* }; */
-
-/* char *unary_opcodes[] = { */
-/*   "ARGS", "ARGSD", "CALL", "CALLJ", "CONST", "FJUMP", "FN", "GSET", "GVAR", */
-/*   "JUMP", "PRIM", "SAVE", "TJUMP", */
-/* }; */
-
-/* char *binary_opcodes[] = { */
-/*   "LSET", "LVAR", */
-/* }; */
-
 /* Categorize the instruction */
 int is_in_set(sexp opcode, char *set[], int len) {
   for (int i = 0; i < len; i++)
@@ -78,17 +65,14 @@ int get_code_arity(sexp opcode) {
 
 /* The parameter type of the three following functions is a symbol */
 int is_const_op(sexp opcode) {
-  /* return is_in_set(opcode, const_opcodes, sizeof(const_opcodes) / sizeof(char *)); */
   return get_code_arity(opcode) == 0;
 }
 
 int is_unary_op(sexp opcode) {
-  /* return is_in_set(opcode, unary_opcodes, sizeof(unary_opcodes) / sizeof(char *)); */
   return get_code_arity(opcode) == 1;
 }
 
 int is_binary_op(sexp opcode) {
-  /* return is_in_set(opcode, binary_opcodes, sizeof(binary_opcodes) / sizeof(char *)); */
   return get_code_arity(opcode) == 2;
 }
 
