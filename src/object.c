@@ -18,14 +18,6 @@
 
 void mark(sexp);
 
-/* #define unlink(x)                               \ */
-/*   do {                                          \ */
-/*     if ((x)->prev != NULL)                      \ */
-/*       (x)->prev->next = (x)->next;              \ */
-/*     (x)->next = free_objects;                   \ */
-/*     free_objects = (x);                         \ */
-/*   } while (0) */
-
 int alloc_count;
 int mark_count;
 hash_table_t symbol_table;
@@ -43,7 +35,6 @@ sexp startup_environment;
 sexp scm_err_port;
 sexp scm_in_port;
 sexp scm_out_port;
-
 /*
  * objects_heap: A large consecutive memory for allocating Lisp objects
  * free_objects: A linked list contains all unused memory cell
@@ -51,7 +42,6 @@ sexp scm_out_port;
  */
 struct lisp_object_t *objects_heap;
 struct lisp_object_t *free_objects;
-/* struct lisp_object_t *used_objects; */
 sexp root;
 
 /* Memory management */
@@ -137,48 +127,11 @@ sexp alloc_object(enum object_type type) {
   sexp object = free_objects;
   free_objects = free_objects->next;
 
-  /* object->next = used_objects; */
-  /* used_objects = object; */
   alloc_count++;
   object->is_used = yes;
   object->type = type;
   return object;
 }
-
-void reclaim(sexp object) {
-  /* unlink(object); */
-  /* Unlink from `used_objects' */
-  /* if (object->prev != NULL) */
-  /*   object->prev->next = object->next; */
-  /* if (object->next != NULL) */
-  /*   object->next->prev = object->prev; */
-  /* Concatenate into `free_objects' as header */
-  /* object->prev = NULL; */
-  object->next = free_objects;
-  free_objects = object;
-
-  port_format(scm_out_port, "Releasing %*\n", object);
-  /* if (is_pair(object)) { */
-  /*   dec_ref_count(pair_car(object)); */
-  /*   dec_ref_count(pair_cdr(object)); */
-  /* } */
-  if (is_in_port(object))
-    fclose(in_port_stream(object));
-  if (is_out_port(object))
-    fclose(out_port_stream(object));
-}
-
-/* void dec_ref_count(sexp object) { */
-/*   if (!object || !is_pointer(object)) return; */
-/*   object->ref_count--; */
-/*   if (object->ref_count == 0) */
-/*     reclaim(object); */
-/* } */
-
-/* void inc_ref_count(lisp_object_t object) { */
-/*   if (object && is_pointer(object)) */
-/*     object->ref_count++; */
-/* } */
 
 struct lisp_object_t *init_heap(void) {
   struct lisp_object_t *heap =
@@ -187,16 +140,12 @@ struct lisp_object_t *init_heap(void) {
   for (int i = 0; i < HEAP_SIZE; i++)
     heap[i].next = &(heap[i + 1]);
   heap[HEAP_SIZE - 1].next = NULL;
-  /* for (int i = HEAP_SIZE - 1; i > 0; i--) */
-  /*   heap[i].prev = &(heap[i - 1]); */
-  /* heap[0].prev = NULL; */
   free_objects = heap;
-  /* used_objects = NULL; */
   return heap;
 }
 
-/* constructors */
-/* tagged pointer constants */
+/* Constructors */
+/* Tagged pointer constants */
 sexp make_close_object(void) { return close_object; }
 sexp make_dot_object(void) { return dot_object; }
 sexp make_empty_list(void) { return EOL; }
@@ -205,11 +154,11 @@ sexp make_false(void) { return false_object; }
 sexp make_true(void) { return true_object; }
 sexp make_undefined(void) { return undefined_object; }
 
-/* tagged pointer data types with rule */
+/* Tagged pointer data types with rule */
 sexp make_fixnum(int value) { return to_fixnum(value); }
 sexp make_character(char c) { return to_char(c); }
 
-/* tagged union data type */
+/* Tagged union data types */
 sexp make_string(char *str) {
   sexp string = alloc_object(STRING);
   string->values.string.value = str;
@@ -218,8 +167,8 @@ sexp make_string(char *str) {
 
 sexp make_pair(sexp car, sexp cdr) {
   lisp_object_t pair = alloc_object(PAIR);
-  ASIG(pair_car(pair), car);
-  ASIG(pair_cdr(pair), cdr);
+  pair_car(pair) = car;
+  pair_cdr(pair) = cdr;
   return pair;
 }
 
@@ -249,10 +198,7 @@ sexp make_flonum(float value) {
 }
 
 sexp make_primitive_proc(C_proc_t C_proc) {
-  /* sexp proc = malloc(sizeof(struct sexp)); */
   sexp proc = alloc_object(PRIMITIVE_PROC);
-  /* proc->type = ; */
-  /* proc->values.primitive_proc.C_proc = C_proc; */
   primitive_C_proc(proc) = C_proc;
   return proc;
 }
@@ -281,9 +227,7 @@ sexp make_vector(unsigned int length) {
 }
 
 sexp make_return_info(sexp code, int pc, sexp env) {
-  /* sexp info = malloc(sizeof(struct sexp)); */
   sexp info = alloc_object(RETURN_INFO);
-  /* info->type = ; */
   return_code(info) = code;
   return_pc(info) = pc;
   return_env(info) = env;
@@ -371,11 +315,10 @@ sexp merge_alist(sexp l1, sexp l2) {
 
 /* Others */
 int is_self_eval(sexp obj) {
-  /* return !is_pointer(obj) || obj->type == FIXNUM || obj->type == CHARACTER; */
   return !is_pair(obj) && !is_symbol(obj);
 }
 
-/* hash table manipulation */
+/* Hash table manipulation */
 hash_table_t make_hash_table(hash_fn_t hash_function, comp_fn_t comparator, unsigned int size) {
   hash_table_t table = malloc(sizeof(struct hash_table_t));
   table->hash_function = hash_function;
@@ -420,7 +363,7 @@ sexp find_in_hash_table(char *target, hash_table_t table) {
   return NULL;
 }
 
-/* symbol table manipulation */
+/* Symbol table manipulation */
 unsigned int hash_symbol_name(char *name) {
   unsigned int val;
   for (val = 0; *name != '\0'; name++)
@@ -457,7 +400,6 @@ sexp find_or_create_symbol(char *name) {
 
 /* Environment manipulation */
 sexp extend_environment(sexp vars, sexp vals, sexp env) {
-  /* return make_pair(make_pair(vars, vals), env); */
   sexp bindings = merge_alist(vars, vals);
   return make_environment(bindings, env);
 }
@@ -491,14 +433,6 @@ sexp search_binding(sexp var, sexp env) {
         return pair_cdr(b);
       bindings = pair_cdr(bindings);
     }
-    /* sexp vars = environment_vars(env); */
-    /* sexp vals = environment_vals(env); */
-    /* while (is_pair(vars)) { */
-    /*   if (pair_car(vars) == var) */
-    /*     return pair_car(vals); */
-    /*   vars = pair_cdr(vars); */
-    /*   vals = pair_cdr(vals); */
-    /* } */
     env = enclosing_environment(env);
   }
   return NULL;
@@ -515,14 +449,6 @@ int search_binding_index(sexp var, sexp env, int *x, int *y) {
       *y = j;
       return yes;
     }
-    /* sexp vars = environment_vars(env); */
-    /* for (int j = 0; is_pair(vars); vars = pair_cdr(vars), j++) { */
-    /*   if (pair_car(vars) == var) { */
-    /*     *x = i; */
-    /*     *y = j; */
-    /*     return 1; */
-    /*   } */
-    /* } */
     env = enclosing_environment(env);
     i++;
   }
@@ -533,12 +459,6 @@ int search_binding_index(sexp var, sexp env, int *x, int *y) {
 void add_binding(sexp var, sexp val, sexp env) {
   sexp cell = search_binding(var, env);
   if (!cell) {
-    /* sexp vars = environment_vars(environment); */
-    /* sexp vals = environment_vals(environment); */
-    /* vars = make_pair(var, vars); */
-    /* vals = make_pair(val, vals); */
-    /* ASIG(environment_vars(environment), vars); */
-    /* ASIG(environment_vals(environment), vals); */
     sexp bindings = environment_bindings(env);
     bindings = make_pair(make_pair(var, val), bindings);
     environment_bindings(env) = bindings;
@@ -557,16 +477,6 @@ void set_binding(sexp var, sexp val, sexp environment) {
       }
       bindings = pair_cdr(bindings);
     }
-    /* sexp vars = environment_vars(environment); */
-    /* sexp vals = environment_vals(environment); */
-    /* while (is_pair(vars)) { */
-    /*   if (pair_car(vars) == var) { */
-    /*     pair_car(vals) = val; */
-    /*     break; */
-    /*   } */
-    /*   vars = pair_cdr(vars); */
-    /*   vals = pair_cdr(vals); */
-    /* } */
     environment = enclosing_environment(environment);
   }
   add_binding(var, val, tmp);
