@@ -26,6 +26,8 @@ void mark(sexp);
 /*     free_objects = (x);                         \ */
 /*   } while (0) */
 
+int alloc_count;
+int mark_count;
 hash_table_t symbol_table;
 /*
  * global_env: Environment could be accessed anywhere
@@ -52,10 +54,17 @@ struct lisp_object_t *free_objects;
 /* struct lisp_object_t *used_objects; */
 sexp root;
 
-/* memory management */
-void mark_pair(sexp pair) {
-  mark(pair_car(pair));
-  mark(pair_cdr(pair));
+/* Memory management */
+void mark_compiled_proc(sexp proc) {
+  mark(compiled_proc_args(proc));
+  mark(compiled_proc_code(proc));
+  mark(compiled_proc_env(proc));
+}
+
+void mark_compound_proc(sexp proc) {
+  mark(compound_proc_parameters(proc));
+  mark(compound_proc_body(proc));
+  mark(compound_proc_environment(proc));
 }
 
 void mark_env(sexp env) {
@@ -63,30 +72,58 @@ void mark_env(sexp env) {
   mark(environment_outer(env));
 }
 
+void mark_pair(sexp pair) {
+  mark(pair_car(pair));
+  mark(pair_cdr(pair));
+}
+
+void mark_return_info(sexp ri) {
+  mark(return_code(ri));
+  mark(return_env(ri));
+}
+
 /* Set an object's gc_mark as used. */
 void mark(sexp obj) {
-  if (obj->gc_mark == yes) return;
+  if (!obj || !is_pointer(obj) || obj->gc_mark == yes) return;
   obj->gc_mark = yes;
-  if (is_environment(obj))
+  mark_count++;
+  if (is_compiled_proc(obj))
+    mark_compiled_proc(obj);
+  else if (is_compound(obj))
+    mark_compound_proc(obj);
+  else if (is_environment(obj))
     mark_env(obj);
-  if (is_pair(obj))
+  else if (is_pair(obj))
     mark_pair(obj);
+  else if (is_return_info(obj))
+    mark_return_info(obj);
 }
 
 void scan_heap(void) {
   for (int i = 0; i < HEAP_SIZE; i++) {
     sexp obj = &objects_heap[i];
-    if (obj->gc_mark == no) {
+    /* Reclaim the object which is used but not marked. */
+    if (obj->is_used == yes && obj->gc_mark == no) {
+      port_format(scm_out_port, "Reclaiming %*\n", obj);
       obj->next = free_objects;
       free_objects = obj;
+      alloc_count--;
     } else
       obj->gc_mark = no;
   }
+  printf("GC is Done!\n");
+  scm_in_port->gc_mark = yes;
+  scm_out_port->gc_mark = yes;
+  scm_err_port->gc_mark = yes;
+  mark_count = 0;
 }
 
 /* Mark and sweep */
 void trigger_gc(void) {
   mark(root);
+  printf("alloc_count: %d\n", alloc_count);
+  printf("mark_count: %d\n", mark_count);
+  /* exit(1); */
   scan_heap();
 }
 
@@ -102,7 +139,8 @@ sexp alloc_object(enum object_type type) {
 
   /* object->next = used_objects; */
   /* used_objects = object; */
-
+  alloc_count++;
+  object->is_used = yes;
   object->type = type;
   return object;
 }

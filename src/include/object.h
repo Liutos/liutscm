@@ -23,7 +23,8 @@ extern sexp scm_out_port;
 extern struct lisp_object_t *objects_heap;
 extern sexp root;
 
-extern void reclaim(sexp);
+/* extern void reclaim(sexp); */
+extern void trigger_gc(void);
 
 extern sexp make_close_object(void);
 extern sexp make_dot_object(void);

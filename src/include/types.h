@@ -43,10 +43,17 @@ enum object_type {
 };
 
 /* Lisp object */
+/*
+ * There're three status of field `gc_mark':
+ * yes: the object is marked
+ * no: the object isn't allocated yet
+ * used: the object is allocated
+ */
 typedef struct lisp_object_t {
   enum object_type type;
   /* int ref_count; */
   int gc_mark;
+  int is_used;
   sexp next/* , prev */;
   union {
     struct {
@@ -121,6 +128,7 @@ typedef struct hash_table_t {
 
 #define yes 1
 #define no 0
+#define used 2
 
 /* predicates and accessors */
 #define EXTENDED_BITS 4
