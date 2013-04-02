@@ -76,16 +76,19 @@ int is_binary_op(sexp opcode) {
   return get_code_arity(opcode) == 2;
 }
 
-/* How much bytes should the assemble code occupy? */
+/* How much bytes should the assemble code occupy?
+ * bytes size = 1 byte + arity * 1 byte
+ */
 int instruction_length(sexp ins) {
   sexp opcode = opcode(ins);
-  if (is_const_op(opcode)) return 1;
-  if (is_unary_op(opcode)) return 1 + 1;
-  if (is_binary_op(opcode)) return 1 + 2 * 1;
-  else {
-    port_format(scm_out_port, "Unexpected opcode %*\n", opcode);
-    exit(1);
-  }
+  /* if (is_const_op(opcode)) return 1; */
+  /* if (is_unary_op(opcode)) return 1 + 1; */
+  /* if (is_binary_op(opcode)) return 1 + 2 * 1; */
+  /* else { */
+  /*   port_format(scm_out_port, "Unexpected opcode %*\n", opcode); */
+  /*   exit(1); */
+  /* } */
+  return 1 + get_code_arity(opcode) * 1;
 }
 
 sexp extract_labels_aux(sexp compiled_code, int offset, int *length) {
@@ -168,7 +171,8 @@ sexp vectorize_code(sexp compiled_code, int length, sexp label_table) {
   while (is_pair(compiled_code)) {
     sexp code = pair_car(compiled_code);
     if (!is_label(code)) {
-      if (is_with_label(code)) {
+      if (is_with_label(code) && is_label(arg1(code))) {
+        port_format(scm_out_port, "Replacing the label of %*\n", code);
         arg1(code) = search_label_offset(arg1(code), label_table);
         label_table = pair_cdr(label_table);
       }
