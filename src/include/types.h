@@ -45,7 +45,7 @@ enum object_type {
 /* Lisp object */
 typedef struct lisp_object_t {
   enum object_type type;
-  int ref_count;
+  /* int ref_count; */
   sexp next, prev;
   union {
     struct {

@@ -52,15 +52,15 @@ int main(int argc, char *argv[])
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *stream = fmemopen(cases[i], strlen(cases[i]), "r");
     sexp in_port = make_file_in_port(stream);
-    inc_ref_count(in_port);
+    /* inc_ref_count(in_port); */
     printf(">> %s\n=> ", cases[i]);
     sexp input = read_object(in_port);
     if (is_eof(input))
       break;
-    inc_ref_count(input);
+    /* inc_ref_count(input); */
     sexp value = eval_object(input, repl_environment);
-    if (!is_self_eval(input))
-      inc_ref_count(value);
+    /* if (!is_self_eval(input)) */
+    /*   inc_ref_count(value); */
     write_object(value, scm_out_port);
     putchar('\n');
   }

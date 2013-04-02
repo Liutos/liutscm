@@ -47,7 +47,7 @@ sexp scm_out_port;
  */
 struct lisp_object_t *objects_heap;
 struct lisp_object_t *free_objects;
-struct lisp_object_t *used_objects;
+/* struct lisp_object_t *used_objects; */
 
 /* memory management */
 sexp alloc_object(enum object_type type) {
@@ -58,8 +58,8 @@ sexp alloc_object(enum object_type type) {
   sexp object = free_objects;
   free_objects = free_objects->next;
 
-  object->next = used_objects;
-  used_objects = object;
+  /* object->next = used_objects; */
+  /* used_objects = object; */
 
   object->type = type;
   return object;
@@ -78,27 +78,27 @@ void reclaim(sexp object) {
   free_objects = object;
 
   port_format(scm_out_port, "Releasing %*\n", object);
-  if (is_pair(object)) {
-    dec_ref_count(pair_car(object));
-    dec_ref_count(pair_cdr(object));
-  }
+  /* if (is_pair(object)) { */
+  /*   dec_ref_count(pair_car(object)); */
+  /*   dec_ref_count(pair_cdr(object)); */
+  /* } */
   if (is_in_port(object))
     fclose(in_port_stream(object));
   if (is_out_port(object))
     fclose(out_port_stream(object));
 }
 
-void dec_ref_count(sexp object) {
-  if (!object || !is_pointer(object)) return;
-  object->ref_count--;
-  if (object->ref_count == 0)
-    reclaim(object);
-}
+/* void dec_ref_count(sexp object) { */
+/*   if (!object || !is_pointer(object)) return; */
+/*   object->ref_count--; */
+/*   if (object->ref_count == 0) */
+/*     reclaim(object); */
+/* } */
 
-void inc_ref_count(lisp_object_t object) {
-  if (object && is_pointer(object))
-    object->ref_count++;
-}
+/* void inc_ref_count(lisp_object_t object) { */
+/*   if (object && is_pointer(object)) */
+/*     object->ref_count++; */
+/* } */
 
 struct lisp_object_t *init_heap(void) {
   struct lisp_object_t *heap = malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
@@ -110,7 +110,7 @@ struct lisp_object_t *init_heap(void) {
     heap[i].prev = &(heap[i - 1]);
   heap[0].prev = NULL;
   free_objects = heap;
-  used_objects = NULL;
+  /* used_objects = NULL; */
   return heap;
 }
 
