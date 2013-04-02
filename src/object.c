@@ -16,6 +16,8 @@
 
 #define HEAP_SIZE 1000
 
+void mark(sexp);
+
 /* #define unlink(x)                               \ */
 /*   do {                                          \ */
 /*     if ((x)->prev != NULL)                      \ */
@@ -24,6 +26,8 @@
 /*     free_objects = (x);                         \ */
 /*   } while (0) */
 
+int alloc_count;
+int mark_count;
 hash_table_t symbol_table;
 /*
  * global_env: Environment could be accessed anywhere
@@ -47,10 +51,85 @@ sexp scm_out_port;
  */
 struct lisp_object_t *objects_heap;
 struct lisp_object_t *free_objects;
-struct lisp_object_t *used_objects;
+/* struct lisp_object_t *used_objects; */
+sexp root;
 
-/* memory management */
+/* Memory management */
+void mark_compiled_proc(sexp proc) {
+  mark(compiled_proc_args(proc));
+  mark(compiled_proc_code(proc));
+  mark(compiled_proc_env(proc));
+}
+
+void mark_compound_proc(sexp proc) {
+  mark(compound_proc_parameters(proc));
+  mark(compound_proc_body(proc));
+  mark(compound_proc_environment(proc));
+}
+
+void mark_env(sexp env) {
+  mark(environment_bindings(env));
+  mark(environment_outer(env));
+}
+
+void mark_pair(sexp pair) {
+  mark(pair_car(pair));
+  mark(pair_cdr(pair));
+}
+
+void mark_return_info(sexp ri) {
+  mark(return_code(ri));
+  mark(return_env(ri));
+}
+
+/* Set an object's gc_mark as used. */
+void mark(sexp obj) {
+  if (!obj || !is_pointer(obj) || obj->gc_mark == yes) return;
+  obj->gc_mark = yes;
+  mark_count++;
+  if (is_compiled_proc(obj))
+    mark_compiled_proc(obj);
+  else if (is_compound(obj))
+    mark_compound_proc(obj);
+  else if (is_environment(obj))
+    mark_env(obj);
+  else if (is_pair(obj))
+    mark_pair(obj);
+  else if (is_return_info(obj))
+    mark_return_info(obj);
+}
+
+void scan_heap(void) {
+  for (int i = 0; i < HEAP_SIZE; i++) {
+    sexp obj = &objects_heap[i];
+    /* Reclaim the object which is used but not marked. */
+    if (obj->is_used == yes && obj->gc_mark == no) {
+      port_format(scm_out_port, "Reclaiming %*\n", obj);
+      obj->next = free_objects;
+      free_objects = obj;
+      alloc_count--;
+    } else
+      obj->gc_mark = no;
+  }
+  printf("GC is Done!\n");
+  scm_in_port->gc_mark = yes;
+  scm_out_port->gc_mark = yes;
+  scm_err_port->gc_mark = yes;
+  mark_count = 0;
+}
+
+/* Mark and sweep */
+void trigger_gc(void) {
+  mark(root);
+  printf("alloc_count: %d\n", alloc_count);
+  printf("mark_count: %d\n", mark_count);
+  /* exit(1); */
+  scan_heap();
+}
+
 sexp alloc_object(enum object_type type) {
+  if (free_objects == NULL)
+    trigger_gc();
   if (NULL == free_objects) {
     fprintf(stderr, "Memory exhausted\n");
     exit(1);
@@ -58,9 +137,10 @@ sexp alloc_object(enum object_type type) {
   sexp object = free_objects;
   free_objects = free_objects->next;
 
-  object->next = used_objects;
-  used_objects = object;
-
+  /* object->next = used_objects; */
+  /* used_objects = object; */
+  alloc_count++;
+  object->is_used = yes;
   object->type = type;
   return object;
 }
@@ -68,49 +148,50 @@ sexp alloc_object(enum object_type type) {
 void reclaim(sexp object) {
   /* unlink(object); */
   /* Unlink from `used_objects' */
-  if (object->prev != NULL)
-    object->prev->next = object->next;
-  if (object->next != NULL)
-    object->next->prev = object->prev;
+  /* if (object->prev != NULL) */
+  /*   object->prev->next = object->next; */
+  /* if (object->next != NULL) */
+  /*   object->next->prev = object->prev; */
   /* Concatenate into `free_objects' as header */
-  object->prev = NULL;
+  /* object->prev = NULL; */
   object->next = free_objects;
   free_objects = object;
 
   port_format(scm_out_port, "Releasing %*\n", object);
-  if (is_pair(object)) {
-    dec_ref_count(pair_car(object));
-    dec_ref_count(pair_cdr(object));
-  }
+  /* if (is_pair(object)) { */
+  /*   dec_ref_count(pair_car(object)); */
+  /*   dec_ref_count(pair_cdr(object)); */
+  /* } */
   if (is_in_port(object))
     fclose(in_port_stream(object));
   if (is_out_port(object))
     fclose(out_port_stream(object));
 }
 
-void dec_ref_count(sexp object) {
-  if (!object || !is_pointer(object)) return;
-  object->ref_count--;
-  if (object->ref_count == 0)
-    reclaim(object);
-}
+/* void dec_ref_count(sexp object) { */
+/*   if (!object || !is_pointer(object)) return; */
+/*   object->ref_count--; */
+/*   if (object->ref_count == 0) */
+/*     reclaim(object); */
+/* } */
 
-void inc_ref_count(lisp_object_t object) {
-  if (object && is_pointer(object))
-    object->ref_count++;
-}
+/* void inc_ref_count(lisp_object_t object) { */
+/*   if (object && is_pointer(object)) */
+/*     object->ref_count++; */
+/* } */
 
 struct lisp_object_t *init_heap(void) {
-  struct lisp_object_t *heap = malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
+  struct lisp_object_t *heap =
+      malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
   memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t));
   for (int i = 0; i < HEAP_SIZE; i++)
     heap[i].next = &(heap[i + 1]);
   heap[HEAP_SIZE - 1].next = NULL;
-  for (int i = HEAP_SIZE - 1; i > 0; i--)
-    heap[i].prev = &(heap[i - 1]);
-  heap[0].prev = NULL;
+  /* for (int i = HEAP_SIZE - 1; i > 0; i--) */
+  /*   heap[i].prev = &(heap[i - 1]); */
+  /* heap[0].prev = NULL; */
   free_objects = heap;
-  used_objects = NULL;
+  /* used_objects = NULL; */
   return heap;
 }
 

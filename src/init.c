@@ -37,9 +37,14 @@ void init_impl(void) {
   init_environment(startup_environment);
   global_env = make_global_env();
   repl_environment = make_repl_environment();
+  root = repl_environment;
+
   /* input and output port */
   scm_in_port = make_file_in_port(stdin);
+  scm_in_port->gc_mark = yes;
   scm_out_port = make_file_out_port(stdout);
+  scm_out_port->gc_mark = yes;
   scm_err_port = make_file_out_port(stderr);
-  load_init_file(".liut.scm");
+  scm_err_port->gc_mark = yes;
+  /* load_init_file(".liut.scm"); */
 }
