@@ -68,12 +68,12 @@ sexp alloc_object(enum object_type type) {
 void reclaim(sexp object) {
   /* unlink(object); */
   /* Unlink from `used_objects' */
-  if (object->prev != NULL)
-    object->prev->next = object->next;
-  if (object->next != NULL)
-    object->next->prev = object->prev;
+  /* if (object->prev != NULL) */
+  /*   object->prev->next = object->next; */
+  /* if (object->next != NULL) */
+  /*   object->next->prev = object->prev; */
   /* Concatenate into `free_objects' as header */
-  object->prev = NULL;
+  /* object->prev = NULL; */
   object->next = free_objects;
   free_objects = object;
 
@@ -101,14 +101,15 @@ void reclaim(sexp object) {
 /* } */
 
 struct lisp_object_t *init_heap(void) {
-  struct lisp_object_t *heap = malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
+  struct lisp_object_t *heap =
+      malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
   memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t));
   for (int i = 0; i < HEAP_SIZE; i++)
     heap[i].next = &(heap[i + 1]);
   heap[HEAP_SIZE - 1].next = NULL;
-  for (int i = HEAP_SIZE - 1; i > 0; i--)
-    heap[i].prev = &(heap[i - 1]);
-  heap[0].prev = NULL;
+  /* for (int i = HEAP_SIZE - 1; i > 0; i--) */
+  /*   heap[i].prev = &(heap[i - 1]); */
+  /* heap[0].prev = NULL; */
   free_objects = heap;
   /* used_objects = NULL; */
   return heap;
