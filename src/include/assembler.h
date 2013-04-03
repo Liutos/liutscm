@@ -18,6 +18,7 @@ enum code_type {
   LVAR,
   POP,
   PRIM,
+  PRIM0,
   RETURN,
   SAVE,
   TJUMP,

@@ -17,7 +17,7 @@
 /* #define ADD(Lisp_name, C_proc)                          \ */
 /*   add_primitive_proc(Lisp_name, C_proc, environment) */
 #define DEFPROC(Lisp_name, C_proc, is_se, code_name, arity)                   \
-  {.type=PRIMITIVE_PROC, .values={.primitive_proc={C_proc, is_se, Lisp_name, code_name, to_fixnum(arity)}}}
+  {.type=PRIMITIVE_PROC, .values={.primitive_proc={(C_proc_t)C_proc, is_se, Lisp_name, code_name, to_fixnum(arity)}}}
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
 /* FIXNUM */
@@ -207,10 +207,13 @@ lisp_object_t close_in_proc(lisp_object_t args) {
 }
 
 /* Read and parse an S-exp */
-lisp_object_t read_proc(lisp_object_t args) {
-  lisp_object_t in_port = make_file_in_port(stdin);
-  return read_object(in_port);
+sexp read_proc(void) {
+  return read_object(scm_in_port);
 }
+/* lisp_object_t read_proc(lisp_object_t args) { */
+/*   lisp_object_t in_port = make_file_in_port(stdin); */
+/*   return read_object(in_port); */
+/* } */
 
 /* FILE_OUT_PORT */
 lisp_object_t open_out_proc(lisp_object_t args) {

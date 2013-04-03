@@ -14,6 +14,7 @@ typedef struct lisp_object_t *sexp;
 typedef sexp (*C_proc_t)(sexp);
 typedef unsigned int (*hash_fn_t)(char *);
 typedef int (*comp_fn_t)(char *, char *);
+typedef sexp (*proc0_t)(void);
 
 enum object_type {
   /* tagged pointer types */
@@ -287,6 +288,7 @@ typedef struct hash_table_t {
 /* PRIMITIVE_PROC */
 #define is_code_exist(x) (primitive_opcode(x) != NULL)
 #define is_arity_exist(x) (primitive_arity(x) != to_fixnum(-1))
+#define proc0(x) ((proc0_t)primitive_C_proc(x))
 /* STRING_IN_PORT */
 #define in_sp_char(x) (in_sp_string(x)[in_sp_position(x)])
 

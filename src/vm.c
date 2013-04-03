@@ -158,6 +158,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         push(eval_application(op, args), stack);
         pc++;
       } break;
+      case PRIM0: {
+        pop_to(stack, op);
+        assert(is_primitive(op));
+        push((proc0(op))(), stack);
+        pc++;
+      } break;
       case RETURN: {                    /* No vector operations */
         pop_to(stack, value);
         if (is_return_info(top(stack))) {

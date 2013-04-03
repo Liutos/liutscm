@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     /* "(begin (define (last1 l) (if (eq? (cdr l) '()) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))", */
     /* "(+ (* 1 2) (+ 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
+    "(read)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
