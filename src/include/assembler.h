@@ -21,6 +21,7 @@ enum code_type {
   PRIM0,
   PRIM1,
   PRIM2,
+  PRIM3,
   RETURN,
   SAVE,
   TJUMP,

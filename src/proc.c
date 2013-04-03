@@ -219,23 +219,31 @@ sexp string2symbol_proc(sexp str) {
 /* } */
 
 /* VECTOR */
-sexp vector_ref_proc(sexp args) {
-  sexp vector = pair_car(args);
-  sexp n = pair_cadr(args);
+sexp vector_ref_proc(sexp vector, sexp n) {
   return vector_data_at(vector, fixnum_value(n));
 }
+/* sexp vector_ref_proc(sexp args) { */
+/*   sexp vector = pair_car(args); */
+/*   sexp n = pair_cadr(args); */
+/*   return vector_data_at(vector, fixnum_value(n)); */
+/* } */
 
-sexp vector_set_proc(sexp args) {
-  sexp vector = pair_car(args);
-  sexp n = pair_cadr(args);
-  sexp value = pair_caddr(args);
+sexp vector_set_proc(sexp vector, sexp n, sexp value) {
   vector_data_at(vector, fixnum_value(n)) = value;
   return value;
 }
+/* sexp vector_set_proc(sexp args) { */
+/*   sexp vector = pair_car(args); */
+/*   sexp n = pair_cadr(args); */
+/*   sexp value = pair_caddr(args); */
+/*   vector_data_at(vector, fixnum_value(n)) = value; */
+/*   return value; */
+/* } */
 
 /* FILE_IN_PORT */
-lisp_object_t open_in_proc(lisp_object_t args) {
-  lisp_object_t path = pair_car(args);
+/* lisp_object_t open_in_proc(lisp_object_t args) { */
+/*   lisp_object_t path = pair_car(args); */
+sexp open_in_proc(sexp path) {
   FILE *fp = fopen(string_value(path), "r");
   if (NULL == fp) {
     fprintf(stderr, "Can not open file '%s'\n", string_value(path));
@@ -244,13 +252,15 @@ lisp_object_t open_in_proc(lisp_object_t args) {
   return make_file_in_port(fp);
 }
 
-lisp_object_t read_char_proc(lisp_object_t args) {
-  lisp_object_t port = pair_car(args);
+/* lisp_object_t read_char_proc(lisp_object_t args) { */
+/*   lisp_object_t port = pair_car(args); */
+sexp read_char_proc(sexp port) {
   return make_character(fgetc(in_port_stream(port)));
 }
 
-lisp_object_t close_in_proc(lisp_object_t args) {
-  lisp_object_t port = pair_car(args);
+/* lisp_object_t close_in_proc(lisp_object_t args) { */
+/*   lisp_object_t port = pair_car(args); */
+sexp close_in_proc(sexp port) {
   fclose(in_port_stream(port));
   return make_undefined();
 }
@@ -265,8 +275,9 @@ sexp read_proc(void) {
 /* } */
 
 /* FILE_OUT_PORT */
-lisp_object_t open_out_proc(lisp_object_t args) {
-  lisp_object_t path = pair_car(args);
+/* lisp_object_t open_out_proc(lisp_object_t args) { */
+/*   lisp_object_t path = pair_car(args); */
+sexp open_out_proc(sexp path) {
   FILE *fp = fopen(string_value(path), "w");
   if (NULL == fp) {
     fprintf(stderr, "Can not open file '%s'\n", string_value(path));
@@ -275,95 +286,107 @@ lisp_object_t open_out_proc(lisp_object_t args) {
   return make_file_out_port(fp);
 }
 
-lisp_object_t write_char_proc(lisp_object_t args) {
-  lisp_object_t ch = pair_car(args);
-  lisp_object_t port = pair_cadr(args);
+/* lisp_object_t write_char_proc(lisp_object_t args) { */
+/*   lisp_object_t ch = pair_car(args); */
+/*   lisp_object_t port = pair_cadr(args); */
+sexp write_char_proc(sexp ch, sexp port) {
   fputc(char_value(ch), out_port_stream(port));
   return make_undefined();
 }
 
-lisp_object_t close_out_proc(lisp_object_t args) {
-  lisp_object_t port = pair_car(args);
+/* lisp_object_t close_out_proc(lisp_object_t args) { */
+/*   lisp_object_t port = pair_car(args); */
+sexp close_out_proc(sexp port) {
   fclose(out_port_stream(port));
   return make_undefined();
 }
 
 /* Write an object to standard output */
-lisp_object_t write_proc(lisp_object_t args) {
-  lisp_object_t object = pair_car(args);
-  lisp_object_t out_port = make_file_out_port(stdout);
-  write_object(object, out_port);
+/* lisp_object_t write_proc(lisp_object_t args) { */
+/*   lisp_object_t object = pair_car(args); */
+/*   lisp_object_t out_port = make_file_out_port(stdout); */
+sexp write_proc(sexp object) {
+  write_object(object, scm_out_port);
   return make_undefined();
 }
 
 /* FUNCTION */
+/* TODO */
 lisp_object_t apply_proc(lisp_object_t args) {
   fprintf(stderr, "Impossible - APPLY\n");
   exit(1);
 }
 
 /* FLONUM */
-sexp flonum_plus_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
+/* sexp flonum_plus_proc(sexp args) { */
+/*   sexp n1 = pair_car(args); */
+/*   sexp n2 = pair_cadr(args); */
+sexp flonum_plus_proc(sexp n1, sexp n2) {
   return make_flonum(float_value(n1) + float_value(n2));
 }
 
-sexp flonum_minus_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
+/* sexp flonum_minus_proc(sexp args) { */
+/*   sexp n1 = pair_car(args); */
+/*   sexp n2 = pair_cadr(args); */
+sexp flonum_minus_proc(sexp n1, sexp n2) {
   return make_flonum(float_value(n1) - float_value(n2));
 }
 
-sexp flonum_multiply_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
+/* sexp flonum_multiply_proc(sexp args) { */
+/*   sexp n1 = pair_car(args); */
+/*   sexp n2 = pair_cadr(args); */
+sexp flonum_multiply_proc(sexp n1, sexp n2) {
   return make_flonum(float_value(n1) * float_value(n2));
 }
 
-sexp flonum_divide_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
+/* sexp flonum_divide_proc(sexp args) { */
+/*   sexp n1 = pair_car(args); */
+/*   sexp n2 = pair_cadr(args); */
+sexp flonum_divide_proc(sexp n1, sexp n2) {
   return make_flonum(float_value(n1) / float_value(n2));
 }
 
-sexp integer_to_float_proc(sexp args) {
-  sexp n = pair_car(args);
+/* sexp integer_to_float_proc(sexp args) { */
+/*   sexp n = pair_car(args); */
+sexp integer_to_float_proc(sexp n) {
   return make_flonum((float)(fixnum_value(n)));
 }
 
 /* STRING_IN_PORT */
-sexp string2in_port_proc(sexp args) {
-  sexp str = first(args);
+/* sexp string2in_port_proc(sexp args) { */
+/*   sexp str = first(args); */
+sexp string2in_port_proc(sexp str) {
   return make_string_in_port(string_value(str));
 }
 
-sexp read_sp_char_proc(sexp args) {
-  sexp sp = first(args);
+/* sexp read_sp_char_proc(sexp args) { */
+/*   sexp sp = first(args); */
+sexp read_sp_char_proc(sexp sp) {
   char c = in_sp_char(sp);
   in_sp_position(sp)++;
   return make_character(c);
 }
 
 /* Others */
-lisp_object_t eval_proc(lisp_object_t args) {
-  /* fprintf(stderr, "Impossible - EVAL\n"); */
-  /* exit(1); */
-  sexp exp = pair_car(args);
-  sexp env = pair_cadr(args);
+/* lisp_object_t eval_proc(lisp_object_t args) { */
+/*   sexp exp = pair_car(args); */
+/*   sexp env = pair_cadr(args); */
+sexp eval_proc(sexp exp, sexp env) {
   return eval_object(exp, env);
 }
 
 /* Are the two arguments identical? */
-lisp_object_t is_identical_proc(lisp_object_t args) {
-  lisp_object_t o1 = pair_car(args);
-  lisp_object_t o2 = pair_cadr(args);
+/* lisp_object_t is_identical_proc(lisp_object_t args) { */
+/*   lisp_object_t o1 = pair_car(args); */
+/*   lisp_object_t o2 = pair_cadr(args); */
+sexp is_identical_proc(sexp o1, sexp o2) {
   return o1 == o2 ? make_true(): make_false();
 }
 
 /* Return a symbol indicates the argument's type */
-lisp_object_t type_of_proc(lisp_object_t args) {
-  lisp_object_t o = pair_car(args);
+/* lisp_object_t type_of_proc(lisp_object_t args) { */
+/*   lisp_object_t o = pair_car(args); */
+sexp type_of_proc(sexp o) {
   if (is_fixnum(o)) return S("fixnum");
   else if (is_bool(o)) return S("boolean");
   else if (is_char(o)) return S("character");
@@ -392,12 +415,16 @@ sexp get_repl_environment_proc(void) {
 /* } */
 
 /* Return the environment with default bindings */
-lisp_object_t get_startup_environment(lisp_object_t args) {
+sexp get_startup_environment(void) {
   return startup_environment;
 }
+/* lisp_object_t get_startup_environment(lisp_object_t args) { */
+/*   return startup_environment; */
+/* } */
 
 /* Return a environment with nothing */
-lisp_object_t get_null_environment(lisp_object_t args) {
+/* lisp_object_t get_null_environment(lisp_object_t args) { */
+sexp get_null_environment(void) {
   return null_environment;
 }
 

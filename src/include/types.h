@@ -17,6 +17,7 @@ typedef int (*comp_fn_t)(char *, char *);
 typedef sexp (*proc0_t)(void);
 typedef sexp (*proc1_t)(sexp);
 typedef sexp (*proc2_t)(sexp, sexp);
+typedef sexp (*proc3_t)(sexp, sexp, sexp);
 
 enum object_type {
   /* tagged pointer types */
@@ -293,6 +294,7 @@ typedef struct hash_table_t {
 #define proc0(x) ((proc0_t)primitive_C_proc(x))
 #define proc1(x) ((proc1_t)primitive_C_proc(x))
 #define proc2(x) ((proc2_t)primitive_C_proc(x))
+#define proc3(x) ((proc3_t)primitive_C_proc(x))
 /* STRING_IN_PORT */
 #define in_sp_char(x) (in_sp_string(x)[in_sp_position(x)])
 

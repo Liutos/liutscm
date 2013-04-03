@@ -177,6 +177,14 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         push(proc2(op)(arg1, arg2), stack);
         pc++;
       } break;
+      case PRIM3: {
+        pop_to(stack, op);
+        pop_to(stack, arg3);
+        pop_to(stack, arg2);
+        pop_to(stack, arg1);
+        push(proc3(op)(arg1, arg2, arg3), stack);
+        pc++;
+      } break;
       case RETURN: {                    /* No vector operations */
         pop_to(stack, value);
         if (is_return_info(top(stack))) {

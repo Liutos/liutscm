@@ -40,6 +40,7 @@ struct code_t opcodes[] = {
   C(PRIM0, 0),
   C(PRIM1, 0),
   C(PRIM2, 0),
+  C(PRIM3, 0),
   C(RETURN, 0),
   C(SAVE, 1),
   C(TJUMP, 1),
