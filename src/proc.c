@@ -109,36 +109,52 @@ sexp bit_not_proc(sexp n) {
 
 /* CHAR */
 /* Get the encode of a character */
-lisp_object_t char2code_proc(lisp_object_t args) {
-  lisp_object_t c = pair_car(args);
+sexp char2code_proc(sexp c) {
   return make_fixnum(char_value(c));
 }
+/* lisp_object_t char2code_proc(lisp_object_t args) { */
+/*   lisp_object_t c = pair_car(args); */
+/*   return make_fixnum(char_value(c)); */
+/* } */
 
 /* Return a character with given encode */
-lisp_object_t code2char_proc(lisp_object_t args) {
-  lisp_object_t n = pair_car(args);
+sexp code2char_proc(sexp n) {
   return make_character(fixnum_value(n));
 }
+/* lisp_object_t code2char_proc(lisp_object_t args) { */
+/*   lisp_object_t n = pair_car(args); */
+/*   return make_character(fixnum_value(n)); */
+/* } */
 
 /* STRING */
 /* Get the specific character in a string */
-lisp_object_t char_at_proc(lisp_object_t args) {
-  lisp_object_t n = pair_cadr(args);
-  lisp_object_t str = pair_car(args);
+sexp char_at_proc(sexp str, sexp n) {
   return make_character(string_value(str)[fixnum_value(n)]);
 }
+/* lisp_object_t char_at_proc(lisp_object_t args) { */
+/*   lisp_object_t n = pair_cadr(args); */
+/*   lisp_object_t str = pair_car(args); */
+/*   return make_character(string_value(str)[fixnum_value(n)]); */
+/* } */
 
-lisp_object_t string_length_proc(lisp_object_t args) {
-  lisp_object_t str = pair_car(args);
-  unsigned int length = strlen(string_value(str));
-  return make_fixnum(length);
+sexp string_length_proc(sexp str) {
+  unsigned int len = strlen(string_value(str));
+  return make_fixnum(len);
 }
+/* lisp_object_t string_length_proc(lisp_object_t args) { */
+/*   lisp_object_t str = pair_car(args); */
+/*   unsigned int length = strlen(string_value(str)); */
+/*   return make_fixnum(length); */
+/* } */
 
-PHEAD(string_equal_proc) {
-  lisp_object_t str1 = pair_car(args);
-  lisp_object_t str2 = pair_cadr(args);
-  return strcmp(string_value(str1), string_value(str2)) ? make_false(): make_true();
+sexp string_equal_proc(sexp s1, sexp s2) {
+  return strcmp(string_value(s1), string_value(s2)) ? false_object: true_object;
 }
+/* PHEAD(string_equal_proc) { */
+/*   lisp_object_t str1 = pair_car(args); */
+/*   lisp_object_t str2 = pair_cadr(args); */
+/*   return strcmp(string_value(str1), string_value(str2)) ? make_false(): make_true(); */
+/* } */
 
 /* PAIR */
 lisp_object_t pair_car_proc(lisp_object_t args) {
