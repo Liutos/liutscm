@@ -26,10 +26,11 @@ int main(int argc, char *argv[])
     /* "1", */
     /* "+", */
     /* "'hello", */
-    /* "(+ 1 2)", */
-    /* "(- 1 2)", */
-    /* "(* 1 2)", */
-    /* "(quotient 1 2)", */
+    "(+ 1 2)",
+    "(- 1 2)",
+    "(* 1 2)",
+    "(quotient 1 2)",
+    "(~ 5)",
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
@@ -39,9 +40,6 @@ int main(int argc, char *argv[])
     /* "(cdr '(1 2))", */
     /* "(begin (define (even? n) (if (= n 0) #t (odd? (- n 1)))) (define (odd? n) (if (= n 0) #f (even? (- n 1)))) (even? 3))", */
     /* "(begin (define (last1 l) (if (eq? (cdr l) '()) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))", */
-    /* "(+ (* 1 2) (+ 3 (read)))", */
-    /* "(eval (read) (repl-environment))", */
-    "(read)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

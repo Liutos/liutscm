@@ -19,6 +19,8 @@ enum code_type {
   POP,
   PRIM,
   PRIM0,
+  PRIM1,
+  PRIM2,
   RETURN,
   SAVE,
   TJUMP,

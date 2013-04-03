@@ -56,9 +56,12 @@ lisp_object_t numeric_equal_proc(lisp_object_t args) {
   return fixnum_value(n1) == fixnum_value(n2) ? make_true(): make_false();
 }
 
-lisp_object_t modulo_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
+/* lisp_object_t modulo_proc(lisp_object_t args) { */
+/*   lisp_object_t n1 = pair_car(args); */
+/*   lisp_object_t n2 = pair_cadr(args); */
+/*   return make_fixnum(fixnum_value(n1) % fixnum_value(n2)); */
+/* } */
+sexp modulo_proc(sexp n1, sexp n2) {
   return make_fixnum(fixnum_value(n1) % fixnum_value(n2));
 }
 
@@ -83,10 +86,13 @@ sexp bit_or_proc(sexp args) {
 }
 
 /* Bitwise not */
-sexp bit_not_proc(sexp args) {
-  sexp n = pair_car(args);
+sexp bit_not_proc(sexp n) {
   return make_fixnum(~fixnum_value(n));
 }
+/* sexp bit_not_proc(sexp args) { */
+/*   sexp n = pair_car(args); */
+/*   return make_fixnum(~fixnum_value(n)); */
+/* } */
 
 /* CHAR */
 /* Get the encode of a character */
@@ -335,9 +341,12 @@ lisp_object_t type_of_proc(lisp_object_t args) {
 
 /* Environment */
 /* Return the environment used by the REPL */
-lisp_object_t get_repl_environment(lisp_object_t args) {
+sexp get_repl_environment_proc(void) {
   return repl_environment;
 }
+/* lisp_object_t get_repl_environment(lisp_object_t args) { */
+/*   return repl_environment; */
+/* } */
 
 /* Return the environment with default bindings */
 lisp_object_t get_startup_environment(lisp_object_t args) {
@@ -399,7 +408,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("*.", flonum_multiply_proc, no, NULL, 2),
   DEFPROC("/.", flonum_divide_proc, no, NULL, 2),
   DEFPROC("integer->float", integer_to_float_proc, no, NULL, 1),
-  DEFPROC("repl-environment", get_repl_environment, no, NULL, 0),
+  DEFPROC("repl-environment", get_repl_environment_proc, no, NULL, 0),
   /* STRING_IN_PORT */
   DEFPROC("string->in-port", string2in_port_proc, no, NULL, 1),
   DEFPROC("read-string-in-port-char", read_sp_char_proc, yes, NULL, 1),
