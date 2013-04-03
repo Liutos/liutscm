@@ -157,6 +157,7 @@ sexp string_equal_proc(sexp s1, sexp s2) {
 /* } */
 
 /* PAIR */
+/* The two following primitives is also defined as instructions */
 lisp_object_t pair_car_proc(lisp_object_t args) {
   lisp_object_t list = pair_car(args);
   return pair_car(list);
@@ -167,42 +168,55 @@ lisp_object_t pair_cdr_proc(lisp_object_t args) {
   return pair_cdr(list);
 }
 
-lisp_object_t pair_set_car_proc(lisp_object_t args) {
-  lisp_object_t pair = pair_car(args);
-  lisp_object_t val = pair_cadr(args);
-  /* dec_ref_count(pair_car(pair)); */
+sexp pair_set_car_proc(sexp pair, sexp val) {
   pair_car(pair) = val;
-  /* inc_ref_count(val); */
-  return make_undefined();
+  return pair;
 }
+/* lisp_object_t pair_set_car_proc(lisp_object_t args) { */
+/*   lisp_object_t pair = pair_car(args); */
+/*   lisp_object_t val = pair_cadr(args); */
+/*   pair_car(pair) = val; */
+/*   return make_undefined(); */
+/* } */
 
-lisp_object_t pair_set_cdr_proc(lisp_object_t args) {
-  lisp_object_t pair = pair_car(args);
-  lisp_object_t val = pair_cadr(args);
-  /* dec_ref_count(pair_cdr(pair)); */
+sexp pair_set_cdr_proc(sexp pair, sexp val) {
   pair_cdr(pair) = val;
-  /* inc_ref_count(val); */
-  return make_undefined();
+  return pair;
 }
+/* lisp_object_t pair_set_cdr_proc(lisp_object_t args) { */
+/*   lisp_object_t pair = pair_car(args); */
+/*   lisp_object_t val = pair_cadr(args); */
+/*   pair_cdr(pair) = val; */
+/*   return make_undefined(); */
+/* } */
 
 /* Construct a pair by two arguments */
-lisp_object_t pair_cons_proc(lisp_object_t args) {
-  lisp_object_t o1 = pair_car(args);
-  lisp_object_t o2 = pair_cadr(args);
+sexp pair_cons_proc(sexp o1, sexp o2) {
   return make_pair(o1, o2);
 }
+/* lisp_object_t pair_cons_proc(lisp_object_t args) { */
+/*   lisp_object_t o1 = pair_car(args); */
+/*   lisp_object_t o2 = pair_cadr(args); */
+/*   return make_pair(o1, o2); */
+/* } */
 
 /* SYMBOL */
-lisp_object_t symbol_name_proc(lisp_object_t args) {
-  lisp_object_t sym = pair_car(args);
+sexp symbol_name_proc(sexp sym) {
   return make_string(symbol_name(sym));
 }
+/* lisp_object_t symbol_name_proc(lisp_object_t args) { */
+/*   lisp_object_t sym = pair_car(args); */
+/*   return make_string(symbol_name(sym)); */
+/* } */
 
 /* Create a symbol looks the same as the string argument */
-lisp_object_t string2symbol_proc(lisp_object_t args) {
-  lisp_object_t str = pair_car(args);
-  return find_or_create_symbol(string_value(str));
+sexp string2symbol_proc(sexp str) {
+  return S(string_value(str));
 }
+/* lisp_object_t string2symbol_proc(lisp_object_t args) { */
+/*   lisp_object_t str = pair_car(args); */
+/*   return find_or_create_symbol(string_value(str)); */
+/* } */
 
 /* VECTOR */
 sexp vector_ref_proc(sexp args) {

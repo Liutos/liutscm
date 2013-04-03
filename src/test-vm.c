@@ -26,9 +26,9 @@ int main(int argc, char *argv[])
     /* "1", */
     /* "+", */
     /* "'hello", */
-    "(string-ref \"abc\" 1)",
-    "(string-length \"abcd\")",
-    "(string=? \"abcd\" \"abcd\")",
+    "(cons 5 6)",
+    "(symbol-name 'hello)",
+    "(string->symbol \"abc\")",
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
