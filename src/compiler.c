@@ -129,9 +129,9 @@ sexp make_proper_list(sexp dotable_list) {
   return head;
 }
 
-sexp gen_callN(sexp op) {
+sexp gen_primN(sexp op) {
   static char buffer[BUFFER_SIZE];
-  sprintf(buffer, "CALL%d", fixnum_value(primitive_arity(op)));
+  sprintf(buffer, "PRIM%d", fixnum_value(primitive_arity(op)));
   return gen(buffer);
 }
 
@@ -259,7 +259,7 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
       else if (is_arity_exist(op))
         return seq(compile_arguments(operands, env),
                    compile_object(operator, env, yes, yes),
-                   gen_callN(op),
+                   gen_primN(op),
                    (is_val ? EOL: gen_pop()),
                    (is_more ? EOL: gen_return()));
       else
