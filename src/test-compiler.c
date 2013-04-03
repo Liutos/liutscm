@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
     /* "(define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l))))", */
     /* "(car '(1 2))", */
     /* "(begin (define (even? n) (if (= n 0) #t (odd? (- n 1)))) (define (odd? n) (if (= n 0) #f (even? (- n 1)))) (odd? 1))", */
-    "(begin (define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))",
+    /* "(begin (define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))", */
+    "(+. 1.1 1.2)",
     /* "((lambda (x y) (+ x y)) 1 2)", */
     /* "(f (g x))", */
     /* "(begin (if p (f x) (* x x)) z)", */

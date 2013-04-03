@@ -233,6 +233,7 @@ typedef struct hash_table_t {
 #define primitive_se(x) ((x)->values.primitive_proc.is_side_effect)
 #define primitive_name(x) ((x)->values.primitive_proc.Lisp_name)
 #define primitive_opcode(x) ((x)->values.primitive_proc.code_name)
+#define primitive_arity(x) ((x)->values.primitive_proc.arity)
 /* COMPOUND_PROC */
 #define is_compound(x) is_pointer_tag(x, COMPOUND_PROC)
 #define is_function(x) (is_primitive(x) || is_compound(x))
@@ -285,7 +286,7 @@ typedef struct hash_table_t {
 #define is_label(x) is_symbol(x)
 /* PRIMITIVE_PROC */
 #define is_code_exist(x) (primitive_opcode(x) != NULL)
-#define is_arity_exist(x) 
+#define is_arity_exist(x) (primitive_arity(x) != to_fixnum(-1))
 /* STRING_IN_PORT */
 #define in_sp_char(x) (in_sp_string(x)[in_sp_position(x)])
 

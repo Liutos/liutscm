@@ -24,6 +24,7 @@
 #define gen_argsdot(x) gen("ARGSD", x)
 #define gen_call(x) gen("CALL", x)
 #define gen_callj(x) gen("CALLJ", x)
+#define gen_call0(x) gen("CALL0", x)
 #define gen_const(x) gen("CONST", x)
 #define gen_fjump(x) gen("FJUMP", x)
 #define gen_fn(x) gen("FN", x)
@@ -126,6 +127,12 @@ sexp make_proper_list(sexp dotable_list) {
   if (!is_null(pair_cdr(dotable_list)))
     pair_cdr(dotable_list) = make_pair(pair_cdr(dotable_list), EOL);
   return head;
+}
+
+sexp gen_callN(sexp op) {
+  static char buffer[BUFFER_SIZE];
+  sprintf(buffer, "CALL%d", fixnum_value(primitive_arity(op)));
+  return gen(buffer);
 }
 
 /* Compiler */
@@ -247,6 +254,12 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
                    /* compile_object(operator, env, yes, yes), */
                    /* gen_prim(make_fixnum(len)), */
                    gen(primitive_opcode(op)),
+                   (is_val ? EOL: gen_pop()),
+                   (is_more ? EOL: gen_return()));
+      else if (is_arity_exist(op))
+        return seq(compile_arguments(operands, env),
+                   compile_object(operator, env, yes, yes),
+                   gen_callN(op),
                    (is_val ? EOL: gen_pop()),
                    (is_more ? EOL: gen_return()));
       else
