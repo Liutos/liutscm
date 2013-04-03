@@ -21,6 +21,7 @@
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
 /* FIXNUM */
+/* The following four is defined as instructions */
 /* Binary plus */
 sexp plus_proc(sexp args) {
   sexp n1 = pair_car(args);
@@ -50,40 +51,52 @@ sexp divide_proc(sexp args) {
 }
 
 /* Binary numeric equal */
-lisp_object_t numeric_equal_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
-  return fixnum_value(n1) == fixnum_value(n2) ? make_true(): make_false();
+sexp fixnum_equal_proc(sexp n1, sexp n2) {
+  return fixnum_value(n1) == fixnum_value(n2) ? true_object: false_object;
 }
+/* lisp_object_t numeric_equal_proc(lisp_object_t args) { */
+/*   lisp_object_t n1 = pair_car(args); */
+/*   lisp_object_t n2 = pair_cadr(args); */
+/*   return fixnum_value(n1) == fixnum_value(n2) ? make_true(): make_false(); */
+/* } */
 
+sexp modulo_proc(sexp n1, sexp n2) {
+  return make_fixnum(fixnum_value(n1) % fixnum_value(n2));
+}
 /* lisp_object_t modulo_proc(lisp_object_t args) { */
 /*   lisp_object_t n1 = pair_car(args); */
 /*   lisp_object_t n2 = pair_cadr(args); */
 /*   return make_fixnum(fixnum_value(n1) % fixnum_value(n2)); */
 /* } */
-sexp modulo_proc(sexp n1, sexp n2) {
-  return make_fixnum(fixnum_value(n1) % fixnum_value(n2));
-}
 
-lisp_object_t greater_than_proc(lisp_object_t args) {
-  lisp_object_t n1 = pair_car(args);
-  lisp_object_t n2 = pair_cadr(args);
-  return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false();
+sexp greater_than_proc(sexp n1, sexp n2) {
+  return fixnum_value(n1) > fixnum_value(n2) ? true_object: false_object;
 }
+/* lisp_object_t greater_than_proc(lisp_object_t args) { */
+/*   lisp_object_t n1 = pair_car(args); */
+/*   lisp_object_t n2 = pair_cadr(args); */
+/*   return fixnum_value(n1) > fixnum_value(n2) ? make_true(): make_false(); */
+/* } */
 
 /* Bitwise and */
-sexp bit_and_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
+sexp bit_and_proc(sexp n1, sexp n2) {
   return make_fixnum(fixnum_value(n1) & fixnum_value(n2));
 }
+/* sexp bit_and_proc(sexp args) { */
+/*   sexp n1 = pair_car(args); */
+/*   sexp n2 = pair_cadr(args); */
+/*   return make_fixnum(fixnum_value(n1) & fixnum_value(n2)); */
+/* } */
 
 /* Bitwise or */
-sexp bit_or_proc(sexp args) {
-  sexp n1 = pair_car(args);
-  sexp n2 = pair_cadr(args);
+sexp bit_or_proc(sexp n1, sexp n2) {
   return make_fixnum(fixnum_value(n1) | fixnum_value(n2));
 }
+/* sexp bit_or_proc(sexp args) { */
+/*   sexp n1 = pair_car(args); */
+/*   sexp n2 = pair_cadr(args); */
+/*   return make_fixnum(fixnum_value(n1) | fixnum_value(n2)); */
+/* } */
 
 /* Bitwise not */
 sexp bit_not_proc(sexp n) {
@@ -375,7 +388,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("*", multiply_proc, no, "IMUL", 2),
   DEFPROC("quotient", divide_proc, no, "IDIV", 2),
   DEFPROC("remainder", modulo_proc, no, NULL, 2),
-  DEFPROC("=", numeric_equal_proc, no, NULL, 2),
+  DEFPROC("=", fixnum_equal_proc, no, NULL, 2),
   DEFPROC(">", greater_than_proc, no, NULL, 2),
   DEFPROC("&", bit_and_proc, no, NULL, 2),
   DEFPROC("|", bit_or_proc, no, NULL, 2),
