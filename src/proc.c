@@ -312,10 +312,10 @@ sexp write_proc(sexp object) {
 
 /* FUNCTION */
 /* TODO */
-lisp_object_t apply_proc(lisp_object_t args) {
-  fprintf(stderr, "Impossible - APPLY\n");
-  exit(1);
-}
+/* lisp_object_t apply_proc(lisp_object_t args) { */
+/*   fprintf(stderr, "Impossible - APPLY\n"); */
+/*   exit(1); */
+/* } */
 
 /* FLONUM */
 /* sexp flonum_plus_proc(sexp args) { */
@@ -462,7 +462,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("set-cdr!", pair_set_cdr_proc, yes, NULL, 2),
   DEFPROC("symbol-name", symbol_name_proc, no, NULL, 1),
   DEFPROC("string->symbol", string2symbol_proc, no, NULL, 1),
-  DEFPROC("apply", apply_proc, yes, NULL, -1),
+  /* DEFPROC("apply", apply_proc, yes, NULL, -1), */
   DEFPROC("open-in", open_in_proc, yes, NULL, 1),
   DEFPROC("read-char", read_char_proc, yes, NULL, 1),
   DEFPROC("close-in", close_in_proc, yes, NULL, 1),
