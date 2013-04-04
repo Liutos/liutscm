@@ -14,6 +14,10 @@ typedef struct lisp_object_t *sexp;
 typedef sexp (*C_proc_t)(sexp);
 typedef unsigned int (*hash_fn_t)(char *);
 typedef int (*comp_fn_t)(char *, char *);
+typedef sexp (*proc0_t)(void);
+typedef sexp (*proc1_t)(sexp);
+typedef sexp (*proc2_t)(sexp, sexp);
+typedef sexp (*proc3_t)(sexp, sexp, sexp);
 
 enum object_type {
   /* tagged pointer types */
@@ -71,6 +75,7 @@ typedef struct lisp_object_t {
       int is_side_effect;
       char *Lisp_name;
       char *code_name;
+      sexp arity;
     } primitive_proc;
     struct {
       sexp parameters;
@@ -184,14 +189,14 @@ typedef struct hash_table_t {
 #define FIXNUM_MASK 0x03
 #define FIXNUM_TAG 0x01
 #define is_fixnum(x) is_of_tag(x, FIXNUM_MASK, FIXNUM_TAG)
-#define to_fixnum(x) ((lisp_object_t)((value << FIXNUM_BITS) | FIXNUM_TAG))
+#define to_fixnum(x) ((lisp_object_t)((x << FIXNUM_BITS) | FIXNUM_TAG))
 #define fixnum_value(x) (((int)(x)) >> FIXNUM_BITS)
 /* CHARACTER */
 #define CHAR_BITS 4
 #define CHAR_MASK 0x0f
 #define CHAR_TAG 0x06
 #define is_char(x) is_of_tag(x, CHAR_MASK, CHAR_TAG)
-#define to_char(x) ((lisp_object_t)((c << CHAR_BITS) | CHAR_TAG))
+#define to_char(x) ((lisp_object_t)((x << CHAR_BITS) | CHAR_TAG))
 #define char_value(x) (((int)(x)) >> CHAR_BITS)
 
 /* pointer on heap */
@@ -232,6 +237,7 @@ typedef struct hash_table_t {
 #define primitive_se(x) ((x)->values.primitive_proc.is_side_effect)
 #define primitive_name(x) ((x)->values.primitive_proc.Lisp_name)
 #define primitive_opcode(x) ((x)->values.primitive_proc.code_name)
+#define primitive_arity(x) ((x)->values.primitive_proc.arity)
 /* COMPOUND_PROC */
 #define is_compound(x) is_pointer_tag(x, COMPOUND_PROC)
 #define is_function(x) (is_primitive(x) || is_compound(x))
@@ -284,6 +290,11 @@ typedef struct hash_table_t {
 #define is_label(x) is_symbol(x)
 /* PRIMITIVE_PROC */
 #define is_code_exist(x) (primitive_opcode(x) != NULL)
+#define is_arity_exist(x) (primitive_arity(x) != to_fixnum(-1))
+#define proc0(x) ((proc0_t)primitive_C_proc(x))
+#define proc1(x) ((proc1_t)primitive_C_proc(x))
+#define proc2(x) ((proc2_t)primitive_C_proc(x))
+#define proc3(x) ((proc3_t)primitive_C_proc(x))
 /* STRING_IN_PORT */
 #define in_sp_char(x) (in_sp_string(x)[in_sp_position(x)])
 
