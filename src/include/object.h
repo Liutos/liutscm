@@ -57,6 +57,8 @@ extern sexp nconc_pair(sexp, sexp);
 extern int pair_length(sexp);
 extern sexp pair_nthcdr(sexp, int);
 
+extern sexp read_byte(sexp);
+
 extern int is_self_eval(sexp);
 
 extern hash_table_t make_hash_table(hash_fn_t, comp_fn_t, unsigned int);

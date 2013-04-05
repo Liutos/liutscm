@@ -249,12 +249,12 @@ sexp make_environment(sexp bindings, sexp outer_env) {
   return env;
 }
 
-sexp make_string_in_port(char *string) {
-  sexp sp = alloc_object(STRING_IN_PORT);
-  in_sp_string(sp) = string;
-  in_sp_position(sp) = 0;
-  return sp;
-}
+/* sexp make_string_in_port(char *string) { */
+/*   sexp sp = alloc_object(STRING_IN_PORT); */
+/*   in_sp_string(sp) = string; */
+/*   in_sp_position(sp) = 0; */
+/*   return sp; */
+/* } */
 
 sexp make_wchar(void) {
   sexp wc = alloc_object(WCHAR);
@@ -318,6 +318,16 @@ sexp merge_alist(sexp l1, sexp l2) {
   return make_pair(make_pair(pair_car(l1), val),
                    merge_alist(pair_cdr(l1), rest));
 }
+
+/* PORT */
+sexp read_byte(sexp port) {
+  FILE *stream = in_port_stream(port);
+  return make_fixnum(fgetc(stream));
+}
+/* char port_read_byte(sexp port) { */
+/*   FILE *stream = in_port_stream(port); */
+/*   return fgetc(stream); */
+/* } */
 
 /* Others */
 int is_self_eval(sexp obj) {

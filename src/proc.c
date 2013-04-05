@@ -283,6 +283,10 @@ sexp read_char_proc(sexp port) {
   }
 }
 
+/* sexp read_byte_port(sexp port) { */
+/*   return make_fixnum(port_read_byte(port)); */
+/* } */
+
 /* lisp_object_t close_in_proc(lisp_object_t args) { */
 /*   lisp_object_t port = pair_car(args); */
 sexp close_in_proc(sexp port) {
@@ -380,17 +384,17 @@ sexp integer_to_float_proc(sexp n) {
 /* STRING_IN_PORT */
 /* sexp string2in_port_proc(sexp args) { */
 /*   sexp str = first(args); */
-sexp string2in_port_proc(sexp str) {
-  return make_string_in_port(string_value(str));
-}
+/* sexp string2in_port_proc(sexp str) { */
+/*   return make_string_in_port(string_value(str)); */
+/* } */
 
 /* sexp read_sp_char_proc(sexp args) { */
 /*   sexp sp = first(args); */
-sexp read_sp_char_proc(sexp sp) {
-  char c = in_sp_char(sp);
-  in_sp_position(sp)++;
-  return make_character(c);
-}
+/* sexp read_sp_char_proc(sexp sp) { */
+/*   char c = in_sp_char(sp); */
+/*   in_sp_position(sp)++; */
+/*   return make_character(c); */
+/* } */
 
 /* Others */
 /* lisp_object_t eval_proc(lisp_object_t args) { */
@@ -493,6 +497,8 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("read-char", read_char_proc, yes, NULL, 1),
   DEFPROC("close-in", close_in_proc, yes, NULL, 1),
   DEFPROC("read", read_proc, yes, NULL, 0),
+  DEFPROC("read-byte", read_byte, yes, NULL, 1),
+  /* FILE_OUT_PORT */
   DEFPROC("open-out", open_out_proc, yes, NULL, 1),
   DEFPROC("write-char", write_char_proc, yes, NULL, 2),
   DEFPROC("close-out", close_out_proc, yes, NULL, 1),
@@ -506,8 +512,8 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("integer->float", integer_to_float_proc, no, NULL, 1),
   DEFPROC("repl-environment", get_repl_environment_proc, no, NULL, 0),
   /* STRING_IN_PORT */
-  DEFPROC("string->in-port", string2in_port_proc, no, NULL, 1),
-  DEFPROC("read-string-in-port-char", read_sp_char_proc, yes, NULL, 1),
+  /* DEFPROC("string->in-port", string2in_port_proc, no, NULL, 1), */
+  /* DEFPROC("read-string-in-port-char", read_sp_char_proc, yes, NULL, 1), */
   /* Others */
   DEFPROC("type-of", type_of_proc, no, NULL, 1),
   DEFPROC("eq?", is_identical_proc, no, NULL, 2),

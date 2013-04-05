@@ -26,7 +26,9 @@ int main(int argc, char *argv[])
     /* "1", */
     /* "+", */
     /* "'hello", */
-    "#\\汉",
+    /* "#\\汉", */
+    "(char->integer #\\/)",
+    "(read-byte (open-in \"/home/liutos/src/scheme/liutscm/src/main.c\"))",
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */

@@ -156,8 +156,8 @@ pointer:
         port_format(port, " %*", environment_bindings(env));
       port_format(port, " %p>", object);
       break;
-    case STRING_IN_PORT:
-      port_format(port, "#<string-port :in %p>", object); break;
+    /* case STRING_IN_PORT: */
+    /*   port_format(port, "#<string-port :in %p>", object); break; */
     case WCHAR:
       /* write_string(wchar_value(object), port); break; */
       port_format(port, "#\\%s", make_string(wchar_value(object))); break;
