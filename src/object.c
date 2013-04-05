@@ -256,6 +256,12 @@ sexp make_string_in_port(char *string) {
   return sp;
 }
 
+sexp make_wchar(void) {
+  sexp wc = alloc_object(WCHAR);
+  wchar_value(wc)[WCHAR_LENGTH - 1] = '\0';
+  return wc;
+}
+
 /* utilities */
 /* PAIR */
 sexp make_list_aux(va_list ap) {

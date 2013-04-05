@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2013-03-17 liutos <mat.liutos@gmail.com>
  */
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -191,9 +192,9 @@ sexp pair_set_cdr_proc(sexp pair, sexp val) {
 /* } */
 
 /* Construct a pair by two arguments */
-sexp pair_cons_proc(sexp o1, sexp o2) {
-  return make_pair(o1, o2);
-}
+/* sexp pair_cons_proc(sexp o1, sexp o2) { */
+/*   return make_pair(o1, o2); */
+/* } */
 /* lisp_object_t pair_cons_proc(lisp_object_t args) { */
 /*   lisp_object_t o1 = pair_car(args); */
 /*   lisp_object_t o2 = pair_cadr(args); */
@@ -254,8 +255,32 @@ sexp open_in_proc(sexp path) {
 
 /* lisp_object_t read_char_proc(lisp_object_t args) { */
 /*   lisp_object_t port = pair_car(args); */
+int nzero(char c) {
+  char mask = 0x80;
+  int count = 0;
+  for (; (c & mask) != 0; c = c << 1)
+    count++;
+  return count;
+}
+
 sexp read_char_proc(sexp port) {
-  return make_character(fgetc(in_port_stream(port)));
+  /* return make_character(fgetc(in_port_stream(port))); */
+  /* return make_character(port_read_char(port)); */
+  char c = port_read_char(port);
+  if (nzero(c) == 0)
+    return make_character(c);
+  else {
+    /* port_format(scm_out_port, "Unexpected character: %d", make_fixnum(c)); */
+    /* exit(1); */
+    assert(nzero(c) < 6);
+    sexp wc = make_wchar();
+    wchar_value(wc)[0] = c;
+    for (int i = 1; i < nzero(c); i++) {
+      char ch = port_read_char(port);
+      wchar_value(wc)[i] = ch;
+    }
+    return wc;
+  }
 }
 
 /* lisp_object_t close_in_proc(lisp_object_t args) { */
@@ -457,7 +482,8 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("string=?", string_equal_proc, no, NULL, 2),
   DEFPROC("car", pair_car_proc, no, "CAR", 1),
   DEFPROC("cdr", pair_cdr_proc, no, "CDR", 1),
-  DEFPROC("cons", pair_cons_proc, no, NULL, 2),
+  /* DEFPROC("cons", pair_cons_proc, no, NULL, 2), */
+  DEFPROC("cons", make_pair, no, NULL, 2),
   DEFPROC("set-car!", pair_set_car_proc, yes, NULL, 2),
   DEFPROC("set-cdr!", pair_set_cdr_proc, yes, NULL, 2),
   DEFPROC("symbol-name", symbol_name_proc, no, NULL, 1),

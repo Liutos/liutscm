@@ -15,6 +15,9 @@
 
 #define BUFFER_SIZE 100
 
+extern int nzero(char);
+extern sexp read_char_proc(sexp);
+
 sexp read_object(sexp);
 
 int is_separator(int c) {
@@ -83,7 +86,14 @@ sexp read_character(sexp port) {
     case EOF:
       fprintf(stderr, "unexpected end of file\n");
       exit(1);
-    default : return make_character(c);
+    /* default : return make_character(c); */
+    default :
+      if (nzero(c) == 0)
+        return make_character(c);
+      else {
+        port_ungetc(c, port);
+        return read_char_proc(port);
+      }
   }
 }
 

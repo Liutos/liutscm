@@ -158,6 +158,9 @@ pointer:
       break;
     case STRING_IN_PORT:
       port_format(port, "#<string-port :in %p>", object); break;
+    case WCHAR:
+      /* write_string(wchar_value(object), port); break; */
+      port_format(port, "#\\%s", make_string(wchar_value(object))); break;
     default :
       fprintf(stderr, "cannot write unknown type %d\n", object->type);
       exit(1);

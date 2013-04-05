@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 
+#define WCHAR_LENGTH 6
+
 typedef struct lisp_object_t *sexp;
 typedef sexp (*C_proc_t)(sexp);
 typedef unsigned int (*hash_fn_t)(char *);
@@ -44,6 +46,7 @@ enum object_type {
   MACRO,
   ENVIRONMENT,
   STRING_IN_PORT,
+  WCHAR,
 };
 
 /* Lisp object */
@@ -114,6 +117,9 @@ typedef struct lisp_object_t {
       char *string;
       int position;
     } string_in_port;
+    struct {
+      char bytes[WCHAR_LENGTH];
+    } wchar;
   } values;
 } *lisp_object_t;
 
@@ -267,6 +273,9 @@ typedef struct hash_table_t {
 #define is_in_sp(x) is_pointer_tag(x, STRING_IN_PORT)
 #define in_sp_string(x) ((x)->values.string_in_port.string)
 #define in_sp_position(x) ((x)->values.string_in_port.position)
+/* WCHAR */
+#define is_wchar(x) is_pointer_tag(x, WCHAR)
+#define wchar_value(x) ((x)->values.wchar.bytes)
 
 /* utilities */
 /* PAIR */
