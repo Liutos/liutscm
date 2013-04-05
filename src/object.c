@@ -208,9 +208,9 @@ sexp make_primitive_proc(C_proc_t C_proc) {
 
 sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
   sexp proc = alloc_object(COMPOUND_PROC);
-  ASIG(compound_proc_parameters(proc), pars);
-  ASIG(compound_proc_body(proc), body);
-  ASIG(compound_proc_environment(proc), env);
+  compound_proc_parameters(proc) = pars;
+  compound_proc_body(proc) = body;
+  compound_proc_environment(proc) = env;
   return proc;
 }
 
@@ -239,9 +239,9 @@ sexp make_return_info(sexp code, int pc, sexp env) {
 
 sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
   sexp macro = alloc_object(MACRO);
-  ASIG(macro_proc_pars(macro), pars);
-  ASIG(macro_proc_body(macro), body);
-  ASIG(macro_proc_env(macro), env);
+  macro_proc_pars(macro) = pars;
+  macro_proc_body(macro) = body;
+  macro_proc_env(macro) = env;
   return macro;
 }
 

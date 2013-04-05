@@ -92,9 +92,28 @@ sexp code2char_proc(sexp n) {
 
 /* STRING */
 /* Get the specific character in a string */
-sexp char_at_proc(sexp str, sexp n) {
-  return make_character(string_value(str)[fixnum_value(n)]);
+/* A O(n) string referencing function */
+sexp string_ref(sexp str, sexp index) {
+  char *val = string_value(str);
+  for (int n = fixnum_value(index); n > 0; n--) {
+    int n = nzero(*val);
+    val += 1 + n;
+  }
+  if (nzero(*val) == 0)
+    return make_character(*val);
+  else {
+    sexp wc = make_wchar();
+    char c = *val;
+    for (int i = 0; i < nzero(c); i++) {
+      wchar_value(wc)[i] = *val;
+      val++;
+    }
+    return wc;
+  }
 }
+/* sexp char_at_proc(sexp str, sexp n) { */
+/*   return make_character(string_value(str)[fixnum_value(n)]); */
+/* } */
 
 sexp string_length_proc(sexp str) {
   unsigned int len = strlen(string_value(str));
@@ -294,7 +313,8 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("~", bit_not_proc, no, NULL, 1),
   DEFPROC("char->integer", char2code_proc, no, NULL, 1),
   DEFPROC("integer->char", code2char_proc, no, NULL, 1),
-  DEFPROC("string-ref", char_at_proc, no, NULL, 2),
+  /* DEFPROC("string-ref", char_at_proc, no, NULL, 2), */
+  DEFPROC("string-ref", string_ref, no, NULL, 2),
   DEFPROC("string-length", string_length_proc, no, NULL, 1),
   DEFPROC("string=?", string_equal_proc, no, NULL, 2),
   DEFPROC("car", pair_car_proc, no, "CAR", 1),

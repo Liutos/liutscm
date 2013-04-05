@@ -45,17 +45,10 @@ enum object_type {
   FLONUM,
   MACRO,
   ENVIRONMENT,
-  /* STRING_IN_PORT, */
   WCHAR,
 };
 
 /* Lisp object */
-/*
- * There're three status of field `gc_mark':
- * yes: the object is marked
- * no: the object isn't allocated yet
- * used: the object is allocated
- */
 typedef struct lisp_object_t {
   enum object_type type;
   /* int ref_count; */
@@ -113,13 +106,12 @@ typedef struct lisp_object_t {
       sexp bindings;
       sexp outer_env;
     } environment;
-    /* struct { */
-    /*   char *string; */
-    /*   int position; */
-    /* } string_in_port; */
     struct {
       char bytes[WCHAR_LENGTH];
     } wchar;
+    struct {
+      sexp *string;
+    } utf8_string;
   } values;
 } *lisp_object_t;
 
@@ -269,10 +261,6 @@ typedef struct hash_table_t {
 #define is_environment(x) is_pointer_tag(x, ENVIRONMENT)
 #define environment_bindings(x) ((x)->values.environment.bindings)
 #define environment_outer(x) ((x)->values.environment.outer_env)
-/* STRING_IN_PORT */
-/* #define is_in_sp(x) is_pointer_tag(x, STRING_IN_PORT) */
-/* #define in_sp_string(x) ((x)->values.string_in_port.string) */
-/* #define in_sp_position(x) ((x)->values.string_in_port.position) */
 /* WCHAR */
 #define is_wchar(x) is_pointer_tag(x, WCHAR)
 #define wchar_value(x) ((x)->values.wchar.bytes)
@@ -304,16 +292,5 @@ typedef struct hash_table_t {
 #define proc1(x) ((proc1_t)primitive_C_proc(x))
 #define proc2(x) ((proc2_t)primitive_C_proc(x))
 #define proc3(x) ((proc3_t)primitive_C_proc(x))
-/* STRING_IN_PORT */
-#define in_sp_char(x) (in_sp_string(x)[in_sp_position(x)])
-
-/* maintain reference count */
-/* Assign and increase the ref_count */
-#define ASIG(var, value) var = value
-/* #define ASIG(var, value)                        \ */
-/*   do {                                          \ */
-/*     var = value;                                \ */
-/*     inc_ref_count(value);                       \ */
-/*   } while(0) */
 
 #endif

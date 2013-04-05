@@ -23,20 +23,21 @@ int main(int argc, char *argv[])
 {
   init_impl();
   char *cases[] = {
-    "1",
-    "+",
-    "'hello",
-    "#\\汉",
-    "(read-char (open-in \"/home/liutos/building/tmp/tmp.txt\"))",
-    "(if #t 1 2)",
-    "(begin (set! a 1) a)",
-    "(begin \"doc\" (write \"Hello, world\") 2)",
-    "(lambda (x) (+ x 1))",
-    "(+ 1 1)",
-    "((lambda (x . y) (set! x y)) 1 2 3 4)",
-    "(cdr '(1 2))",
+    /* "1", */
+    /* "+", */
+    /* "'hello", */
+    /* "#\\汉", */
+    /* "(read-char (open-in \"/home/liutos/building/tmp/tmp.txt\"))", */
+    /* "(if #t 1 2)", */
+    /* "(begin (set! a 1) a)", */
+    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
+    /* "(lambda (x) (+ x 1))", */
+    /* "(+ 1 1)", */
+    /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
+    /* "(cdr '(1 2))", */
     /* "(begin (define (even? n) (if (= n 0) #t (odd? (- n 1)))) (define (odd? n) (if (= n 0) #f (even? (- n 1)))) (even? 3))", */
     /* "(begin (define (last1 l) (if (eq? (cdr l) '()) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))", */
+    "(string-ref \"汉\" 0)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
