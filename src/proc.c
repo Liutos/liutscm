@@ -21,6 +21,8 @@
   {.type=PRIMITIVE_PROC, .values={.primitive_proc={(C_proc_t)C_proc, is_se, Lisp_name, code_name, to_fixnum(arity)}}}
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
+extern int nzero(char);
+
 /* FIXNUM */
 /* The following four is defined as instructions */
 /* Binary plus */
@@ -255,13 +257,13 @@ sexp open_in_proc(sexp path) {
 
 /* lisp_object_t read_char_proc(lisp_object_t args) { */
 /*   lisp_object_t port = pair_car(args); */
-int nzero(char c) {
-  char mask = 0x80;
-  int count = 0;
-  for (; (c & mask) != 0; c = c << 1)
-    count++;
-  return count;
-}
+/* int nzero(char c) { */
+/*   char mask = 0x80; */
+/*   int count = 0; */
+/*   for (; (c & mask) != 0; c = c << 1) */
+/*     count++; */
+/*   return count; */
+/* } */
 
 sexp read_char_proc(sexp port) {
   /* return make_character(fgetc(in_port_stream(port))); */
@@ -494,7 +496,8 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("string->symbol", string2symbol_proc, no, NULL, 1),
   /* DEFPROC("apply", apply_proc, yes, NULL, -1), */
   DEFPROC("open-in", open_in_proc, yes, NULL, 1),
-  DEFPROC("read-char", read_char_proc, yes, NULL, 1),
+  /* DEFPROC("read-char", read_char_proc, yes, NULL, 1), */
+  DEFPROC("read-char", read_char, yes, NULL, 1),
   DEFPROC("close-in", close_in_proc, yes, NULL, 1),
   DEFPROC("read", read_proc, yes, NULL, 0),
   DEFPROC("read-byte", read_byte, yes, NULL, 1),

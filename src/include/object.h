@@ -58,6 +58,7 @@ extern int pair_length(sexp);
 extern sexp pair_nthcdr(sexp, int);
 
 extern sexp read_byte(sexp);
+extern sexp read_char(sexp);
 
 extern int is_self_eval(sexp);
 

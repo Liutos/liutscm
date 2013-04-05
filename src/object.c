@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2013-03-17 liutos <mat.liutos@gmail.com>
  */
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +16,8 @@
 #include "write.h"
 
 #define HEAP_SIZE 1000
+
+extern char port_read_char(sexp);
 
 void mark(sexp);
 
@@ -328,6 +331,28 @@ sexp read_byte(sexp port) {
 /*   FILE *stream = in_port_stream(port); */
 /*   return fgetc(stream); */
 /* } */
+
+/* Computes the number of prefix zero bits in a byte */
+int nzero(char c) {
+  char mask = 0x80;
+  int count = 0;
+  for (; (c & mask) != 0; c = c << 1)
+    count++;
+  return count;
+}
+
+sexp read_char(sexp port) {
+  char c = port_read_char(port);
+  if (nzero(c) == 0) return make_character(c);
+  assert(nzero(c) < 6);
+  sexp wc = make_wchar();
+  wchar_value(wc)[0] = c;
+  for (int i = 1; i < nzero(c); i++) {
+    char ch = port_read_char(port);
+    wchar_value(wc)[i] = ch;
+  }
+  return wc;
+}
 
 /* Others */
 int is_self_eval(sexp obj) {
