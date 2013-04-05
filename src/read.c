@@ -92,7 +92,8 @@ sexp read_character(sexp port) {
         return make_character(c);
       else {
         port_ungetc(c, port);
-        return read_char_proc(port);
+        /* return read_char_proc(port); */
+        return read_char(port);
       }
   }
 }
