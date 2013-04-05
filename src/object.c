@@ -252,13 +252,6 @@ sexp make_environment(sexp bindings, sexp outer_env) {
   return env;
 }
 
-/* sexp make_string_in_port(char *string) { */
-/*   sexp sp = alloc_object(STRING_IN_PORT); */
-/*   in_sp_string(sp) = string; */
-/*   in_sp_position(sp) = 0; */
-/*   return sp; */
-/* } */
-
 sexp make_wchar(void) {
   sexp wc = alloc_object(WCHAR);
   wchar_value(wc)[WCHAR_LENGTH - 1] = '\0';
@@ -312,9 +305,6 @@ tail_loop:
 /* (a b) + (c d) => ((a . c) (b . d)) */
 /* (a b) + (c) => ((a . c) (b . ())) */
 sexp merge_alist(sexp l1, sexp l2) {
-  /* if (!is_pair(l1) || !is_pair(l2)) return EOL; */
-  /* return make_pair(make_pair(pair_car(l1), pair_car(l2)), */
-  /*                  merge_alist(pair_cdr(l1), pair_cdr(l2))); */
   if (!is_pair(l1)) return EOL;
   sexp val = is_pair(l2) ? pair_car(l2): EOL;
   sexp rest = is_pair(l2) ? pair_cdr(l2): EOL;
@@ -327,10 +317,6 @@ sexp read_byte(sexp port) {
   FILE *stream = in_port_stream(port);
   return make_fixnum(fgetc(stream));
 }
-/* char port_read_byte(sexp port) { */
-/*   FILE *stream = in_port_stream(port); */
-/*   return fgetc(stream); */
-/* } */
 
 /* Computes the number of prefix zero bits in a byte */
 int nzero(char c) {
