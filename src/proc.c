@@ -94,22 +94,31 @@ sexp code2char_proc(sexp n) {
 /* Get the specific character in a string */
 /* A O(n) string referencing function */
 sexp string_ref(sexp str, sexp index) {
-  assert(is_string(str));
-  char *val = string_value(str);
-  for (int n = fixnum_value(index); n > 0; n--) {
-    int n = nzero(*val);
-    val += 1 + n;
-  }
-  if (nzero(*val) == 0)
-    return make_character(*val);
-  else {
-    sexp wc = make_wchar();
-    char c = *val;
-    for (int i = 0; i < nzero(c); i++) {
-      wchar_value(wc)[i] = *val;
-      val++;
+  assert(is_string(str) || is_wstring(str));
+  switch (str->type) {
+    case STRING: {
+      char *val = string_value(str);
+      for (int n = fixnum_value(index); n > 0; n--) {
+        int n = nzero(*val);
+        val += 1 + n;
+      }
+      if (nzero(*val) == 0)
+        return make_character(*val);
+      else {
+        sexp wc = make_wchar();
+        char c = *val;
+        for (int i = 0; i < nzero(c); i++) {
+          wchar_value(wc)[i] = *val;
+          val++;
+        }
+        return wc;
+      }
     }
-    return wc;
+    case WSTRING:
+      return wstring_value(str)[fixnum_value(index)];
+    default :
+      port_format(scm_err_port, "Impossible!\n");
+      exit(1);
   }
 }
 /* sexp char_at_proc(sexp str, sexp n) { */
