@@ -409,7 +409,8 @@ sexp read_char(sexp port) {
 /* WCHAR */
 sexp init_wchar(char *bytes) {
   sexp wc = make_wchar();
-  for (int i = 0; i < strlen(bytes); i++)
+  int n = nzero(*bytes);
+  for (int i = 0; i < n; i++)
     wchar_value(wc)[i] = bytes[i];
   return wc;
 }

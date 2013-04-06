@@ -94,6 +94,7 @@ sexp code2char_proc(sexp n) {
 /* Get the specific character in a string */
 /* A O(n) string referencing function */
 sexp string_ref(sexp str, sexp index) {
+  assert(is_string(str));
   char *val = string_value(str);
   for (int n = fixnum_value(index); n > 0; n--) {
     int n = nzero(*val);
