@@ -20,6 +20,7 @@
 #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
 
 extern int nzero(char);
+extern int utf8_strlen(char *);
 
 /* FIXNUM */
 /* The following four is defined as instructions */
@@ -125,9 +126,16 @@ sexp string_ref(sexp str, sexp index) {
 /*   return make_character(string_value(str)[fixnum_value(n)]); */
 /* } */
 
-sexp string_length_proc(sexp str) {
-  unsigned int len = strlen(string_value(str));
-  return make_fixnum(len);
+/* sexp string_length_proc(sexp str) { */
+/*   unsigned int len = strlen(string_value(str)); */
+/*   return make_fixnum(len); */
+/* } */
+sexp string_length(sexp str) {
+  assert(is_string(str) || is_wstring(str));
+  if (is_string(str))
+    return make_fixnum(utf8_strlen(string_value(str)));
+  else
+    return make_fixnum(wstring_length(str));
 }
 
 sexp string_equal_proc(sexp s1, sexp s2) {
@@ -325,7 +333,8 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("integer->char", code2char_proc, no, NULL, 1),
   /* DEFPROC("string-ref", char_at_proc, no, NULL, 2), */
   DEFPROC("string-ref", string_ref, no, NULL, 2),
-  DEFPROC("string-length", string_length_proc, no, NULL, 1),
+  /* DEFPROC("string-length", string_length_proc, no, NULL, 1), */
+  DEFPROC("string-length", string_length, no, NULL, 1),
   DEFPROC("string=?", string_equal_proc, no, NULL, 2),
   DEFPROC("car", pair_car_proc, no, "CAR", 1),
   DEFPROC("cdr", pair_cdr_proc, no, "CDR", 1),
