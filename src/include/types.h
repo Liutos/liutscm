@@ -46,6 +46,7 @@ enum object_type {
   MACRO,
   ENVIRONMENT,
   WCHAR,
+  WSTRING,
 };
 
 /* Lisp object */
@@ -111,7 +112,8 @@ typedef struct lisp_object_t {
     } wchar;
     struct {
       sexp *string;
-    } utf8_string;
+      int length;
+    } wstring;
   } values;
 } *lisp_object_t;
 
@@ -264,6 +266,10 @@ typedef struct hash_table_t {
 /* WCHAR */
 #define is_wchar(x) is_pointer_tag(x, WCHAR)
 #define wchar_value(x) ((x)->values.wchar.bytes)
+/* WSTRING */
+#define is_wstring(x) is_pointer_tag(x, WSTRING)
+#define wstring_value(x) ((x)->values.wstring.string)
+#define wstring_length(x) ((x)->values.wstring.length)
 
 /* utilities */
 /* PAIR */

@@ -49,8 +49,9 @@ extern sexp make_compiled_proc(sexp, sexp, sexp);
 extern sexp make_vector(unsigned int);
 extern sexp make_return_info(sexp, int, sexp);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
-extern sexp make_string_in_port(char *);
+/* extern sexp make_string_in_port(char *); */
 extern sexp make_wchar(void);
+extern sexp make_wstring(char *);
 
 extern sexp make_list(sexp e, ...);
 extern sexp nconc_pair(sexp, sexp);

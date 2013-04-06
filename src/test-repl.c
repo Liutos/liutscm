@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     /* "#\\a", */
     /* "(type-of #\\a)", */
     /* "(define a #(1 2 3))", */
-    "#\\汉",
+    /* "#\\汉", */
     /* "(set! a 123)", */
   };
   init_impl();
@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
     write_object(value, scm_out_port);
     putchar('\n');
   }
+  write_object(make_wstring("汉"), scm_out_port);
   /* trigger_gc(); */
   return 0;
 }

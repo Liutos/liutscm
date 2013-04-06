@@ -20,6 +20,7 @@
 extern char port_read_char(sexp);
 
 void mark(sexp);
+int nzero(char);
 
 int alloc_count;
 int mark_count;
@@ -258,6 +259,71 @@ sexp make_wchar(void) {
   return wc;
 }
 
+int get_mask(int n) {
+  switch (n) {
+    case 1: return 0x3f;
+    case 2: return 0x1f;
+    case 3: return 0x0f;
+    case 4: return 0x07;
+    case 5: return 0x03;
+    case 6: return 0x01;
+    default :
+      port_format(scm_err_port, "Impossible - get_mask\n");
+      exit(1);
+  }
+}
+
+/* Computes the code point of an UTF-8 encoding character */
+/* sexp bytes2code_point(char *bytes) { */
+/*   int cp = 0; */
+/*   int cnt = nzero(*bytes); */
+/*   if (cnt == 0) return make_fixnum(*bytes); */
+/*   cp = cp | get_mask(cnt); */
+/*   cp = cp << (8 - (cnt + 1)); */
+/*   bytes++; */
+/*   for (int i = 0; i < cnt; i++) { */
+/* cp = cp | */
+/*   } */
+/* } */
+
+int utf8_strlen(char *str) {
+  int ulen = 0;
+  while (*str) {
+    int n = nzero(*str);
+    if (n == 0) {
+      str++;
+      /* ulen++; */
+    } else {
+      /* ulen += n; */
+      str += n;
+    }
+    ulen++;
+  }
+  return ulen;
+}
+
+sexp make_wstring(char *bytes) {
+  sexp init_wchar(char *);
+  sexp ws = alloc_object(WSTRING);
+  int len = utf8_strlen(bytes);
+  wstring_length(ws) = len;
+  wstring_value(ws) = calloc(len, sizeof(sexp));
+  /* wstring_value(ws)[len - 1] = '\0'; */
+  /* for (int i = 0; i < len; i++) */
+  /*   wstring_value(ws)[i] = make_character(bytes[i]); */
+  int i = 0;
+  while (*bytes) {
+    int n = nzero(*bytes);
+    if (n == 0)
+      wstring_value(ws)[i] = make_character(*bytes);
+    else
+      wstring_value(ws)[i] = init_wchar(bytes);
+    i++;
+    bytes += n;
+  }
+  return ws;
+}
+
 /* utilities */
 /* PAIR */
 sexp make_list_aux(va_list ap) {
@@ -337,6 +403,14 @@ sexp read_char(sexp port) {
     char ch = port_read_char(port);
     wchar_value(wc)[i] = ch;
   }
+  return wc;
+}
+
+/* WCHAR */
+sexp init_wchar(char *bytes) {
+  sexp wc = make_wchar();
+  for (int i = 0; i < strlen(bytes); i++)
+    wchar_value(wc)[i] = bytes[i];
   return wc;
 }
 
