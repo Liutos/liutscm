@@ -138,8 +138,19 @@ sexp string_length(sexp str) {
     return make_fixnum(wstring_length(str));
 }
 
-sexp string_equal_proc(sexp s1, sexp s2) {
+/* sexp string_equal_proc(sexp s1, sexp s2) { */
+/*   return strcmp(string_value(s1), string_value(s2)) ? false_object: true_object; */
+/* } */
+sexp string_equalp(sexp s1, sexp s2) {
+  assert(s1->type == s2->type);
+  assert(is_string(s1));
   return strcmp(string_value(s1), string_value(s2)) ? false_object: true_object;
+}
+
+sexp string_set(sexp s, sexp n, sexp c) {
+  assert(is_wstring(s));
+  wstring_value(s)[fixnum_value(n)] = c;
+  return s;
 }
 
 /* PAIR */
@@ -335,7 +346,9 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("string-ref", string_ref, no, NULL, 2),
   /* DEFPROC("string-length", string_length_proc, no, NULL, 1), */
   DEFPROC("string-length", string_length, no, NULL, 1),
-  DEFPROC("string=?", string_equal_proc, no, NULL, 2),
+  /* DEFPROC("string=?", string_equal_proc, no, NULL, 2), */
+  DEFPROC("string=?", string_equalp, no, NULL, 2),
+  DEFPROC("string-set!", string_set, yes, NULL, 3),
   DEFPROC("car", pair_car_proc, no, "CAR", 1),
   DEFPROC("cdr", pair_cdr_proc, no, "CDR", 1),
   /* DEFPROC("cons", pair_cons_proc, no, NULL, 2), */
