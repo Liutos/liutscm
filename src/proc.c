@@ -346,7 +346,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("*i", multiply_proc, no, "IMUL", 2),
   DEFPROC("/i", divide_proc, no, "IDIV", 2),
   DEFPROC("remainder", modulo_proc, no, NULL, 2),
-  DEFPROC("=", fixnum_equal_proc, no, NULL, 2),
+  DEFPROC("=i", fixnum_equal_proc, no, NULL, 2),
   DEFPROC(">", greater_than_proc, no, NULL, 2),
   DEFPROC("&", bit_and_proc, no, NULL, 2),
   DEFPROC("|", bit_or_proc, no, NULL, 2),
@@ -393,7 +393,7 @@ struct lisp_object_t primitive_procs[] = {
   /* DEFPROC("read-string-in-port-char", read_sp_char_proc, yes, NULL, 1), */
   /* Others */
   DEFPROC("type-of", type_of_proc, no, NULL, 1),
-  DEFPROC("eq?", is_identical_proc, no, NULL, 2),
+  DEFPROC("eq?", is_identical_proc, no, "EQ", 2),
   DEFPROC("eval", eval_proc, yes, NULL, 2),
 };
 

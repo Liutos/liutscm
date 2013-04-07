@@ -33,6 +33,8 @@ enum code_type {
   /* Pair operations */
   CAR,
   CDR,
+  /* Others */
+  EQ,
 };
 
 struct code_t {

@@ -50,6 +50,7 @@ struct code_t opcodes[] = {
   C(IDIV, 0),
   C(CAR, 0),
   C(CDR, 0),
+  C(EQ, 0),
 };
 
 /* Categorize the instruction */
