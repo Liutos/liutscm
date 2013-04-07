@@ -148,8 +148,19 @@ sexp string_equalp(sexp s1, sexp s2) {
 }
 
 sexp string_set(sexp s, sexp n, sexp c) {
-  assert(is_wstring(s));
-  wstring_value(s)[fixnum_value(n)] = c;
+  assert(is_wstring(s) || is_string(s));
+  if (is_wstring(s))
+    wstring_value(s)[fixnum_value(n)] = c;
+  else {
+    /* char *seq = string_value(s); */
+    /* for (int i = 0; i < n; i++) { */
+    /*   char c = *seq; */
+    /*   if (nzero(c) == 0) seq++; */
+    /*   else seq += nzero(c); */
+    /* } */
+    port_format(scm_err_port, "Unsupported - I'm a lazy man...\n");
+    exit(1);
+  }
   return s;
 }
 
