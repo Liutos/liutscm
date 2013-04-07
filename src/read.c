@@ -162,13 +162,15 @@ sexp read_vector(sexp port) {
 }
 
 sexp read_object(sexp port) {
-  int c = port_read_char(port);
+  int c;
+tail_loop:
+  c = port_read_char(port);
   switch (c) {
-    case EOF: return make_eof_object();
+    case EOF: return /* make_eof_object(); */eof_object;
     case '\n': in_port_linum(port)++;
     case ' ':
     case '\t':
-    case '\r': return read_object(port);
+    case '\r': /* return read_object(port); */goto tail_loop;
     case ';': read_comment(port); return read_object(port);
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
