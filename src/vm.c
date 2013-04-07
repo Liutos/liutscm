@@ -293,6 +293,12 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         push(make_fixnum(fixnum_value(n1) / fixnum_value(n2)), stack);
         pc++;
       } break;
+      case EQ: {
+        pop_to(stack, o2);
+        pop_to(stack, o1);
+        push(o2 == o1 ? true_object: false_object, stack);
+        pc++;
+      } break;
 
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");

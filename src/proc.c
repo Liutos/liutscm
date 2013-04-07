@@ -17,7 +17,7 @@
 
 #define DEFPROC(Lisp_name, C_proc, is_se, code_name, arity)                   \
   {.type=PRIMITIVE_PROC, .values={.primitive_proc={(C_proc_t)C_proc, is_se, Lisp_name, code_name, to_fixnum(arity)}}}
-#define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args)
+/* #define PHEAD(C_proc) lisp_object_t C_proc(lisp_object_t args) */
 
 extern int nzero(char);
 extern int utf8_strlen(char *);
@@ -325,14 +325,14 @@ sexp get_repl_environment_proc(void) {
   return repl_environment;
 }
 
-/* Return the environment with default bindings */
-sexp get_startup_environment(void) {
-  return startup_environment;
-}
-
 /* Return a environment with nothing */
 sexp get_null_environment(void) {
   return null_environment;
+}
+
+/* Return the environment with default bindings */
+sexp get_startup_environment(void) {
+  return startup_environment;
 }
 
 void add_primitive_proc(sexp proc, sexp env) {
@@ -347,7 +347,7 @@ struct lisp_object_t primitive_procs[] = {
   DEFPROC("/i", divide_proc, no, "IDIV", 2),
   DEFPROC("remainder", modulo_proc, no, NULL, 2),
   DEFPROC("=i", fixnum_equal_proc, no, NULL, 2),
-  DEFPROC(">", greater_than_proc, no, NULL, 2),
+  DEFPROC(">i", greater_than_proc, no, NULL, 2),
   DEFPROC("&", bit_and_proc, no, NULL, 2),
   DEFPROC("|", bit_or_proc, no, NULL, 2),
   DEFPROC("~", bit_not_proc, no, NULL, 1),
