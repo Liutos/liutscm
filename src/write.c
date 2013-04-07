@@ -156,11 +156,21 @@ pointer:
         port_format(port, " %*", environment_bindings(env));
       port_format(port, " %p>", object);
       break;
-    case STRING_IN_PORT:
-      port_format(port, "#<string-port :in %p>", object); break;
+    /* case STRING_IN_PORT: */
+    /*   port_format(port, "#<string-port :in %p>", object); break; */
     case WCHAR:
       /* write_string(wchar_value(object), port); break; */
       port_format(port, "#\\%s", make_string(wchar_value(object))); break;
+    case WSTRING:
+      write_char('"', port);
+      for (int i = 0; i < wstring_length(object); i++) {
+        /* write_object(wstring_value(object)[i], port); */
+        sexp c = wstring_value(object)[i];
+        if (is_char(c)) write_char(char_value(c), port);
+        if (is_wchar(c)) write_string(wchar_value(c), port);
+      }
+      write_char('"', port);
+      break;
     default :
       fprintf(stderr, "cannot write unknown type %d\n", object->type);
       exit(1);

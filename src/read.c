@@ -92,7 +92,8 @@ sexp read_character(sexp port) {
         return make_character(c);
       else {
         port_ungetc(c, port);
-        return read_char_proc(port);
+        /* return read_char_proc(port); */
+        return read_char(port);
       }
   }
 }
@@ -108,7 +109,8 @@ sexp read_string(sexp port) {
   char *str = malloc((i + 2) * sizeof(char));
   strncpy(str, buffer, i + 1);
   str[i + 1] = '\0';
-  return make_string(str);
+  /* return make_string(str); */
+  return make_wstring(str);
 }
 
 sexp read_pair(sexp port) {

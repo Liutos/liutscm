@@ -46,8 +46,9 @@ int main(int argc, char *argv[])
     /* "#\\a", */
     /* "(type-of #\\a)", */
     /* "(define a #(1 2 3))", */
-    "#\\汉",
+    /* "#\\汉", */
     /* "(set! a 123)", */
+    "(string-ref \"汉字\" 0)",
   };
   init_impl();
   /* printf("Address of `-': %p\n", &primitive_procs[1]); */
@@ -56,16 +57,17 @@ int main(int argc, char *argv[])
     sexp in_port = make_file_in_port(stream);
     /* inc_ref_count(in_port); */
     printf(">> %s\n=> ", cases[i]);
-    sexp input = read_object(in_port);
-    if (is_eof(input))
+    sexp value = read_object(in_port);
+    if (is_eof(value))
       break;
     /* inc_ref_count(input); */
-    sexp value = eval_object(input, repl_environment);
+    value = eval_object(value, repl_environment);
     /* if (!is_self_eval(input)) */
     /*   inc_ref_count(value); */
     write_object(value, scm_out_port);
     putchar('\n');
   }
+  /* write_object(make_wstring("汉"), scm_out_port); */
   /* trigger_gc(); */
   return 0;
 }
