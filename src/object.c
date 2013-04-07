@@ -319,7 +319,7 @@ sexp make_wstring(char *bytes) {
     else
       wstring_value(ws)[i] = init_wchar(bytes);
     i++;
-    bytes += n;
+    bytes += n == 0 ? 1: n;
   }
   return ws;
 }
