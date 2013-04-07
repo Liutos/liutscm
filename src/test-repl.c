@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
     /* "-", */
     /* "(define a (string->in-port \"abc\"))", */
     /* "(read-string-in-port-char a)", */
-    /* "(+ 1 2)", */
-    /* "(* 3 4)", */
+    /* "(+i 1 2)", */
+    /* "(*i 3 4)", */
     /* "(quotient 10 3)", */
     /* "(remainder 10 3)", */
     /* "(= 1 2)", */

@@ -341,10 +341,10 @@ void add_primitive_proc(sexp proc, sexp env) {
 }
 
 struct lisp_object_t primitive_procs[] = {
-  DEFPROC("+", plus_proc, no, "IADD", 2),
-  DEFPROC("-", minus_proc, no, "ISUB", 2),
-  DEFPROC("*", multiply_proc, no, "IMUL", 2),
-  DEFPROC("quotient", divide_proc, no, "IDIV", 2),
+  DEFPROC("+i", plus_proc, no, "IADD", 2),
+  DEFPROC("-i", minus_proc, no, "ISUB", 2),
+  DEFPROC("*i", multiply_proc, no, "IMUL", 2),
+  DEFPROC("/i", divide_proc, no, "IDIV", 2),
   DEFPROC("remainder", modulo_proc, no, NULL, 2),
   DEFPROC("=", fixnum_equal_proc, no, NULL, 2),
   DEFPROC(">", greater_than_proc, no, NULL, 2),

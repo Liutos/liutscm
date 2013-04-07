@@ -24,17 +24,16 @@ int main(int argc, char *argv[])
   init_impl();
   char *cases[] = {
     /* "1", */
-    /* "+", */
+    /* "+i", */
     /* "'hello", */
-    /* "(+ 1 2)", */
+    /* "(+i 1 2)", */
     /* "(if #t 1 2)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
-    /* "(lambda (x . y) (+ x 1))", */
-    /* "(+ 1 1)", */
+    /* "(lambda (x . y) (+i x 1))", */
+    /* "(+i 1 1)", */
     /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
-    "(begin (define (even? n) (if (= n 0) #t (odd? (- n 1)))) (define (odd? n) (if (= n 0) #f (even? (- n 1)))) (even? 1))",
-    /* "(+ (* 1 2) (+ 3 (read)))", */
+    /* "(+i (* 1 2) (+i 3 (read)))", */
     /* "(eval (read) (repl-environment))", */
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
