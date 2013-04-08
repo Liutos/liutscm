@@ -16,6 +16,7 @@ enum code_type {
   JUMP,
   LSET,
   LVAR,
+  MC,
   POP,
   PRIM,
   PRIM0,

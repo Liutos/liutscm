@@ -29,6 +29,10 @@ extern lisp_object_t quotation_text(lisp_object_t);
 extern int is_assignment_form(lisp_object_t);
 extern lisp_object_t assignment_variable(lisp_object_t);
 extern lisp_object_t assignment_value(lisp_object_t);
+/* macro */
+extern int is_macro_form(sexp);
+extern sexp macro_parameters(sexp);
+extern sexp macro_body(sexp);
 
 extern int is_variable_form(lisp_object_t);
 extern int is_application_form(lisp_object_t);

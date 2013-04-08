@@ -150,6 +150,13 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
         push(make_compiled_proc(pars, code, env), stack);
         pc++;
       } break;
+      case MC: {
+        sexp fn = vector_data_at(code, ++pc);
+        sexp pars = macro_proc_pars(fn);
+        sexp code = macro_proc_body(fn);
+        push(make_macro_procedure(pars, code, env), stack);
+        pc++;
+      } break;
       case PRIM: {
         pop_to(stack, op);
         sexp n = vector_data_at(code, ++pc);
@@ -302,8 +309,10 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
 
       default :
         fprintf(stderr, "run_compiled_code - Unknown code ");
-        write_object(pair_car(ins), make_file_out_port(stdout));
-        port_format(scm_out_port, "%*\n", env);
+        /* write_object(pair_car(ins), make_file_out_port(stdout)); */
+        port_format(scm_out_port, "%s",
+                    make_string(opcodes[code_name(ins)].name));
+        /* port_format(scm_out_port, "%*\n", env); */
         return stack;
     }
     /* port_format(scm_out_port, "stack: %*\n", stack); */

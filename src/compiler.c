@@ -33,6 +33,7 @@
 #define gen_jump(x) gen("JUMP", x)
 #define gen_lset(i, j) gen("LSET", i, j)
 #define gen_lvar(i, j) gen("LVAR", i, j)
+#define gen_macro(x) gen("MC", x)
 #define gen_pop() gen("POP")
 #define gen_prim(x) gen("PRIM", x)
 #define gen_return() gen("RETURN")
@@ -179,6 +180,17 @@ sexp compile_lambda(sexp args, sexp body, sexp env) {
   return make_compiled_proc(args, code, new_env);
 }
 
+sexp compile_macro(sexp args, sexp body, sexp env) {
+  /* Parses the original lambda-list and converts it to proper-list
+   * after parsing */
+  sexp arg_ins = gen_args_ins(args, 0);
+  sexp pars = make_proper_list(args);
+
+  sexp new_env = extend_environment(pars, EOL, env);
+  sexp code = seq(arg_ins, compile_begin(body, new_env, yes, no));
+  return make_macro_procedure(args, code, new_env);
+}
+
 sexp compile_arguments(sexp args, sexp env) {
   if (is_null(args)) return EOL;
   sexp first = compile_object(pair_car(args), env, yes, yes);
@@ -320,6 +332,13 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
     sexp body = lambda_body(object);
     sexp code = compile_lambda(args, body, env);
     return seq(gen_fn(code), is_more ? EOL: gen_return());
+  }
+  /* macro */
+  if (is_macro_form(object) && is_val) {
+    sexp args = macro_parameters(object);
+    sexp body = macro_body(object);
+    sexp code = compile_macro(args, body, env);
+    return seq(gen_macro(code), is_more ? EOL: gen_return());
   }
   if (is_application_form(object))
     return compile_application(object, env, is_val, is_more);
