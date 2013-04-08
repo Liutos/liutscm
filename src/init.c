@@ -29,7 +29,7 @@ void load_init_file(char *path) {
     /* eval_object(exp, repl_environment); */
     /* Replace the `eval_object' by compile and run procedures. */
     /* exp = compile_as_fn(exp, global_env); */
-    exp = compile_object(exp, global_env, yes, no);
+    exp = compile_object(exp, global_env, yes, yes);
     exp = make_compiled_proc(EOL, exp, global_env);
     run_compiled_code(exp, global_env, EOL);
     exp = read_object(in_port);

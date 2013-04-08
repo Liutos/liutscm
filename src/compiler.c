@@ -61,8 +61,10 @@ lisp_object_t make_list1(lisp_object_t x) {
 lisp_object_t make_label(void) {
   static char buffer[BUFFER_SIZE];
   int n = sprintf(buffer, "L%d", label_counter);
+  buffer[n] = '\0';
   label_counter++;
-  return find_or_create_symbol(strndup(buffer, n));
+  /* return find_or_create_symbol(strndup(buffer, n)); */
+  return S(buffer);
 }
 
 /* Returns true when the symbol is the name of a primitive function */
@@ -78,7 +80,7 @@ lisp_object_t make_label(void) {
 lisp_object_t generate_code(char *code_name, ...) {
   va_list ap;
   va_start(ap, code_name);
-  return make_list1(make_pair(find_or_create_symbol(code_name),
+  return make_list1(make_pair(S(code_name),
                               va_list2pair(ap)));
 }
 

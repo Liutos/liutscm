@@ -16,16 +16,18 @@
         (if (=i n m) #f
             #t))))
 
-;; (define >=
-;;   (lambda (n m)
-;;     (or (> n m) (= n m))))
+(define >=i
+  (lambda (n m)
+    (if (>i n m) #t
+        (if (=i n m) #t
+            #f))))
 
 ;; (define <=
 ;;   (lambda (n m)
 ;;     (not (> n m))))
 
-;; (define zero?
-;;   (lambda (x) (= 0 x)))
+(define zero?
+  (lambda (x) (=i 0 x)))
 
 ;; (define odd?
 ;;   (lambda (x) (= 1 (remainder x 2))))
