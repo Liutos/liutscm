@@ -179,8 +179,8 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       } break;
       case PRIM2: {
         pop_to(stack, op);
-        pop_to(stack, arg2);
         pop_to(stack, arg1);
+        pop_to(stack, arg2);
         push(proc2(op)(arg1, arg2), stack);
         pc++;
       } break;
