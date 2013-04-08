@@ -101,6 +101,7 @@ void scan_heap(void) {
       port_format(scm_out_port, "Reclaiming %*\n", obj);
       obj->next = free_objects;
       free_objects = obj;
+      obj->is_used = no;
       alloc_count--;
     } else
       obj->gc_mark = no;
@@ -139,8 +140,8 @@ sexp alloc_object(enum object_type type) {
 
 struct lisp_object_t *init_heap(void) {
   struct lisp_object_t *heap =
-      malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
-  memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t));
+      calloc(HEAP_SIZE, sizeof(struct lisp_object_t));
+  /* memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t)); */
   for (int i = 0; i < HEAP_SIZE; i++)
     heap[i].next = &(heap[i + 1]);
   heap[HEAP_SIZE - 1].next = NULL;
@@ -493,7 +494,7 @@ sexp find_symbol(char *name) {
 sexp find_or_create_symbol(char *name) {
   sexp symbol = find_symbol(name);
   if (NULL == symbol) {
-    symbol = make_symbol(name);
+    symbol = make_symbol(strdup(name));
     store_symbol(symbol);
     return symbol;
   } else

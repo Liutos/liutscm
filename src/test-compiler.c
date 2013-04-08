@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
     /* "(if (+i 1 1) 1 1)", */
     /* "(lambda (x . y) (cons x y))", */
     /* "(define a car)", */
-    "a",
+    /* "a", */
     /* "(car '(1 2))", */
-    /* "(begin (define (even? n) (if (= n 0) #t (odd? (-i n 1)))) (define (odd? n) (if (= n 0) #f (even? (-i n 1)))) (odd? 1))", */
-    /* "(begin (define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))", */
+    "(begin (define (even? n) (if (= n 0) #t (odd? (-i n 1)))) (define (odd? n) (if (= n 0) #f (even? (-i n 1)))) (odd? 1))",
+    "(begin (define (last1 l) (if (null? (cdr l)) (car l) (last1 (cdr l)))) (last1 '(1 2 3)))",
     /* "(~ 5)", */
     /* "((lambda (x y) (+i x y)) 1 2)", */
     /* "(f (g x))", */
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     printf(">> %s\n=> ", cases[i]);
     sexp input = read_object(in_port);
     /* sexp code = compile_as_fn(input, global_env); */
-    sexp code = compile_object(input, global_env, yes, no);
+    sexp code = compile_object(input, global_env, yes, yes);
     write_object(code, scm_out_port);
     putchar('\n');
     fclose(fp);

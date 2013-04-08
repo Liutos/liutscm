@@ -23,26 +23,32 @@ int main(int argc, char *argv[])
 {
   init_impl();
   char *cases[] = {
-    /* "1", */
-    /* "+i", */
-    /* "'hello", */
-    /* "#\\汉", */
+    "1.0",
+    "12.3",
+    "123.45",
+    "1234.567",
+    "12345.6789",
+    ";;\n987654.3210",
+    "+i",
+    "'hello",
+    "#\\汉",
     /* "(read-char (open-in \"/home/liutos/building/tmp/tmp.txt\"))", */
-    /* "(if #t 1 2)", */
-    /* "(begin (set! a 1) a)", */
-    /* "(begin \"doc\" (write \"Hello, world\") 2)", */
-    /* "(lambda (x) (+i x 1))", */
-    /* "(+i 1 1)", */
-    /* "(not #t)", */
-    /* "(eq? \"abc\" \"abc\")", */
-    /* "(eq? #\\a #\\a)", */
-    /* "<i", */
-    "(<i 1 2)",
-    /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
-    /* "(cdr '(1 2))", */
-    /* "(string-ref \"汉\" 0)", */
-    /* "(string-length \"汉字\")", */
-    /* "(string-set! \"汉字\" 1 #\\语)", */
+    "(if #t 1 2)",
+    "(begin (set! a 1) a)",
+    "(begin \"doc\" (write \"Hello, world\") 2)",
+    "(lambda (x) (+i x 1))",
+    "(+i 1 1)",
+    "(not #t)",
+    "(eq? \"abc\" \"abc\")",
+    "(eq? #\\a #\\a)",
+    "<i",
+    "(zero? 1)",
+    "(eq? 'hello 'hello)",
+    "((lambda (x . y) (set! x y)) 1 2 3 4)",
+    "(cdr '(1 2))",
+    "(string-ref \"汉\" 0)",
+    "(string-length \"汉字\")",
+    "(string-set! \"汉字\" 1 #\\语)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

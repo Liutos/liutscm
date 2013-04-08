@@ -238,7 +238,7 @@ sexp eval_application(sexp operator, sexp operands) {
     sexp body = compound_proc_body(operator);
     sexp vars = compound_proc_parameters(operator);
     sexp def_env = compound_proc_environment(operator);
-    sexp object = make_pair(find_or_create_symbol("begin"), body);
+    sexp object = make_pair(S("begin"), body);
     sexp env = extend_environment(vars, operands, def_env);
     return eval_object(object, env);
   }
