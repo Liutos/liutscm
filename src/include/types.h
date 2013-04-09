@@ -94,6 +94,7 @@ typedef struct lisp_object_t {
     struct {
       sexp *datum;
       unsigned int length;
+      int index;                        /* The first writable place */
     } vector;
     struct {
       sexp code;
@@ -228,6 +229,7 @@ typedef struct hash_table_t {
 #define vector_datum(x) ((x)->values.vector.datum)
 #define vector_length(x) ((x)->values.vector.length)
 #define vector_data_at(x, i) (vector_datum(x)[i])
+#define vector_pos(x) ((x)->values.vector.index)
 /* FLONUM */
 #define is_float(x) is_pointer_tag(x, FLONUM)
 #define float_value(x) ((x)->values.flonum.value)

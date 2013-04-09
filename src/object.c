@@ -228,6 +228,7 @@ sexp make_vector(unsigned int length) {
   sexp vector = alloc_object(VECTOR);
   vector_length(vector) = length;
   vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
+  vector_pos(vector) = 0;
   return vector;
 }
 
