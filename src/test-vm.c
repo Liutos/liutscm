@@ -50,7 +50,8 @@ int main(int argc, char *argv[])
     /* "(string-set! \"汉字\" 1 #\\语)", */
     /* "(eval '(cdr '(1 2 3)) (repl-environment))", */
     /* "(macro (x) (cons 'set (cons x (cons 1 '()))))", */
-    "(cons 1 2)",
+    /* "(cons 1 2)", */
+    "#(1 2 3)",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");

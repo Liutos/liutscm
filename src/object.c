@@ -417,6 +417,26 @@ sexp init_wchar(char *bytes) {
   return wc;
 }
 
+/* VECTOR */
+sexp is_vector_full(sexp v) {
+  return vector_pos(v) >= vector_length(v) ? true_object: false_object;
+}
+
+sexp vector_push(sexp ele, sexp vector) {
+  vector_data_at(vector, vector_pos(vector)) = ele;
+  return make_fixnum(++vector_pos(vector));
+}
+
+sexp is_vector_empty(sexp v) {
+  return vector_pos(v) == 0 ? true_object: false_object;
+}
+
+sexp vector_pop(sexp v) {
+  sexp ele = vector_data_at(v, vector_pos(v) - 1);
+  vector_pos(v)--;
+  return ele;
+}
+
 /* Others */
 int is_self_eval(sexp obj) {
   return !is_pair(obj) && !is_symbol(obj);
