@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
     /* "(cdr '(1 2))", */
     /* "(string-ref \"汉\" 0)", */
     /* "(string-length \"汉字\")", */
-    "(string-set! \"汉字\" 1 #\\语)",
-    /* "(eval '(cdr '(1 2 3)) (repl-environment))", */
+    /* "(string-set! \"汉字\" 1 #\\语)", */
+    "(eval '(cdr '(1 2 3)) (repl-environment))",
     /* "(cons 1 2)", */
     /* "#(1 2 3)", */
     /* "(+i 1 2)", */
