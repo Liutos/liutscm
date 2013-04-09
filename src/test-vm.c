@@ -40,23 +40,19 @@ int main(int argc, char *argv[])
     /* "(+i 1 1)", */
     /* "(eq? \"abc\" \"abc\")", */
     /* "(eq? #\\a #\\a)", */
-    "((lambda (x . y) (cons x y)) 1 2 3 4)",
-    /* "(not #t)", */
-    /* "<i", */
-    /* "(zero? 1)", */
-    "(eq? 'hello 'hello)",
-    "(cdr '(1 2))",
-    "(string-ref \"汉\" 0)",
-    "(string-length \"汉字\")",
-    /* "(string-set! \"汉字\" 1 #\\语)", */
+    /* "((lambda (x . y) (cons x y)) 1 2 3 4)", */
+    /* "(eq? 'hello 'hello)", */
+    /* "(cdr '(1 2))", */
+    /* "(string-ref \"汉\" 0)", */
+    /* "(string-length \"汉字\")", */
+    "(string-set! \"汉字\" 1 #\\语)",
     /* "(eval '(cdr '(1 2 3)) (repl-environment))", */
-    /* "(macro (x) (cons 'set (cons x (cons 1 '()))))", */
-    "(cons 1 2)",
-    "#(1 2 3)",
-    "(+i 1 2)",
-    "(-i 1 2)",
-    "(*i 1 2)",
-    "(/i 1 2)",
+    /* "(cons 1 2)", */
+    /* "#(1 2 3)", */
+    /* "(+i 1 2)", */
+    /* "(-i 1 2)", */
+    /* "(*i 1 2)", */
+    /* "(/i 1 2)", */
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
