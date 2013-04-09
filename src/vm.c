@@ -277,26 +277,26 @@ sexp run_compiled_code(sexp obj, sexp env, sexp stack) {
       } break;
         /* Integer arithmetic operations */
       case IADD: {
-        pop_to(stack, n2);
         pop_to(stack, n1);
+        pop_to(stack, n2);
         push(make_fixnum(fixnum_value(n1) + fixnum_value(n2)), stack);
         pc++;
       } break;
       case ISUB: {
-        pop_to(stack, n2);
         pop_to(stack, n1);
+        pop_to(stack, n2);
         push(make_fixnum(fixnum_value(n1) - fixnum_value(n2)), stack);
         pc++;
       } break;
       case IMUL: {
-        pop_to(stack, n2);
         pop_to(stack, n1);
+        pop_to(stack, n2);
         push(make_fixnum(fixnum_value(n1) * fixnum_value(n2)), stack);
         pc++;
       } break;
       case IDIV: {
-        pop_to(stack, n2);
         pop_to(stack, n1);
+        pop_to(stack, n2);
         push(make_fixnum(fixnum_value(n1) / fixnum_value(n2)), stack);
         pc++;
       } break;
