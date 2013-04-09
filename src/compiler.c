@@ -194,7 +194,8 @@ sexp compile_macro(sexp args, sexp body, sexp env) {
 sexp compile_arguments(sexp args, sexp env) {
   if (is_null(args)) return EOL;
   sexp first = compile_object(pair_car(args), env, yes, yes);
-  return seq(first, compile_arguments(pair_cdr(args), env));
+  /* return seq(first, compile_arguments(pair_cdr(args), env)); */
+  return seq(compile_arguments(pair_cdr(args), env), first);
 }
 
 sexp compile_var(sexp object, sexp env, int is_val, int is_more) {

@@ -132,7 +132,7 @@ pointer:
       break;
     case VECTOR:
       write_string("#(", port);
-      for (int i = 0; i < vector_length(object); i++) {
+      for (int i = 0; i < vector_pos(object); i++) {
         write_object(vector_data_at(object, i), port);
         if (i != vector_length(object) - 1)
           write_char(' ', port);

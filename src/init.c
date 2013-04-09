@@ -12,6 +12,7 @@
 #include "read.h"
 #include "eval.h"
 #include "vm.h"
+#include "write.h"
 
 extern void init_environment(sexp);
 
@@ -31,7 +32,8 @@ void load_init_file(char *path) {
     /* exp = compile_as_fn(exp, global_env); */
     exp = compile_object(exp, global_env, yes, yes);
     exp = make_compiled_proc(EOL, exp, global_env);
-    run_compiled_code(exp, global_env, EOL);
+    port_format(scm_out_port, "%*\n", exp);
+    run_compiled_code(exp, global_env, vm_stack);
     exp = read_object(in_port);
   }
 }
@@ -44,7 +46,9 @@ void init_impl(void) {
   init_environment(startup_environment);
   global_env = make_global_env();
   repl_environment = make_repl_environment();
+
   root = repl_environment;
+  vm_stack = make_vector(40);
 
   /* input and output port */
   scm_in_port = make_file_in_port(stdin);

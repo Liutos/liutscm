@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 {
   init_impl();
   char *cases[] = {
-    /* "1.0", */
+    /* "1", */
     /* "12.3", */
     /* "123.45", */
     /* "1234.567", */
@@ -33,23 +33,27 @@ int main(int argc, char *argv[])
     /* "'hello", */
     /* "#\\汉", */
     /* "(if #t 1 2)", */
+    /* "(set! a 1)", */
     /* "(begin (set! a 1) a)", */
     /* "(begin \"doc\" (write \"Hello, world\") 2)", */
     /* "(lambda (x) (+i x 1))", */
     /* "(+i 1 1)", */
-    /* "(not #t)", */
     /* "(eq? \"abc\" \"abc\")", */
     /* "(eq? #\\a #\\a)", */
-    /* "<i", */
-    /* "(zero? 1)", */
+    /* "((lambda (x . y) (cons x y)) 1 2 3 4)", */
     /* "(eq? 'hello 'hello)", */
-    /* "((lambda (x . y) (set! x y)) 1 2 3 4)", */
     /* "(cdr '(1 2))", */
     /* "(string-ref \"汉\" 0)", */
     /* "(string-length \"汉字\")", */
     /* "(string-set! \"汉字\" 1 #\\语)", */
     /* "(eval '(cdr '(1 2 3)) (repl-environment))", */
-    "(macro (x) (cons 'set (cons x (cons 1 '()))))",
+    /* "(cons 1 2)", */
+    /* "#(1 2 3)", */
+    /* "(+i 1 2)", */
+    /* "(-i 1 2)", */
+    /* "(*i 1 2)", */
+    /* "(/i 1 2)", */
+    "not",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
@@ -59,9 +63,10 @@ int main(int argc, char *argv[])
         compile_as_fn(read_object(in_port), repl_environment);
     /* port_format(scm_out_port, "-- %*\n", compiled_code); */
     lisp_object_t value =
-        run_compiled_code(compiled_code, repl_environment, EOL);
+        run_compiled_code(compiled_code, repl_environment, vm_stack);
     port_format(scm_out_port, "=> %*\n", value);
     fclose(fp);
   }
+  port_format(scm_out_port, "%*\n", vm_stack);
   return 0;
 }

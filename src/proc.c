@@ -296,7 +296,7 @@ sexp eval_proc(sexp exp, sexp env) {
   /* return eval_object(exp, env); */
   exp = compile_object(exp, env, yes, yes);
   exp = make_compiled_proc(EOL, exp, env);
-  return run_compiled_code(exp, env, EOL);
+  return run_compiled_code(exp, env, vm_stack);
 }
 
 /* Are the two arguments identical? */

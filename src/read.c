@@ -180,6 +180,7 @@ sexp read_vector(sexp port) {
   for (int i = 0; !is_null(list); i++, list = pair_cdr(list)) {
     vector_data_at(vector, i) = pair_car(list);
   }
+  vector_pos(vector) = length;
   return vector;
 }
 
