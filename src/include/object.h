@@ -22,6 +22,7 @@ extern sexp scm_out_port;
 
 extern struct lisp_object_t *objects_heap;
 extern sexp root;
+extern sexp vm_stack;
 
 /* extern void reclaim(sexp); */
 extern void trigger_gc(void);
@@ -49,6 +50,7 @@ extern sexp make_compiled_proc(sexp, sexp, sexp);
 extern sexp make_vector(unsigned int);
 extern sexp make_return_info(sexp, int, sexp);
 extern sexp make_macro_procedure(sexp, sexp, sexp);
+extern sexp make_environment(sexp, sexp);
 /* extern sexp make_string_in_port(char *); */
 extern sexp make_wchar(void);
 extern sexp make_wstring(char *);
@@ -65,6 +67,7 @@ extern sexp is_vector_full(sexp);
 extern sexp vector_push(sexp, sexp);
 extern sexp is_vector_empty(sexp);
 extern sexp vector_pop(sexp);
+extern sexp vector_top(sexp);
 
 extern int is_self_eval(sexp);
 

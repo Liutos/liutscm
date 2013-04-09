@@ -47,6 +47,7 @@ sexp scm_out_port;
 struct lisp_object_t *objects_heap;
 struct lisp_object_t *free_objects;
 sexp root;
+sexp vm_stack;
 
 /* Memory management */
 void mark_compiled_proc(sexp proc) {
@@ -423,7 +424,7 @@ sexp is_vector_full(sexp v) {
 }
 
 sexp vector_push(sexp ele, sexp vector) {
-  if (is_vector_full(vector)) {
+  if (is_vector_full(vector) == true_object) {
     port_format(scm_err_port, "vector_push - The vector is full of elements\n");
     exit(1);
   }
@@ -435,12 +436,16 @@ sexp is_vector_empty(sexp v) {
   return vector_pos(v) == 0 ? true_object: false_object;
 }
 
+sexp vector_top(sexp v) {
+  return vector_data_at(v, vector_pos(v) - 1);
+}
+
 sexp vector_pop(sexp v) {
-  if (is_vector_empty(v)) {
+  if (is_vector_empty(v) == true_object) {
     port_format(scm_err_port, "vector_pop - The vector is empty\n");
     exit(1);
   }
-  sexp ele = vector_data_at(v, vector_pos(v) - 1);
+  sexp ele = /* vector_data_at(v, vector_pos(v) - 1) */vector_top(v);
   vector_pos(v)--;
   return ele;
 }
