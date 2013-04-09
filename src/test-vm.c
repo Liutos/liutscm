@@ -46,13 +46,14 @@ int main(int argc, char *argv[])
     /* "(string-ref \"汉\" 0)", */
     /* "(string-length \"汉字\")", */
     /* "(string-set! \"汉字\" 1 #\\语)", */
-    "(eval '(cdr '(1 2 3)) (repl-environment))",
+    /* "(eval '(cdr '(1 2 3)) (repl-environment))", */
     /* "(cons 1 2)", */
     /* "#(1 2 3)", */
     /* "(+i 1 2)", */
     /* "(-i 1 2)", */
     /* "(*i 1 2)", */
     /* "(/i 1 2)", */
+    "not",
   };
   for (int i = 0; i < sizeof(cases) / sizeof(char *); i++) {
     FILE *fp = fmemopen(cases[i], strlen(cases[i]), "r");
@@ -66,5 +67,6 @@ int main(int argc, char *argv[])
     port_format(scm_out_port, "=> %*\n", value);
     fclose(fp);
   }
+  port_format(scm_out_port, "%*\n", vm_stack);
   return 0;
 }

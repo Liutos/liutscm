@@ -12,6 +12,7 @@
 #include "read.h"
 #include "eval.h"
 #include "vm.h"
+#include "write.h"
 
 extern void init_environment(sexp);
 
@@ -31,7 +32,8 @@ void load_init_file(char *path) {
     /* exp = compile_as_fn(exp, global_env); */
     exp = compile_object(exp, global_env, yes, yes);
     exp = make_compiled_proc(EOL, exp, global_env);
-    run_compiled_code(exp, global_env, EOL);
+    port_format(scm_out_port, "%*\n", exp);
+    run_compiled_code(exp, global_env, vm_stack);
     exp = read_object(in_port);
   }
 }
@@ -55,5 +57,5 @@ void init_impl(void) {
   scm_out_port->gc_mark = yes;
   scm_err_port = make_file_out_port(stderr);
   scm_err_port->gc_mark = yes;
-  /* load_init_file(".liut.scm"); */
+  load_init_file(".liut.scm");
 }
