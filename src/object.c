@@ -423,6 +423,10 @@ sexp is_vector_full(sexp v) {
 }
 
 sexp vector_push(sexp ele, sexp vector) {
+  if (is_vector_full(vector)) {
+    port_format(scm_err_port, "vector_push - The vector is full of elements\n");
+    exit(1);
+  }
   vector_data_at(vector, vector_pos(vector)) = ele;
   return make_fixnum(++vector_pos(vector));
 }
@@ -432,6 +436,10 @@ sexp is_vector_empty(sexp v) {
 }
 
 sexp vector_pop(sexp v) {
+  if (is_vector_empty(v)) {
+    port_format(scm_err_port, "vector_pop - The vector is empty\n");
+    exit(1);
+  }
   sexp ele = vector_data_at(v, vector_pos(v) - 1);
   vector_pos(v)--;
   return ele;
