@@ -22,31 +22,33 @@ void load_init_file(void);
 int main(int argc, char *argv[])
 {
   char *cases[] = {
-    "(+. 1.1 1.2)",
-    "(integer->float 123)",
-    "(& 5 7)",
-    "'hello",
-    "-",
-    "(define a (string->in-port \"abc\"))",
-    "(read-string-in-port-char a)",
-    "(+ 1 2)",
-    "(* 3 4)",
-    "(quotient 10 3)",
-    "(remainder 10 3)",
-    "(= 1 2)",
-    "(> 4 5)",
-    "(& 5 7)",
-    "(| 5 7)",
-    "(~ 5)",
-    "(eq? 'hello 'hello)",
-    "(eq? 1 1)",
-    "(eq? (string->symbol \"hello\") 'hello)",
-    "(type-of 'hello)",
-    "type-of",
-    "#\\a",
-    "(type-of #\\a)",
-    "(define a #(1 2 3))",
+    /* "(+. 1.1 1.2)", */
+    /* "(integer->float 123)", */
+    /* "(& 5 7)", */
+    /* "'hello", */
+    /* "-", */
+    /* "(define a (string->in-port \"abc\"))", */
+    /* "(read-string-in-port-char a)", */
+    /* "(+i 1 2)", */
+    /* "(*i 3 4)", */
+    /* "(quotient 10 3)", */
+    /* "(remainder 10 3)", */
+    /* "(= 1 2)", */
+    /* "(> 4 5)", */
+    /* "(& 5 7)", */
+    /* "(| 5 7)", */
+    /* "(~ 5)", */
+    /* "(eq? 'hello 'hello)", */
+    /* "(eq? 1 1)", */
+    /* "(eq? (string->symbol \"hello\") 'hello)", */
+    /* "(type-of 'hello)", */
+    /* "type-of", */
+    /* "#\\a", */
+    /* "(type-of #\\a)", */
+    /* "(define a #(1 2 3))", */
+    /* "#\\汉", */
     /* "(set! a 123)", */
+    "(string-ref \"汉字\" 0)",
   };
   init_impl();
   /* printf("Address of `-': %p\n", &primitive_procs[1]); */
@@ -55,16 +57,17 @@ int main(int argc, char *argv[])
     sexp in_port = make_file_in_port(stream);
     /* inc_ref_count(in_port); */
     printf(">> %s\n=> ", cases[i]);
-    sexp input = read_object(in_port);
-    if (is_eof(input))
+    sexp value = read_object(in_port);
+    if (is_eof(value))
       break;
     /* inc_ref_count(input); */
-    sexp value = eval_object(input, repl_environment);
+    value = eval_object(value, repl_environment);
     /* if (!is_self_eval(input)) */
     /*   inc_ref_count(value); */
     write_object(value, scm_out_port);
     putchar('\n');
   }
+  /* write_object(make_wstring("汉"), scm_out_port); */
   /* trigger_gc(); */
   return 0;
 }

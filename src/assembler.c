@@ -35,8 +35,13 @@ struct code_t opcodes[] = {
   C(JUMP, 1),
   C(LSET, 2),
   C(LVAR, 2),
+  C(MC, 1),
   C(POP, 0),
   C(PRIM, 1),
+  C(PRIM0, 0),
+  C(PRIM1, 0),
+  C(PRIM2, 0),
+  C(PRIM3, 0),
   C(RETURN, 0),
   C(SAVE, 1),
   C(TJUMP, 1),
@@ -46,6 +51,7 @@ struct code_t opcodes[] = {
   C(IDIV, 0),
   C(CAR, 0),
   C(CDR, 0),
+  C(EQ, 0),
 };
 
 /* Categorize the instruction */

@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2013-03-17 liutos <mat.liutos@gmail.com>
  */
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +17,10 @@
 
 #define HEAP_SIZE 1000
 
+extern char port_read_char(sexp);
+
 void mark(sexp);
+int nzero(char);
 
 int alloc_count;
 int mark_count;
@@ -43,6 +47,7 @@ sexp scm_out_port;
 struct lisp_object_t *objects_heap;
 struct lisp_object_t *free_objects;
 sexp root;
+sexp vm_stack;
 
 /* Memory management */
 void mark_compiled_proc(sexp proc) {
@@ -97,6 +102,7 @@ void scan_heap(void) {
       port_format(scm_out_port, "Reclaiming %*\n", obj);
       obj->next = free_objects;
       free_objects = obj;
+      obj->is_used = no;
       alloc_count--;
     } else
       obj->gc_mark = no;
@@ -135,8 +141,8 @@ sexp alloc_object(enum object_type type) {
 
 struct lisp_object_t *init_heap(void) {
   struct lisp_object_t *heap =
-      malloc(HEAP_SIZE * sizeof(struct lisp_object_t));
-  memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t));
+      calloc(HEAP_SIZE, sizeof(struct lisp_object_t));
+  /* memset(heap, '\0', HEAP_SIZE * sizeof(struct lisp_object_t)); */
   for (int i = 0; i < HEAP_SIZE; i++)
     heap[i].next = &(heap[i + 1]);
   heap[HEAP_SIZE - 1].next = NULL;
@@ -205,9 +211,9 @@ sexp make_primitive_proc(C_proc_t C_proc) {
 
 sexp make_lambda_procedure(sexp pars, sexp body, sexp env) {
   sexp proc = alloc_object(COMPOUND_PROC);
-  ASIG(compound_proc_parameters(proc), pars);
-  ASIG(compound_proc_body(proc), body);
-  ASIG(compound_proc_environment(proc), env);
+  compound_proc_parameters(proc) = pars;
+  compound_proc_body(proc) = body;
+  compound_proc_environment(proc) = env;
   return proc;
 }
 
@@ -223,6 +229,7 @@ sexp make_vector(unsigned int length) {
   sexp vector = alloc_object(VECTOR);
   vector_length(vector) = length;
   vector_datum(vector) = malloc(length * sizeof(struct lisp_object_t));
+  vector_pos(vector) = 0;
   return vector;
 }
 
@@ -236,9 +243,9 @@ sexp make_return_info(sexp code, int pc, sexp env) {
 
 sexp make_macro_procedure(sexp pars, sexp body, sexp env) {
   sexp macro = alloc_object(MACRO);
-  ASIG(macro_proc_pars(macro), pars);
-  ASIG(macro_proc_body(macro), body);
-  ASIG(macro_proc_env(macro), env);
+  macro_proc_pars(macro) = pars;
+  macro_proc_body(macro) = body;
+  macro_proc_env(macro) = env;
   return macro;
 }
 
@@ -249,11 +256,75 @@ sexp make_environment(sexp bindings, sexp outer_env) {
   return env;
 }
 
-sexp make_string_in_port(char *string) {
-  sexp sp = alloc_object(STRING_IN_PORT);
-  in_sp_string(sp) = string;
-  in_sp_position(sp) = 0;
-  return sp;
+sexp make_wchar(void) {
+  sexp wc = alloc_object(WCHAR);
+  wchar_value(wc)[WCHAR_LENGTH - 1] = '\0';
+  return wc;
+}
+
+int get_mask(int n) {
+  switch (n) {
+    case 1: return 0x3f;
+    case 2: return 0x1f;
+    case 3: return 0x0f;
+    case 4: return 0x07;
+    case 5: return 0x03;
+    case 6: return 0x01;
+    default :
+      port_format(scm_err_port, "Impossible - get_mask\n");
+      exit(1);
+  }
+}
+
+/* Computes the code point of an UTF-8 encoding character */
+/* sexp bytes2code_point(char *bytes) { */
+/*   int cp = 0; */
+/*   int cnt = nzero(*bytes); */
+/*   if (cnt == 0) return make_fixnum(*bytes); */
+/*   cp = cp | get_mask(cnt); */
+/*   cp = cp << (8 - (cnt + 1)); */
+/*   bytes++; */
+/*   for (int i = 0; i < cnt; i++) { */
+/* cp = cp | */
+/*   } */
+/* } */
+
+int utf8_strlen(char *str) {
+  int ulen = 0;
+  while (*str) {
+    int n = nzero(*str);
+    if (n == 0) {
+      str++;
+      /* ulen++; */
+    } else {
+      /* ulen += n; */
+      str += n;
+    }
+    ulen++;
+  }
+  return ulen;
+}
+
+sexp make_wstring(char *bytes) {
+  sexp init_wchar(char *);
+  sexp ws = alloc_object(WSTRING);
+  int len = utf8_strlen(bytes);
+  wstring_length(ws) = len;
+  wstring_value(ws) = calloc(len, sizeof(sexp));
+  /* wstring_value(ws)[len - 1] = '\0'; */
+  /* for (int i = 0; i < len; i++) */
+  /*   wstring_value(ws)[i] = make_character(bytes[i]); */
+  int i = 0;
+  while (*bytes) {
+    int n = nzero(*bytes);
+    if (n == 0)
+      wstring_value(ws)[i] = make_character(*bytes);
+    else
+      wstring_value(ws)[i] = init_wchar(bytes);
+    i++;
+    bytes += n == 0 ? 1: n;
+  }
+  return ws;
 }
 
 /* utilities */
@@ -303,14 +374,80 @@ tail_loop:
 /* (a b) + (c d) => ((a . c) (b . d)) */
 /* (a b) + (c) => ((a . c) (b . ())) */
 sexp merge_alist(sexp l1, sexp l2) {
-  /* if (!is_pair(l1) || !is_pair(l2)) return EOL; */
-  /* return make_pair(make_pair(pair_car(l1), pair_car(l2)), */
-  /*                  merge_alist(pair_cdr(l1), pair_cdr(l2))); */
   if (!is_pair(l1)) return EOL;
   sexp val = is_pair(l2) ? pair_car(l2): EOL;
   sexp rest = is_pair(l2) ? pair_cdr(l2): EOL;
   return make_pair(make_pair(pair_car(l1), val),
                    merge_alist(pair_cdr(l1), rest));
+}
+
+/* PORT */
+sexp read_byte(sexp port) {
+  FILE *stream = in_port_stream(port);
+  return make_fixnum(fgetc(stream));
+}
+
+/* Computes the number of prefix zero bits in a byte */
+int nzero(char c) {
+  char mask = 0x80;
+  int count = 0;
+  for (; (c & mask) != 0; c = c << 1)
+    count++;
+  return count;
+}
+
+sexp read_char(sexp port) {
+  char c = port_read_char(port);
+  if (nzero(c) == 0) return make_character(c);
+  assert(nzero(c) < 6);
+  sexp wc = make_wchar();
+  wchar_value(wc)[0] = c;
+  for (int i = 1; i < nzero(c); i++) {
+    char ch = port_read_char(port);
+    wchar_value(wc)[i] = ch;
+  }
+  return wc;
+}
+
+/* WCHAR */
+sexp init_wchar(char *bytes) {
+  sexp wc = make_wchar();
+  int n = nzero(*bytes);
+  for (int i = 0; i < n; i++)
+    wchar_value(wc)[i] = bytes[i];
+  return wc;
+}
+
+/* VECTOR */
+sexp is_vector_full(sexp v) {
+  return vector_pos(v) >= vector_length(v) ? true_object: false_object;
+}
+
+sexp vector_push(sexp ele, sexp vector) {
+  if (is_vector_full(vector) == true_object) {
+    port_format(scm_err_port, "vector_push - The vector is full of elements\n");
+    exit(1);
+  }
+  vector_data_at(vector, vector_pos(vector)) = ele;
+  return make_fixnum(++vector_pos(vector));
+}
+
+sexp is_vector_empty(sexp v) {
+  return vector_pos(v) == 0 ? true_object: false_object;
+}
+
+sexp vector_top(sexp v) {
+  return vector_data_at(v, vector_pos(v) - 1);
+}
+
+sexp vector_pop(sexp v) {
+  if (is_vector_empty(v) == true_object) {
+    port_format(scm_err_port, "vector_pop - The vector is empty\n");
+    exit(1);
+  }
+  sexp ele = /* vector_data_at(v, vector_pos(v) - 1) */vector_top(v);
+  vector_pos(v)--;
+  return ele;
 }
 
 /* Others */
@@ -391,7 +528,7 @@ sexp find_symbol(char *name) {
 sexp find_or_create_symbol(char *name) {
   sexp symbol = find_symbol(name);
   if (NULL == symbol) {
-    symbol = make_symbol(name);
+    symbol = make_symbol(strdup(name));
     store_symbol(symbol);
     return symbol;
   } else

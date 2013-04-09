@@ -22,7 +22,7 @@
     return is_tag_list(obj, sym);               \
   }
 
-extern lisp_object_t apply_proc(lisp_object_t);
+/* extern lisp_object_t apply_proc(lisp_object_t); */
 extern lisp_object_t eval_proc(lisp_object_t);
 
 sexp eval_object(sexp, sexp);
@@ -193,9 +193,9 @@ DEFACC(or_tests, pair_cdr)
 
 /* apply */
 
-int is_apply(lisp_object_t proc) {
-  return is_primitive(proc) && apply_proc == primitive_C_proc(proc);
-}
+/* int is_apply(lisp_object_t proc) { */
+/*   return is_primitive(proc) && apply_proc == primitive_C_proc(proc); */
+/* } */
 
 lisp_object_t apply_operands_conc(lisp_object_t operands) {
   if (is_null(operands)) return EOL;
@@ -238,7 +238,7 @@ sexp eval_application(sexp operator, sexp operands) {
     sexp body = compound_proc_body(operator);
     sexp vars = compound_proc_parameters(operator);
     sexp def_env = compound_proc_environment(operator);
-    sexp object = make_pair(find_or_create_symbol("begin"), body);
+    sexp object = make_pair(S("begin"), body);
     sexp env = extend_environment(vars, operands, def_env);
     return eval_object(object, env);
   }
@@ -350,10 +350,10 @@ tail_loop:
       return eval_object(exp, environment);
     }
     operands = eval_arguments(operands, environment);
-    if (is_apply(operator)) {
-      operator = pair_car(operands);
-      operands = apply_operands_conc(pair_cdr(operands));
-    }
+    /* if (is_apply(operator)) { */
+    /*   operator = pair_car(operands); */
+    /*   operands = apply_operands_conc(pair_cdr(operands)); */
+    /* } */
     if (is_eval(operator)) {
       environment = pair_cadr(operands);
       object = pair_car(operands);

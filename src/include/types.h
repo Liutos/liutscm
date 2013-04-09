@@ -10,10 +10,16 @@
 
 #include <stdio.h>
 
+#define WCHAR_LENGTH 6
+
 typedef struct lisp_object_t *sexp;
 typedef sexp (*C_proc_t)(sexp);
 typedef unsigned int (*hash_fn_t)(char *);
 typedef int (*comp_fn_t)(char *, char *);
+typedef sexp (*proc0_t)(void);
+typedef sexp (*proc1_t)(sexp);
+typedef sexp (*proc2_t)(sexp, sexp);
+typedef sexp (*proc3_t)(sexp, sexp, sexp);
 
 enum object_type {
   /* tagged pointer types */
@@ -39,16 +45,11 @@ enum object_type {
   FLONUM,
   MACRO,
   ENVIRONMENT,
-  STRING_IN_PORT,
+  WCHAR,
+  WSTRING,
 };
 
 /* Lisp object */
-/*
- * There're three status of field `gc_mark':
- * yes: the object is marked
- * no: the object isn't allocated yet
- * used: the object is allocated
- */
 typedef struct lisp_object_t {
   enum object_type type;
   /* int ref_count; */
@@ -71,6 +72,7 @@ typedef struct lisp_object_t {
       int is_side_effect;
       char *Lisp_name;
       char *code_name;
+      sexp arity;
     } primitive_proc;
     struct {
       sexp parameters;
@@ -92,6 +94,7 @@ typedef struct lisp_object_t {
     struct {
       sexp *datum;
       unsigned int length;
+      int index;                        /* The first writable place */
     } vector;
     struct {
       sexp code;
@@ -106,9 +109,12 @@ typedef struct lisp_object_t {
       sexp outer_env;
     } environment;
     struct {
-      char *string;
-      int position;
-    } string_in_port;
+      char bytes[WCHAR_LENGTH];
+    } wchar;
+    struct {
+      sexp *string;
+      int length;
+    } wstring;
   } values;
 } *lisp_object_t;
 
@@ -184,14 +190,14 @@ typedef struct hash_table_t {
 #define FIXNUM_MASK 0x03
 #define FIXNUM_TAG 0x01
 #define is_fixnum(x) is_of_tag(x, FIXNUM_MASK, FIXNUM_TAG)
-#define to_fixnum(x) ((lisp_object_t)((value << FIXNUM_BITS) | FIXNUM_TAG))
+#define to_fixnum(x) ((lisp_object_t)((x << FIXNUM_BITS) | FIXNUM_TAG))
 #define fixnum_value(x) (((int)(x)) >> FIXNUM_BITS)
 /* CHARACTER */
 #define CHAR_BITS 4
 #define CHAR_MASK 0x0f
 #define CHAR_TAG 0x06
 #define is_char(x) is_of_tag(x, CHAR_MASK, CHAR_TAG)
-#define to_char(x) ((lisp_object_t)((c << CHAR_BITS) | CHAR_TAG))
+#define to_char(x) ((lisp_object_t)((x << CHAR_BITS) | CHAR_TAG))
 #define char_value(x) (((int)(x)) >> CHAR_BITS)
 
 /* pointer on heap */
@@ -223,6 +229,7 @@ typedef struct hash_table_t {
 #define vector_datum(x) ((x)->values.vector.datum)
 #define vector_length(x) ((x)->values.vector.length)
 #define vector_data_at(x, i) (vector_datum(x)[i])
+#define vector_pos(x) ((x)->values.vector.index)
 /* FLONUM */
 #define is_float(x) is_pointer_tag(x, FLONUM)
 #define float_value(x) ((x)->values.flonum.value)
@@ -232,6 +239,7 @@ typedef struct hash_table_t {
 #define primitive_se(x) ((x)->values.primitive_proc.is_side_effect)
 #define primitive_name(x) ((x)->values.primitive_proc.Lisp_name)
 #define primitive_opcode(x) ((x)->values.primitive_proc.code_name)
+#define primitive_arity(x) ((x)->values.primitive_proc.arity)
 /* COMPOUND_PROC */
 #define is_compound(x) is_pointer_tag(x, COMPOUND_PROC)
 #define is_function(x) (is_primitive(x) || is_compound(x))
@@ -257,10 +265,13 @@ typedef struct hash_table_t {
 #define is_environment(x) is_pointer_tag(x, ENVIRONMENT)
 #define environment_bindings(x) ((x)->values.environment.bindings)
 #define environment_outer(x) ((x)->values.environment.outer_env)
-/* STRING_IN_PORT */
-#define is_in_sp(x) is_pointer_tag(x, STRING_IN_PORT)
-#define in_sp_string(x) ((x)->values.string_in_port.string)
-#define in_sp_position(x) ((x)->values.string_in_port.position)
+/* WCHAR */
+#define is_wchar(x) is_pointer_tag(x, WCHAR)
+#define wchar_value(x) ((x)->values.wchar.bytes)
+/* WSTRING */
+#define is_wstring(x) is_pointer_tag(x, WSTRING)
+#define wstring_value(x) ((x)->values.wstring.string)
+#define wstring_length(x) ((x)->values.wstring.length)
 
 /* utilities */
 /* PAIR */
@@ -284,16 +295,10 @@ typedef struct hash_table_t {
 #define is_label(x) is_symbol(x)
 /* PRIMITIVE_PROC */
 #define is_code_exist(x) (primitive_opcode(x) != NULL)
-/* STRING_IN_PORT */
-#define in_sp_char(x) (in_sp_string(x)[in_sp_position(x)])
-
-/* maintain reference count */
-/* Assign and increase the ref_count */
-#define ASIG(var, value) var = value
-/* #define ASIG(var, value)                        \ */
-/*   do {                                          \ */
-/*     var = value;                                \ */
-/*     inc_ref_count(value);                       \ */
-/*   } while(0) */
+#define is_arity_exist(x) (primitive_arity(x) != to_fixnum(-1))
+#define proc0(x) ((proc0_t)primitive_C_proc(x))
+#define proc1(x) ((proc1_t)primitive_C_proc(x))
+#define proc2(x) ((proc2_t)primitive_C_proc(x))
+#define proc3(x) ((proc3_t)primitive_C_proc(x))
 
 #endif

@@ -16,8 +16,13 @@ enum code_type {
   JUMP,
   LSET,
   LVAR,
+  MC,
   POP,
   PRIM,
+  PRIM0,
+  PRIM1,
+  PRIM2,
+  PRIM3,
   RETURN,
   SAVE,
   TJUMP,
@@ -29,6 +34,8 @@ enum code_type {
   /* Pair operations */
   CAR,
   CDR,
+  /* Others */
+  EQ,
 };
 
 struct code_t {

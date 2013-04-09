@@ -24,6 +24,7 @@
 #define gen_argsdot(x) gen("ARGSD", x)
 #define gen_call(x) gen("CALL", x)
 #define gen_callj(x) gen("CALLJ", x)
+#define gen_call0(x) gen("CALL0", x)
 #define gen_const(x) gen("CONST", x)
 #define gen_fjump(x) gen("FJUMP", x)
 #define gen_fn(x) gen("FN", x)
@@ -32,6 +33,7 @@
 #define gen_jump(x) gen("JUMP", x)
 #define gen_lset(i, j) gen("LSET", i, j)
 #define gen_lvar(i, j) gen("LVAR", i, j)
+#define gen_macro(x) gen("MC", x)
 #define gen_pop() gen("POP")
 #define gen_prim(x) gen("PRIM", x)
 #define gen_return() gen("RETURN")
@@ -60,8 +62,10 @@ lisp_object_t make_list1(lisp_object_t x) {
 lisp_object_t make_label(void) {
   static char buffer[BUFFER_SIZE];
   int n = sprintf(buffer, "L%d", label_counter);
+  buffer[n] = '\0';
   label_counter++;
-  return find_or_create_symbol(strndup(buffer, n));
+  /* return find_or_create_symbol(strndup(buffer, n)); */
+  return S(buffer);
 }
 
 /* Returns true when the symbol is the name of a primitive function */
@@ -77,7 +81,7 @@ lisp_object_t make_label(void) {
 lisp_object_t generate_code(char *code_name, ...) {
   va_list ap;
   va_start(ap, code_name);
-  return make_list1(make_pair(find_or_create_symbol(code_name),
+  return make_list1(make_pair(S(code_name),
                               va_list2pair(ap)));
 }
 
@@ -128,6 +132,12 @@ sexp make_proper_list(sexp dotable_list) {
   return head;
 }
 
+sexp gen_primN(sexp op) {
+  static char buffer[BUFFER_SIZE];
+  sprintf(buffer, "PRIM%d", fixnum_value(primitive_arity(op)));
+  return gen(buffer);
+}
+
 /* Compiler */
 lisp_object_t compile_constant(lisp_object_t val, int is_val, int is_more) {
   /* return gen_const(val); */
@@ -170,10 +180,22 @@ sexp compile_lambda(sexp args, sexp body, sexp env) {
   return make_compiled_proc(args, code, new_env);
 }
 
+sexp compile_macro(sexp args, sexp body, sexp env) {
+  /* Parses the original lambda-list and converts it to proper-list
+   * after parsing */
+  sexp arg_ins = gen_args_ins(args, 0);
+  sexp pars = make_proper_list(args);
+
+  sexp new_env = extend_environment(pars, EOL, env);
+  sexp code = seq(arg_ins, compile_begin(body, new_env, yes, no));
+  return make_macro_procedure(args, code, new_env);
+}
+
 sexp compile_arguments(sexp args, sexp env) {
   if (is_null(args)) return EOL;
   sexp first = compile_object(pair_car(args), env, yes, yes);
-  return seq(first, compile_arguments(pair_cdr(args), env));
+  /* return seq(first, compile_arguments(pair_cdr(args), env)); */
+  return seq(compile_arguments(pair_cdr(args), env), first);
 }
 
 sexp compile_var(sexp object, sexp env, int is_val, int is_more) {
@@ -249,6 +271,12 @@ sexp compile_application(sexp object, sexp env, int is_val, int is_more) {
                    gen(primitive_opcode(op)),
                    (is_val ? EOL: gen_pop()),
                    (is_more ? EOL: gen_return()));
+      else if (is_arity_exist(op))
+        return seq(compile_arguments(operands, env),
+                   compile_object(operator, env, yes, yes),
+                   gen_primN(op),
+                   (is_val ? EOL: gen_pop()),
+                   (is_more ? EOL: gen_return()));
       else
         return seq(compile_arguments(operands, env),
                    compile_object(operator, env, yes, yes),
@@ -305,6 +333,13 @@ sexp compile_object(sexp object, sexp env, int is_val, int is_more) {
     sexp body = lambda_body(object);
     sexp code = compile_lambda(args, body, env);
     return seq(gen_fn(code), is_more ? EOL: gen_return());
+  }
+  /* macro */
+  if (is_macro_form(object) && is_val) {
+    sexp args = macro_parameters(object);
+    sexp body = macro_body(object);
+    sexp code = compile_macro(args, body, env);
+    return seq(gen_macro(code), is_more ? EOL: gen_return());
   }
   if (is_application_form(object))
     return compile_application(object, env, is_val, is_more);

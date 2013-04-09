@@ -15,3 +15,7 @@
 1. basic data type variables
 2. library data type variables
 2. user-defined struct variables
+
+# malloc&free
+
+1. release the memory in the allocating scope
